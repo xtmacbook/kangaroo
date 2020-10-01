@@ -93,5 +93,6 @@ if(BUILD_EXAMPLES)
 endif()
 #include(cmake/test.cmake)
 
+ADD_SUBDIRECTORY(tool)
 
 
