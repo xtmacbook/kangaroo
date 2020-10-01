@@ -98,3 +98,17 @@ target_link_libraries(geom_clipMap ${engineName})
 install(TARGETS geom_clipMap RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 
+# ================================================= chunklod===================================================================================
+
+set(chunklod_Source_Files  	    chunklod/main.cpp 
+								)
+add_executable(chunklodMap ${chunklod_Source_Files})
+add_dependencies(chunklodMap ${engineName})
+source_group("Source Files" FILES ${chunklod_Source_Files})
+set_target_properties(chunklodMap PROPERTIES PROJECT_LABEL "chunklodMap")						# in Visual Studio
+set_target_properties(chunklodMap PROPERTIES OUTPUT_NAME "chunklodMap")
+set_target_properties(chunklodMap PROPERTIES FOLDER "examples/terrains")
+target_link_libraries(chunklodMap ${engineName}) 
+ 
+#install
+install(TARGETS chunklodMap RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
