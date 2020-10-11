@@ -202,7 +202,7 @@ bool PNTTessScene::initSceneModels(const SceneInitInfo&)
 		if (!data.meshs_.empty())
 		{
 			RenderNode_SP rn = new RenderNode;
-			Base::SmartPointer<LocalMeshGeometry> mg = new LocalMeshGeometry(rn);
+			base::SmartPointer<LocalMeshGeometry> mg = new LocalMeshGeometry(rn);
 			mg->meshs_ = data.meshs_;
 			mg->initGeometry();
 			if (rn)

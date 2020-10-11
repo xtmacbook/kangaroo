@@ -19,7 +19,7 @@ MeshGeometry_Sp Cbrute_force_terrain::initGeometry()
 {
 	float fTexLeft, fTexBottom, fTexTop;
 
-	Base::SmartPointer<MeshGeometry> mg = new MeshGeometry;
+	base::SmartPointer<MeshGeometry> mg = new MeshGeometry;
 	for (int iZ = 0; iZ < m_iSize - 1; iZ++)
 	{
 		//loop through the X-axis of the terrain

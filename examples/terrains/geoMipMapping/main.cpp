@@ -35,8 +35,8 @@ protected:
 public:
 	virtual void					render(PassInfo&);
 	GeoMipMapping_SP				terrain_ = nullptr;
-	Base::SmartPointer<SkyDom>		skyDom_ = nullptr;
-	Base::SmartPointer<Cloud>		cloud_ = nullptr;
+	base::SmartPointer<SkyDom>		skyDom_ = nullptr;
+	base::SmartPointer<Cloud>		cloud_ = nullptr;
 };
 
 GeoScene::GeoScene()

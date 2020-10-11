@@ -7,7 +7,7 @@
 #include <smartPointer.h>
 #include <texture.h>
 
-class Cloud :public Base::BaseObject
+class Cloud :public base::BaseObject
 {
 public:
 	Cloud();

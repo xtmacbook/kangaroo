@@ -71,7 +71,7 @@ struct Strn_texture_regions
 	int m_iHighHeight;			//highest possible height (0%)
 };
 
-class GeoMipMapping :public Base::BaseObject
+class GeoMipMapping :public base::BaseObject
 {
 public:
 
@@ -155,6 +155,6 @@ private:
 	GLuint					vao_ = 0;
 };
 
-typedef Base::SmartPointer<GeoMipMapping> GeoMipMapping_SP;
+typedef base::SmartPointer<GeoMipMapping> GeoMipMapping_SP;
 
 #endif

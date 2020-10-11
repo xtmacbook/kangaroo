@@ -182,12 +182,12 @@ bool InterScene::initKeyCallback( )
 {
 	g_scene = this;
 	Scene::initKeyCallback(); //GLFW_KEY_N
-	KEY_CALLBACK(78, Base::NewPermanentCallback(keyEvent)); //GLFW_KEY_N
-	KEY_CALLBACK(79, Base::NewPermanentCallback(keyEvent)); //GLFW_KEY_O
-	KEY_CALLBACK(80, Base::NewPermanentCallback(keyEvent)); //GLFW_KEY_P
-	KEY_CALLBACK(81, Base::NewPermanentCallback(keyEvent)); //GLFW_KEY_Q
-	KEY_CALLBACK(82, Base::NewPermanentCallback(keyEvent)); //GLFW_KEY_R
-	KEY_CALLBACK(67, Base::NewPermanentCallback(keyEvent)); //GLFW_KEY_C
+	KEY_CALLBACK(78, base::NewPermanentCallback(keyEvent)); //GLFW_KEY_N
+	KEY_CALLBACK(79, base::NewPermanentCallback(keyEvent)); //GLFW_KEY_O
+	KEY_CALLBACK(80, base::NewPermanentCallback(keyEvent)); //GLFW_KEY_P
+	KEY_CALLBACK(81, base::NewPermanentCallback(keyEvent)); //GLFW_KEY_Q
+	KEY_CALLBACK(82, base::NewPermanentCallback(keyEvent)); //GLFW_KEY_R
+	KEY_CALLBACK(67, base::NewPermanentCallback(keyEvent)); //GLFW_KEY_C
 	return true;
 }
 

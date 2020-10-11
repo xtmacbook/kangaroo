@@ -124,7 +124,7 @@ bool TessScene::initSceneModels(const SceneInitInfo&)
 			if (!data.meshs_.empty())
 			{
 				RenderNode_SP rn = new RenderNode;
-				Base::SmartPointer<MeshGeometry> mg = new MeshGeometry();
+				base::SmartPointer<MeshGeometry> mg = new MeshGeometry();
 				mg->meshs_ = data.meshs_;
 				for_each(mg->meshs_.begin(), mg->meshs_.end(), [](Mesh_SP msh) {
 					msh->rmode() = GL_PATCHES;

@@ -5,7 +5,7 @@
 #include <BaseObject.h>
 #include <smartPointer.h>
 
-class SkyDom :public Base::BaseObject
+class SkyDom :public base::BaseObject
 {
 public:
 	SkyDom();

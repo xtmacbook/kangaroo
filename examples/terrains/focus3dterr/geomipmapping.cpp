@@ -53,7 +53,7 @@ bool Cgeomipmapping::init(int patchSize)
 
 MeshGeometry_Sp Cgeomipmapping::initGeometry()
 {
-	Base::SmartPointer<DynamicMeshGeoemtry> mg = new DynamicMeshGeoemtry(2,1248 * 1248,1248 * 1248);
+	base::SmartPointer<DynamicMeshGeoemtry> mg = new DynamicMeshGeoemtry(2,1248 * 1248,1248 * 1248);
 	mg->RFVF() |= FVF_XYZ;
 	mg->RFVF() |= FVF_NORMAL; //for calor
 	mg->RFVF() |= FVF_TEXT0;

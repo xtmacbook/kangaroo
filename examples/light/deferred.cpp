@@ -128,7 +128,7 @@ protected:
 public:
 	virtual void					render(PassInfo&);
 
-	Base::SmartPointer<GBuffer>		gbuffer_;
+	base::SmartPointer<GBuffer>		gbuffer_;
 };
 
 DeferredScene::~DeferredScene()
@@ -167,7 +167,7 @@ bool DeferredScene::initSceneModels(const SceneInitInfo&)
 		if (!data.meshs_.empty())
 		{
 			RenderNode_SP rn = new RenderNode;
-			Base::SmartPointer<LocalMeshGeometry> mg = new LocalMeshGeometry(rn);
+			base::SmartPointer<LocalMeshGeometry> mg = new LocalMeshGeometry(rn);
 			mg->meshs_ = data.meshs_;
 			mg->initGeometry();
 			if (rn)
@@ -179,14 +179,14 @@ bool DeferredScene::initSceneModels(const SceneInitInfo&)
 			addRenderNode(rn);
 
 			//quad
-			Base::SmartPointer<Quad> quad = new Quad;
+			base::SmartPointer<Quad> quad = new Quad;
 			quad->initGeometry();
 			RenderNode_SP quadRenderNode = new RenderNode;
 			quadRenderNode->setGeometry(quad);
 			addRenderNode(quadRenderNode);
 
 			//cub
-			Base::SmartPointer<Cub> cub = new Cub;
+			base::SmartPointer<Cub> cub = new Cub;
 			cub->initGeometry();
 			RenderNode_SP cubRenderNode = new RenderNode;
 			cubRenderNode->setGeometry(cub);

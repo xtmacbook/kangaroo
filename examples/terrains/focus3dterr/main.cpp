@@ -149,12 +149,12 @@ bool TerrainScene::initKeyCallback()
 {
 	Scene::initKeyCallback();
 
-	KEY_CALLBACK(258, Base::NewPermanentCallback(keyEvent)); //GLFW_KEY_TAB
-	KEY_CALLBACK(79, Base::NewPermanentCallback(keyEvent));
-	KEY_CALLBACK(80, Base::NewPermanentCallback(keyEvent));
+	KEY_CALLBACK(258, base::NewPermanentCallback(keyEvent)); //GLFW_KEY_TAB
+	KEY_CALLBACK(79, base::NewPermanentCallback(keyEvent));
+	KEY_CALLBACK(80, base::NewPermanentCallback(keyEvent));
 
-	KEY_CALLBACK(333, Base::NewPermanentCallback(keyEvent)); //add
-	KEY_CALLBACK(334, Base::NewPermanentCallback(keyEvent)); //sub
+	KEY_CALLBACK(333, base::NewPermanentCallback(keyEvent)); //add
+	KEY_CALLBACK(334, base::NewPermanentCallback(keyEvent)); //sub
 
 	return true;
 }

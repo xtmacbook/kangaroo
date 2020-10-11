@@ -140,12 +140,12 @@ bool loadCubemap(std::vector<std::string>& faces)
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-	std::vector<Base::SmartPointer<Image> > images;
+	std::vector<base::SmartPointer<Image> > images;
 
 	for (unsigned int i = 0; i < faces.size(); i++)
 	{
 		std::string t = faces[i];
-		Base::SmartPointer<Image> img = IO::EngineLoad::loadImage(faces[i].c_str());
+		base::SmartPointer<Image> img = IO::EngineLoad::loadImage(faces[i].c_str());
 		if (!img)
 		{
 			return false;
@@ -155,7 +155,7 @@ bool loadCubemap(std::vector<std::string>& faces)
 
 	for (unsigned int i = 0; i < faces.size(); i++)
 	{
-		Base::SmartPointer<Image>& img = images[i];
+		base::SmartPointer<Image>& img = images[i];
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, img->width(),img->height(), 0, GL_RGB, GL_UNSIGNED_BYTE, img->pixels());
 	}
 

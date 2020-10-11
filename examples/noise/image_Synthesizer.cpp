@@ -90,7 +90,7 @@ bool Image_Synthesizer_Scene::initThisDemo(const SceneInitInfo&)
 		if (!data.meshs_.empty())
 		{
 			RenderNode_SP rn = new RenderNode;
-			Base::SmartPointer<MeshGeometry> mg = new MeshGeometry(rn);
+			base::SmartPointer<MeshGeometry> mg = new MeshGeometry(rn);
 			mg->meshs_ = data.meshs_;
 
 			std::vector<Mesh_SP>& meshs = mg->meshs_;

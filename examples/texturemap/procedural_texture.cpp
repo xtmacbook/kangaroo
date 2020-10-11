@@ -66,7 +66,7 @@ bool ProduceDuralScene::initSceneModels(const SceneInitInfo&)
 
 bool ProduceDuralScene::initThisDemo(const SceneInitInfo&)
 {
-	Base::SmartPointer<Quad> quad = new Quad;
+	base::SmartPointer<Quad> quad = new Quad;
 	quad->initGeometry();
 	RenderNode_SP quadRenderNode = new RenderNode;
 	quadRenderNode->setGeometry(quad);
