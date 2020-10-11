@@ -101,7 +101,7 @@ CommonGeometry::~CommonGeometry()
 	glDeleteVertexArrays(1, &vao_);
 }
 
-const Base::BoundingBox& CommonGeometry::boundingBox() const
+const base::BoundingBox& CommonGeometry::boundingBox() const
 {
 	return box_;
 }
@@ -389,7 +389,7 @@ void MeshGeometry::drawGeoemtry(const DrawInfo&di)
 
 void MeshGeometry::computeBoundingBox(void *)
 {
-	std::vector<Base::SmartPointer<Mesh> >::const_iterator iter = meshs_.cbegin();
+	std::vector<base::SmartPointer<Mesh> >::const_iterator iter = meshs_.cbegin();
 	for (; iter != meshs_.cend(); iter++)
 	{
 		box_.expandBy((*iter)->getBOX());

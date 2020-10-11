@@ -4,7 +4,7 @@
 
 #include "color.h"
 /// Uncompressed 4x4 color block.
-namespace Base
+namespace base
 {
 	struct ColorBlock
 	{

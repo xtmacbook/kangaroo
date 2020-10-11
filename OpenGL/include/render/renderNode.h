@@ -6,7 +6,7 @@
 #include "IGeometry.h"
 #include "texture.h"
 
-using namespace Base;
+using namespace base;
 
 class LIBENIGHT_EXPORT RenderNode :public IRenderNode
 {

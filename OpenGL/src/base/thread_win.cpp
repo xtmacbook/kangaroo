@@ -9,17 +9,17 @@
 #endif
 
 
-Base::Thread::Thread()
+base::Thread::Thread()
 	: _handle(0)
 {}
 
 
-Base::Thread::~Thread()
+base::Thread::~Thread()
 {
 		CloseHandle(_handle);
 }
 
-void Base::Thread::start(const source_location &loc)
+void base::Thread::start(const source_location &loc)
 {
     _handle = CreateThread(
 		0,
@@ -34,12 +34,12 @@ void Base::Thread::start(const source_location &loc)
 	}
 }
 
-void Base::Thread::stop(const Base::source_location &loc)
+void base::Thread::stop(const base::source_location &loc)
 {	
 	loc;
 }
 
-void* Base::Thread::thread_fnc(void* data)
+void* base::Thread::thread_fnc(void* data)
 {
 	try {
 		reinterpret_cast<Thread*>(data)->run();
@@ -53,17 +53,17 @@ void* Base::Thread::thread_fnc(void* data)
 	return 0;
 }
 
-bool Base::Thread::wait_for_end(const unsigned int time /* = -1 */)
+bool base::Thread::wait_for_end(const unsigned int time /* = -1 */)
 {
 	return WAIT_OBJECT_0 == WaitForSingleObject((HANDLE)_handle, time);
 }
 
-void Base::Thread::terminate()
+void base::Thread::terminate()
 {
 	TerminateThread((HANDLE)_handle, DWORD(-1));
 }
 
-bool Base::createTls(TlsWin32* tls)
+bool base::createTls(TlsWin32* tls)
 {
 	assert(tls->allocated_ == false);
 	tls->index_ = TlsAlloc();
@@ -77,21 +77,21 @@ bool Base::createTls(TlsWin32* tls)
 	return true;
 }
 
-bool Base::platformSetTls(TlsWin32* tls, void* value)
+bool base::platformSetTls(TlsWin32* tls, void* value)
 {
 	assert(tls->allocated_ == true);
 	TlsSetValue(tls->index_, value);
 	return true;
 }
 
-void Base::destoryTls(TlsWin32*tls)
+void base::destoryTls(TlsWin32*tls)
 {
 	if (tls->allocated_)
 		TlsFree(tls->index_);
 	memset(tls, 0, sizeof(TlsWin32));
 }
 
-void* Base::platformGetTls(TlsWin32* tls)
+void* base::platformGetTls(TlsWin32* tls)
 {
 	assert(tls->allocated_ == true);
 	return  TlsGetValue(tls->index_);

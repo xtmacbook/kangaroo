@@ -18,7 +18,7 @@
 
 
 
-class LIBENIGHT_EXPORT Shader :public Base::BaseObject
+class LIBENIGHT_EXPORT Shader :public base::BaseObject
 {
 public:
 
@@ -114,7 +114,7 @@ private:
 
 	ShaderType											 type_;
 };
-typedef Base::SmartPointer<Shader> Shader_SP;
+typedef base::SmartPointer<Shader> Shader_SP;
 
 
 

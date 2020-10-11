@@ -23,7 +23,7 @@ namespace IO
 		unsigned int  m_uiWidth;
 		unsigned int  m_uiBPP;
 	};
-	bool ImageFile::loadTga(StdInputStream * stream, Base::SmartPointer<Base::Image>&img)
+	bool ImageFile::loadTga(StdInputStream * stream, base::SmartPointer<base::Image>&img)
 	{
 		std::vector<uint8> byte_array;
 		byte_array.resize(stream->size());

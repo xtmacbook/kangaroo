@@ -6,7 +6,7 @@
 #include "boundingBox.h"
 #include "BaseObject.h"
 
-using namespace Base;
+using namespace base;
 class CameraBase;
 
 struct LIBENIGHT_EXPORT IRenderNode :public BaseObject

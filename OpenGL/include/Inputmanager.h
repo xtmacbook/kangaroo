@@ -40,10 +40,10 @@ public:
 	static CameraBase*      getCamera() { return camera_; }
 
 	void					addScene(Scene*);
-	typedef					Base::ResultCallback1<bool, int>* keyPressCallback;
+	typedef					base::ResultCallback1<bool, int>* keyPressCallback;
 	static  void            addKeyCallback(int, keyPressCallback);
 
-	typedef					Base::Closure* ScenekeyMPressCallback;
+	typedef					base::Closure* ScenekeyMPressCallback;
 	static void			    addMethodCallback(int, ScenekeyMPressCallback);
 private:
 	InputManager();

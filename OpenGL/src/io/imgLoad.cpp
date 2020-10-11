@@ -11,7 +11,7 @@ using namespace math;
 
 namespace IO
 {
-	bool ImageFile::loadHDR(const char*file, Base::SmartPointer<Base::Image>&img)
+	bool ImageFile::loadHDR(const char*file, base::SmartPointer<base::Image>&img)
 	{
 		FILE *fp = fopen(file, "rb");
 		if (!fp) {

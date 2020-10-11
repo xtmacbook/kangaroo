@@ -6,7 +6,7 @@
 #include "type.h"
 
 using namespace math;
-using namespace Base;
+using namespace base;
 
 struct LIBENIGHT_EXPORT Vertex
 {

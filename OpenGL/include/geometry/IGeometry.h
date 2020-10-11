@@ -30,7 +30,7 @@ struct DrawInfo
 	Matrixf	matrix_ = Matrixf(1.0f);
 };
 
-class LIBENIGHT_EXPORT CommonGeometry :public Base::BaseObject
+class LIBENIGHT_EXPORT CommonGeometry :public base::BaseObject
 {
 public:
 	CommonGeometry(bool update = false);
@@ -46,10 +46,10 @@ public:
 	virtual Matrixf				getModelMatrix()const;
 	virtual void				updateModelMatix(const Matrixf&);
 
-	const Base::BoundingBox& boundingBox()const;
+	const base::BoundingBox& boundingBox()const;
 protected:
 	unsigned int  vao_;
-	Base::BoundingBox  box_;
+	base::BoundingBox  box_;
 	Matrixf modelMatrix_;
 	bool   beupdte_;
 };
@@ -130,7 +130,7 @@ private:
 	int vertices_size_ = 0;
 };
 
-typedef Base::SmartPointer<CommonGeometry> CommonGeometry_Sp;
-typedef Base::SmartPointer<MeshGeometry>	MeshGeometry_Sp;
+typedef base::SmartPointer<CommonGeometry> CommonGeometry_Sp;
+typedef base::SmartPointer<MeshGeometry>	MeshGeometry_Sp;
 
 #endif /* baseGeometry_h */

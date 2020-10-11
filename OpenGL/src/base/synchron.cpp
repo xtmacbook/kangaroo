@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-namespace Base {
+namespace base {
 	//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 	SameProcessMutex::SameProcessMutex()

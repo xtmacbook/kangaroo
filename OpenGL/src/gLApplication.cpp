@@ -96,7 +96,7 @@ void GLApplication::initialize(const WindowConfig* wc, const DeviceConfig* dc)
 	glViewport(0, 0, width_, hight_);
 	openglInit();
 
-	KEY_M_CALLBACK(70, Base::NewPermanentCallback(this, &GLApplication::showFrameRate, true)); //left
+	KEY_M_CALLBACK(70, base::NewPermanentCallback(this, &GLApplication::showFrameRate, true)); //left
 }
 
 void  GLApplication::pressEvents()

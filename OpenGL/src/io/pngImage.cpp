@@ -27,7 +27,7 @@ namespace IO
 	}
 #endif
 
-	bool ImageFile::loadPNG(StdInputStream * stream, Base::SmartPointer<Base::Image>&img)
+	bool ImageFile::loadPNG(StdInputStream * stream, base::SmartPointer<base::Image>&img)
 	{
 
 #if defined(ENGINE_PNG)

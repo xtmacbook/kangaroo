@@ -11,7 +11,7 @@
 
 #include "decl.h"
 
-namespace Base {
+namespace base {
 
 	class LIBENIGHT_EXPORT BaseObject
 	{

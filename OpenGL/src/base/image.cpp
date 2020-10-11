@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-namespace Base
+namespace base
 {
 	Image::Image()
 	{
@@ -398,8 +398,8 @@ namespace Base
 
 					for (int32 i = 0; i < bw; i++) {
 						int32 xBlockSize = std::min(4U, width - 4 * i);
-						Base::BlockDXT1* block = (Base::BlockDXT1*)src;
-						Base::ColorBlock color;
+						base::BlockDXT1* block = (base::BlockDXT1*)src;
+						base::ColorBlock color;
 
 						block->decodeBlock(&color);
 
@@ -410,7 +410,7 @@ namespace Base
 							}
 						}
 
-						src += sizeof(Base::BlockDXT1); // 64bits
+						src += sizeof(base::BlockDXT1); // 64bits
 					}
 				}
 
@@ -425,8 +425,8 @@ namespace Base
 
 					for (int32 i = 0; i < bw; i++) {
 						int32 xBlockSize = std::min(4U, width - 4 * i);
-						Base::BlockDXT3* block = (Base::BlockDXT3*)src;
-						Base::ColorBlock color;
+						base::BlockDXT3* block = (base::BlockDXT3*)src;
+						base::ColorBlock color;
 
 						block->decodeBlock(&color);
 
@@ -437,7 +437,7 @@ namespace Base
 							}
 						}
 
-						src += sizeof(Base::BlockDXT3); // 64bits
+						src += sizeof(base::BlockDXT3); // 64bits
 					}
 				}
 
@@ -452,8 +452,8 @@ namespace Base
 
 					for (int32 i = 0; i < bw; i++) {
 						int32 xBlockSize = std::min(4U, width - 4 * i);
-						Base::BlockDXT5* block = (Base::BlockDXT5*)src;
-						Base::ColorBlock color;
+						base::BlockDXT5* block = (base::BlockDXT5*)src;
+						base::ColorBlock color;
 
 						block->decodeBlock(&color);
 
@@ -464,7 +464,7 @@ namespace Base
 							}
 						}
 
-						src += sizeof(Base::BlockDXT5); // 64bits
+						src += sizeof(base::BlockDXT5); // 64bits
 					}
 				}
 

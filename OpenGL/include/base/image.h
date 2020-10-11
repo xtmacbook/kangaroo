@@ -5,7 +5,7 @@
 #include "smartPointer.h"
 
 using namespace math;
-namespace Base
+namespace base
 {
 	class Color32;
 
@@ -120,7 +120,7 @@ namespace Base
 	};
 
 	template<class T>
-	void Base::Image::getVal(uint x, uint y, T * r, T * g, T *b)
+	void base::Image::getVal(uint x, uint y, T * r, T * g, T *b)
 	{
 		if ((x < width_) && (y < height_))
 		{
@@ -133,7 +133,7 @@ namespace Base
 	}
 
 	template<class T>
-	void Base::Image::setVal(uint x, uint y, T * r, T * g, T *b)
+	void base::Image::setVal(uint x, uint y, T * r, T * g, T *b)
 	{
 		T * data = (T*)data_;
 		if ((x < width_) && (y < height_))
@@ -186,5 +186,5 @@ namespace Base
 	};
 }
 
-typedef Base::SmartPointer<Base::Image>		Image_SP;
+typedef base::SmartPointer<base::Image>		Image_SP;
 

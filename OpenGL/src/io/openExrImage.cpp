@@ -15,7 +15,7 @@
 
 namespace IO
 {
-	bool ImageFile::loadOpenEXRImage(const char *fileName, Base::SmartPointer<Base::Image>& img)
+	bool ImageFile::loadOpenEXRImage(const char *fileName, base::SmartPointer<base::Image>& img)
 	{
 #if defined(ENGINE_OPENEXR)
 		try

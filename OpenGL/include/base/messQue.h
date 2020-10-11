@@ -7,7 +7,7 @@
 #include "callback.h"
 #include <vector>
 //2020.09.08 16.04
-namespace Base
+namespace base
 {
 	template<class R, class M>
 	class LIBENIGHT_EXPORT MessageQueues

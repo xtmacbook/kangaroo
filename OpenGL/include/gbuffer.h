@@ -7,7 +7,7 @@
 #include <vector>
 
 class Texture;
-class LIBENIGHT_EXPORT TextureBuffer :public Base::BaseObject
+class LIBENIGHT_EXPORT TextureBuffer :public base::BaseObject
 {
 public:
 
@@ -25,11 +25,11 @@ public:
 	void		initGLObj();
 	void		destoryGLObj();
 
-	Base::SmartPointer<Texture>	 texture_;
+	base::SmartPointer<Texture>	 texture_;
 };
 
 
-struct LIBENIGHT_EXPORT RenderBuffer :public Base::BaseObject
+struct LIBENIGHT_EXPORT RenderBuffer :public base::BaseObject
 {
 	~RenderBuffer();
 
@@ -57,7 +57,7 @@ enum GBUFFER_C_TYPE
 	GB_DEFUAULT			= GB_POSITION | GB_NORMAL | GB_SPECULAR | GB_DEPTH
 };
 
-class LIBENIGHT_EXPORT GBuffer :public Base::BaseObject
+class LIBENIGHT_EXPORT GBuffer :public base::BaseObject
 {
 public:
 
@@ -80,10 +80,10 @@ public:
 	unsigned int w_;
 	unsigned int h_;
 
-	Base::SmartPointer<TextureBuffer>  position_;
-	Base::SmartPointer<TextureBuffer>  normal_;
-	Base::SmartPointer<TextureBuffer> specular_;
-	Base::SmartPointer<RenderBuffer> depth_;
+	base::SmartPointer<TextureBuffer>  position_;
+	base::SmartPointer<TextureBuffer>  normal_;
+	base::SmartPointer<TextureBuffer> specular_;
+	base::SmartPointer<RenderBuffer> depth_;
 
 	std::vector<unsigned int> attachments_;
 

@@ -6,7 +6,7 @@
 #include "stream.h"
 #include "smartPointer.h"
 
-namespace Base
+namespace base
 {
 	class Image;
 	class OpenExrImage;
@@ -18,14 +18,14 @@ namespace IO
     {
     public:
 
-		static bool					loadDDS(StdInputStream * stream, Base::SmartPointer<Base::Image>&);
-		static bool					loadOpenEXRImage(const char *fileName, Base::SmartPointer<Base::Image>&);
-		static bool					loadBMP(StdInputStream * stream, Base::SmartPointer<Base::Image>&);
-		static bool					loadJPG(StdInputStream * stream, Base::SmartPointer<Base::Image>&);
-		static bool					loadPNG(StdInputStream * stream, Base::SmartPointer<Base::Image>&);
-		static bool					loadKtx(const char*fileName, Base::SmartPointer<Base::Image>&);
-	    	static bool					loadTga(StdInputStream * stream, Base::SmartPointer<Base::Image>&);
-		static bool					loadHDR(const char*fileName , Base::SmartPointer<Base::Image>&);
+		static bool					loadDDS(StdInputStream * stream, base::SmartPointer<base::Image>&);
+		static bool					loadOpenEXRImage(const char *fileName, base::SmartPointer<base::Image>&);
+		static bool					loadBMP(StdInputStream * stream, base::SmartPointer<base::Image>&);
+		static bool					loadJPG(StdInputStream * stream, base::SmartPointer<base::Image>&);
+		static bool					loadPNG(StdInputStream * stream, base::SmartPointer<base::Image>&);
+		static bool					loadKtx(const char*fileName, base::SmartPointer<base::Image>&);
+	    static bool					loadTga(StdInputStream * stream, base::SmartPointer<base::Image>&);
+		static bool					loadHDR(const char*fileName , base::SmartPointer<base::Image>&);
     };
 }
 #endif

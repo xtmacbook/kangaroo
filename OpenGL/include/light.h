@@ -11,7 +11,7 @@
 
 #include <string>
 
-using namespace Base;
+using namespace base;
 
 class Shader;
 
@@ -60,7 +60,7 @@ enum LightType
 	LIGHT_POINT
 };
 
-struct LIBENIGHT_EXPORT BaseLight: public Base::BaseObject
+struct LIBENIGHT_EXPORT BaseLight: public base::BaseObject
 {
 	std::string name_ = "light";
 
@@ -123,10 +123,10 @@ struct LIBENIGHT_EXPORT SpotLight : public PointLight
 };
 
 
-typedef Base::SmartPointer<BaseLight>   Light_SP;
-typedef Base::SmartPointer<DirectionalLight>  DLight_SP;
-typedef Base::SmartPointer<PointLight>  PLight_SP;
-typedef Base::SmartPointer<SpotLight>  SLight_SP;
+typedef base::SmartPointer<BaseLight>   Light_SP;
+typedef base::SmartPointer<DirectionalLight>  DLight_SP;
+typedef base::SmartPointer<PointLight>  PLight_SP;
+typedef base::SmartPointer<SpotLight>  SLight_SP;
 
 
 struct LIBENIGHT_EXPORT BaseLightLocation

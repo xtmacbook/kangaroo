@@ -38,6 +38,6 @@ protected:
 	unsigned					current_i_index_ = 0;
 	bool						first_ = true;
 };
-typedef Base::SmartPointer<DynamicMeshGeoemtry>	DMeshGeometry_Sp;
+typedef base::SmartPointer<DynamicMeshGeoemtry>	DMeshGeometry_Sp;
 
 #endif

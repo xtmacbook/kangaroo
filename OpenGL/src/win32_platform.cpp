@@ -201,7 +201,7 @@ bool platformInit(void)
 
 	createKeyTables();
 
-	if (!Base::createTls(&opg.contextSlot_))
+	if (!base::createTls(&opg.contextSlot_))
 		return false;
 	
 	opg.initialized_ = true;

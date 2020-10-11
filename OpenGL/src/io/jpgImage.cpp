@@ -74,7 +74,7 @@ namespace IO {
 #endif // defined(ENGINE_JPEG)
 
 
-	bool ImageFile::loadJPG(StdInputStream * stream, Base::SmartPointer<Base::Image>&img)
+	bool ImageFile::loadJPG(StdInputStream * stream, base::SmartPointer<base::Image>&img)
 	{
 #ifdef ENGINE_JPEG
 

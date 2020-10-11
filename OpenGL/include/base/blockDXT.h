@@ -37,7 +37,7 @@
 
 #include "colorBlock.h"
 
-namespace Base
+namespace base
 {
 	/// DXT1 block.
 	struct BlockDXT1

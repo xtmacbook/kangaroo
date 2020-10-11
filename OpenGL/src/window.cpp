@@ -53,7 +53,7 @@ void gluTerminate()
 		gluDestoryWindow((GWindow*)opg.windowListHead_);
 
 	platformTerminate();
-	Base::destoryTls(&opg.contextSlot_);
+	base::destoryTls(&opg.contextSlot_);
 	memset(&opg, 0, sizeof(opg));
 }
 

@@ -7,9 +7,9 @@
 #include <vector>
 class Shader;
 
-using namespace Base;
+using namespace base;
  
-struct LIBENIGHT_EXPORT IRenderMeshObj :public Base::BaseObject
+struct LIBENIGHT_EXPORT IRenderMeshObj :public base::BaseObject
 {
 	~IRenderMeshObj();
 
@@ -50,6 +50,6 @@ struct LIBENIGHT_EXPORT RenderMeshObj :public IRenderMeshObj
 	std::vector<unsigned int> t_indices_; //texture indices in renderNode textures
 };
 
-typedef Base::SmartPointer<IRenderMeshObj> IRenderMeshObj_SP;
+typedef base::SmartPointer<IRenderMeshObj> IRenderMeshObj_SP;
 
 #endif

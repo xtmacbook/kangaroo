@@ -26,7 +26,7 @@ namespace IO
 			ML_NONEPLUG
 		};
 		static bool loadNode(const char*file, LModelInfo&, ModelLoadType = ML_ASSIMP);
-		static Base::SmartPointer<Base::Image> loadImage(const char*file);
+		static base::SmartPointer<base::Image> loadImage(const char*file);
 	};
 };
 

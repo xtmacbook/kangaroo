@@ -12,7 +12,7 @@
 #include "decl.h"
 #include "type.h"
 using namespace math;
-namespace Base {
+namespace base {
 
 	class  LIBENIGHT_EXPORT BoundingBox
 	{

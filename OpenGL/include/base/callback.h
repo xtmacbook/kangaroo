@@ -2,7 +2,7 @@
 #define callback_h
 
 #include <type_traits>
-namespace Base {
+namespace base {
 
 
 	class  LIBENIGHT_EXPORT Closure 

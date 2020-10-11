@@ -138,7 +138,7 @@ void processNode(aiNode* node, const aiScene* scene, std::vector<Mesh_SP >& mesh
 		// the node object only contains indices to index the actual objects in the scene. 
 		// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		Base::SmartPointer<Mesh> tmp(new TMesh);
+		base::SmartPointer<Mesh> tmp(new TMesh);
 		tmp->call_ = DRAW_ELEMENTS;
 		meshs.push_back(tmp);
 		processMesh(mesh, scene, meshs[meshs.size() - 1], textures, dir);

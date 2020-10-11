@@ -89,7 +89,7 @@ struct LIBENIGHT_EXPORT DLLLibrary
 
 	LibraryWGL				wgl;
 	LibraryWin32			win32_;
-	Base::TlsWin32			contextSlot_;
+	base::TlsWin32			contextSlot_;
 	GWindow *				windowListHead_;
 
 };

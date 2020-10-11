@@ -55,7 +55,7 @@ protected:
 	// This draws the Model to the backbuffer
 	void							destroy();
 
-	void							expandSceneByBox(const Base::BoundingBox&);
+	void							expandSceneByBox(const base::BoundingBox&);
 
 protected:
 
@@ -63,7 +63,7 @@ protected:
 	IRenderNode_SP					axesNodes_;
 	Shader_SP 						axisShder_;
 
-	Base::BoundingBox				scene_box_;
+	base::BoundingBox				scene_box_;
 };
 
 

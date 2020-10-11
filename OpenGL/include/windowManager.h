@@ -21,7 +21,7 @@ class  Camera;
 struct DeviceConfig;
 struct WindowConfig;
 
-class LIBENIGHT_EXPORT WindowManager : public Base::BaseObject
+class LIBENIGHT_EXPORT WindowManager : public base::BaseObject
 {
 public:
 

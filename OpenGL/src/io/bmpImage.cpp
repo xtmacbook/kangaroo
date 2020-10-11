@@ -3,7 +3,7 @@
 #include "image.h"
 #include "log.h"
 namespace IO {
-	bool ImageFile::loadBMP(StdInputStream * stream, Base::SmartPointer<Base::Image>&image)
+	bool ImageFile::loadBMP(StdInputStream * stream, base::SmartPointer<base::Image>&image)
 	{
 		struct bmpHeader
 		{

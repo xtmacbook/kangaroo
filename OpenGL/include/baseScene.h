@@ -32,7 +32,7 @@ public :
 	Matrixf  tranform_;
 };
 
-class LIBENIGHT_EXPORT BaseScene :public Base::BaseObject
+class LIBENIGHT_EXPORT BaseScene :public base::BaseObject
 {
 public:
 	BaseScene();

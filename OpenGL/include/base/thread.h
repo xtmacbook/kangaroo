@@ -8,7 +8,7 @@
 
 #define TMP_STR_BUF_SIZE 64
 
-namespace Base
+namespace base
 {
 	class LIBENIGHT_EXPORT source_location
 	{

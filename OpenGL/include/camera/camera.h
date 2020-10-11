@@ -15,7 +15,7 @@
 #include <stdio.h>
 
 using namespace math;
-using namespace Base;
+using namespace base;
 
 class Scene;
 

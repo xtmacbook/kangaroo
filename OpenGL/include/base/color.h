@@ -11,7 +11,7 @@
 
 using namespace math;
 
-namespace Base
+namespace base
 {
 
 	/// 64 bit color stored as BGRA.

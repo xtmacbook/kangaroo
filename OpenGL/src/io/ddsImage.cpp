@@ -328,7 +328,7 @@ namespace IO {
 	bool supportsBGR = true;
 	bool auto_expandDXT = true;
 
-	bool TranslateDX10Format(const void *ptr, ::Base::Image *img, int32 &bytesPerElement, bool &btcCompressed) {
+	bool TranslateDX10Format(const void *ptr, ::base::Image *img, int32 &bytesPerElement, bool &btcCompressed) {
 		const DDS_HEADER_10 &header = *(const DDS_HEADER_10*)ptr;
 
 #ifdef _DEBUG
@@ -840,7 +840,7 @@ namespace IO {
 	}
 
 
-	bool ImageFile::loadDDS(StdInputStream * stream, ::Base::SmartPointer<::Base::Image>&img) {
+	bool ImageFile::loadDDS(StdInputStream * stream, ::base::SmartPointer<::base::Image>&img) {
 
 		// read in file marker, make sure its a DDS file
 		char filecode[4];
@@ -1377,7 +1377,7 @@ namespace IO {
 	}
 }
 
-namespace Base
+namespace base
 {
 	void Image::flip_blocks_dxtc1(uint8 *ptr, uint numBlocks)
 	{

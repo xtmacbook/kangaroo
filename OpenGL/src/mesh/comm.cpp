@@ -49,7 +49,7 @@ Mesh_SP createArrow(const V3f& color)
 IRenderNode_SP getLine(const V3f& s, const V3f& e, const V3f& color, bool update)
 {
 	RenderNode_SP rn = new RenderNode;
-	Base::SmartPointer<DLineMeshGeoemtry> mg = new DLineMeshGeoemtry(s, e, color, update);
+	base::SmartPointer<DLineMeshGeoemtry> mg = new DLineMeshGeoemtry(s, e, color, update);
 	mg->initGeometry();
 	if (rn) rn->setGeometry(mg);
 	return rn;
@@ -59,7 +59,7 @@ IRenderNode_SP getLine(const V3f& s, const V3f& e, const V3f& color, bool update
 LIBENIGHT_EXPORT IRenderNode_SP getPoints(const V3f& s, const V3f& color, bool update)
 {
 	RenderNode_SP rn = new RenderNode;
-	Base::SmartPointer<DPointsMeshGeoemtry> mg = new DPointsMeshGeoemtry(s, color, update);
+	base::SmartPointer<DPointsMeshGeoemtry> mg = new DPointsMeshGeoemtry(s, color, update);
 	mg->initGeometry();
 	if (rn) rn->setGeometry(mg);
 	return rn;
@@ -75,7 +75,7 @@ LIBENIGHT_EXPORT IRenderNode_SP getRay(const V3f& s, const V3f& e, const V3f& co
 	Matrixf rot = math::mfq(math::qftv(V3f(1.0, 0.0, 0.0), ray));
 	mesh->Rmatrix() = tran * rot * math::scaleR(Matrixf(1.0f), V3f(0.05, 0.05, 0.05));
 	RenderNode_SP rn = new RenderNode;
-	Base::SmartPointer<DLineMeshGeoemtry> mg = new DLineMeshGeoemtry(s, e, color, update);
+	base::SmartPointer<DLineMeshGeoemtry> mg = new DLineMeshGeoemtry(s, e, color, update);
 	mg->addMesh(mesh);
 	mg->initGeometry();
 	if (rn) rn->setGeometry(mg);

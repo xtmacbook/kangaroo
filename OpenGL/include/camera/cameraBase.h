@@ -8,7 +8,7 @@
 #include "smartPointer.h"
 using namespace math;
 
-class LIBENIGHT_EXPORT CameraBase :public Base::BaseObject
+class LIBENIGHT_EXPORT CameraBase :public base::BaseObject
 {
 public:
 

@@ -43,7 +43,7 @@ namespace scene
 		samplePass_->initStateAndObjs("terrain/clipmapUpsample.glsl");
 
 		//makecurrent
-		Base::source_location l("rasterUpdate","rasterUpdate",27);
+		base::source_location l("rasterUpdate","rasterUpdate",27);
 		//loader_->start(l);
 	}
 
@@ -139,7 +139,7 @@ namespace scene
 	void RasterUpdater::applyNewData()
 	{
 		std::vector<TileLoadRequest*> doneQueue;
-		detail_.doneQue_.queueCallback_ =  Base::NewPermanentCallback(this,&RasterUpdater::getDoneReqs,&doneQueue);
+		detail_.doneQue_.queueCallback_ = base::NewPermanentCallback(this,&RasterUpdater::getDoneReqs,&doneQueue);
 		detail_.doneQue_.processQueue();
 		for each (TileLoadRequest* req in doneQueue)
 		{

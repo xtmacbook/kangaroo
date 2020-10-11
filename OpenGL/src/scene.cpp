@@ -51,11 +51,11 @@ bool frameInfo(int code)
 bool Scene::initKeyCallback()
 {
 	//71 glfw_key_H GLFW_KEY_SPACE 32
-	KEY_CALLBACK(71,	Base::NewPermanentCallback(frameInfo));
-	KEY_M_CALLBACK(32,	Base::NewPermanentCallback(this,  &Scene::home));
-	KEY_M_CALLBACK(263, Base::NewPermanentCallback(this, &Scene::stepRotate, 263)); //left
-	KEY_M_CALLBACK(262, Base::NewPermanentCallback(this, &Scene::stepRotate, 262)); //right 
-	KEY_M_CALLBACK(82,	Base::NewPermanentCallback(this,  &Scene::refreshShader, 0)); //R 
+	KEY_CALLBACK(71,	base::NewPermanentCallback(frameInfo));
+	KEY_M_CALLBACK(32,	base::NewPermanentCallback(this,  &Scene::home));
+	KEY_M_CALLBACK(263, base::NewPermanentCallback(this, &Scene::stepRotate, 263)); //left
+	KEY_M_CALLBACK(262, base::NewPermanentCallback(this, &Scene::stepRotate, 262)); //right 
+	KEY_M_CALLBACK(82,	base::NewPermanentCallback(this,  &Scene::refreshShader, 0)); //R 
 
 	return true;
 }
@@ -260,7 +260,7 @@ void Scene::destroy()
 {
 }
 
-void Scene::expandSceneByBox(const Base::BoundingBox&box)
+void Scene::expandSceneByBox(const base::BoundingBox&box)
 {
 	scene_box_.expandBy(box);
 }

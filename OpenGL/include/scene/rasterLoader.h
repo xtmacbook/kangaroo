@@ -13,7 +13,7 @@ namespace scene
 {
 	struct RasterDataQeq;
 
-	class LIBENIGHT_EXPORT RasterLoader :public Base::Thread
+	class LIBENIGHT_EXPORT RasterLoader :public base::Thread
 	{
 	public:
 		RasterLoader( RasterDataQeq*);

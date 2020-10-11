@@ -16,7 +16,7 @@
 
 using namespace math;
 //////////////////////////////////////////////////////////////////////
-namespace Base
+namespace base
 {
 	template<typename F> struct Plane
 	{

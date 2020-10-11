@@ -11,7 +11,7 @@ Mesh::~Mesh()
 
 }
 
-Base::AABB IMesh::getBOX() const
+base::AABB IMesh::getBOX() const
 {
 	return box_;
 }

@@ -46,7 +46,7 @@ namespace IO
 		return b.u32;
 	}
 
-	bool ImageFile::loadKtx(const char*filename, Base::SmartPointer<Base::Image>&img)
+	bool ImageFile::loadKtx(const char*filename, base::SmartPointer<base::Image>&img)
 	{
 		FILE * fp;
 		GLuint temp = 0;

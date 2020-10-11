@@ -25,7 +25,7 @@ enum TEXTURE_TYPE
 	T_NONE
 };
 
-class LIBENIGHT_EXPORT Texture :public Base::BaseObject
+class LIBENIGHT_EXPORT Texture :public base::BaseObject
 {
 public:
 
@@ -105,7 +105,7 @@ public:
 	int iWrapS, iWrapT, iWrapR; //GL_TEXTURE_WRAP_R
 	unsigned int eComparisonFunc, eMinFilter, eMagFilter; //GL_TEXTURE_MAG_FILTER
 
-	Base::SmartPointer<Base::Image>		img_;
+	base::SmartPointer<base::Image>		img_;
 
 private:
 	void                context1D(void * data);
@@ -118,5 +118,5 @@ private:
 	
 };
 
-typedef Base::SmartPointer<Texture>  Texture_Sp;
+typedef base::SmartPointer<Texture>  Texture_Sp;
 #endif /* defined(__OpenGL__texture__) */

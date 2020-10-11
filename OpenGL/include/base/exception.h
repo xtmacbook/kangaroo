@@ -13,7 +13,7 @@
 #include <exception>
 #include <string>
 
-namespace Base {
+namespace base {
 
 	class BaseException : public std::exception {
 	protected:

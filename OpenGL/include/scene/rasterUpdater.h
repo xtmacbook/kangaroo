@@ -59,10 +59,10 @@ namespace scene
 
 		bool					  stopRequest_ = false;
 
-		Base::SameProcessMutex	  requestListMutex_;
-		Base::ConditionVar        requestCondition_;
+		base::SameProcessMutex	  requestListMutex_;
+		base::ConditionVar        requestCondition_;
 
-		Base::MessageQueues<int, TileLoadRequest> doneQue_;
+		base::MessageQueues<int, TileLoadRequest> doneQue_;
 	};
 
 

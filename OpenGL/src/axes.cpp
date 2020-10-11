@@ -89,7 +89,7 @@ IRenderNode_SP  createAxesRenderNode()
 		if (!data.meshs_.empty())
 		{
 			axesNode = new RenderNode;
-			Base::SmartPointer<AexsGeometry> mg = new AexsGeometry();
+			base::SmartPointer<AexsGeometry> mg = new AexsGeometry();
 			mg->meshs_ = data.meshs_;
 			mg->initGeometry();
 			if (axesNode)

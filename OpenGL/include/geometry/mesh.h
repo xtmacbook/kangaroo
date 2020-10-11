@@ -11,7 +11,7 @@
 #include <vector>
 
 using namespace math;
-using namespace Base;
+using namespace base;
 
 typedef struct
 {
@@ -93,7 +93,7 @@ public:
 	std::vector<unsigned int>			t_indices_; //texture indices
 };
 
-typedef Base::SmartPointer<Mesh>	Mesh_SP;
-typedef Base::SmartPointer<TMesh>	TMesh_SP;
+typedef base::SmartPointer<Mesh>	Mesh_SP;
+typedef base::SmartPointer<TMesh>	TMesh_SP;
 
 #endif

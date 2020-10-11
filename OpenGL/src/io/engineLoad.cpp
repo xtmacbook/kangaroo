@@ -24,7 +24,7 @@ bool EngineLoad::loadNode(const char* file, LModelInfo&data, ModelLoadType  t/*=
 	return result;
 }
 
-Base::SmartPointer<Base::Image> EngineLoad::loadImage(const char* file)
+base::SmartPointer<base::Image> EngineLoad::loadImage(const char* file)
 {
 	const char * ext = extension(file);
 
@@ -37,7 +37,7 @@ Base::SmartPointer<Base::Image> EngineLoad::loadImage(const char* file)
 		stream.setFile(f);
 	}
 
-	Base::SmartPointer<Base::Image> img;
+	base::SmartPointer<base::Image> img;
 
 	bool result = false;
 #if defined(ENGINE_JPEG)

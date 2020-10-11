@@ -24,7 +24,7 @@ void RenderNode::update(const CameraBase*camera)
 		geometry_->updateGeometry(camera);
 }
 
-Base::AABB RenderNode::getBox() const
+base::AABB RenderNode::getBox() const
 {
 	if (geometry_)
 		return geometry_->boundingBox();

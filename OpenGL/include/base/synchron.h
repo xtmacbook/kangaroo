@@ -4,7 +4,7 @@
 #include "decl.h"
 #include <Windows.h>
 
-namespace Base {
+namespace base {
 
 class LIBENIGHT_EXPORT SameProcessMutex
 {
