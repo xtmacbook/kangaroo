@@ -1,176 +1,115 @@
+//
+//  antialias.cpp
+//  openGLTest
+//
+//  Created by xt on 18/6/9.
+//  Copyright © 2018年 xt. All rights reserved.
+//
 
-#include "scene.h"
+#include <stdio.h>
 #include "antialias.h"
-#include "shader.h"
-#include "resource.h"
+#include "log.h"
+#include "gls.h"
 
-#include "gLFWManager.h"
-#include "gLApplication.h"
-#include "camera.h"
-#include "renderNode.h"
+namespace render {
 
-//0:normal
-//1:framebuffer
-//2:custom
-GLuint g_state;
+	Antialias::Antialias(TYPE t) :type_(t) {}
 
-render::Antialias antialias(render::Antialias::FRAMEBUF);
-
-render::Antialias antialias_texture(render::Antialias::TEXTURE);
-
-class LocalScene :public Scene
-{
-protected:
-	virtual bool					initShader(const SceneInitInfo&);
-	virtual bool					initSceneModels(const SceneInitInfo&);
-	virtual bool					initTexture(const SceneInitInfo&);
-public:
-	virtual void					render(PassInfo&);
-};
-
-bool LocalScene::initShader(const SceneInitInfo&)
-{
-
-	shaders_.push_back(new Shader);
-	Shader * currentShader = shaders_[0];
-
-	std::string vs = get_shader_BasePath() + "basic.vs";
-	std::string fs = get_shader_BasePath() + "basic.frag";
-	currentShader->loadShaders(vs.c_str(), fs.c_str(), nullptr);
-
-	shaders_.push_back(new Shader);
-	vs = get_shader_BasePath() + "screenQuad.vs";
-	fs = get_shader_BasePath() + "screenQuad.frag";
-	currentShader = shaders_[1];
-	currentShader->loadShaders(vs.c_str(), fs.c_str(), nullptr);
-	int eunit = currentShader->getVariable("screenTexture");
-	glUniform1i(eunit, 0);
-
-
-	shaders_.push_back(new Shader);
-	vs = get_shader_BasePath() + "screenQuad.vs";
-	fs = get_shader_BasePath() + "multTexture.frag";
-	currentShader = shaders_[2];
-	currentShader->loadShaders(vs.c_str(), fs.c_str(), nullptr);
-	glUniform1d(currentShader->getVariable("screenTextureMS"), 0);
-	return true;
-}
-
-bool LocalScene::initSceneModels(const SceneInitInfo&)
-{
-
-	RenderNode_SP cubNode(new RenderNode);
-	CommonGeometry_Sp cub = new Cub;
-	cub->initGeometry();
-	cubNode->setGeometry(cub);
-
-	RenderNode_SP quadNode(new RenderNode);
-	CommonGeometry_Sp qg = new Quad;
-	qg->initGeometry();
-	quadNode->setGeometry(qg);
-
-	addRenderNode(cubNode);
-	addRenderNode(quadNode);
-
-	antialias.init();
-	antialias_texture.init();
-
-	return true;
-}
-
-bool LocalScene::initTexture(const SceneInitInfo&)
-{
-	return true;
-
-}
-
-void LocalScene::render(PassInfo& psi)
-{
-	if (g_state == 0)
+	bool Antialias::init()
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		Shader * currentShader = shaders_[0];
-		currentShader->turnOn();
-		initUniformVal(currentShader);
-		getRenderNode(0)->render(currentShader, psi);
-		currentShader->turnOff();
+		if (type_ == FRAMEBUF)
+		{
+			width_ = 1024;
+			hight_ = 986;
+			createSupportMultisampleBuffer(width_, hight_, 4);
+			createTextureForDivision(width_, hight_);
+		}
+		else if (type_ == TEXTURE)
+		{
+			width_ = 1024;
+			hight_ = 986;
+			createSupportMultisampleBuffer(width_, hight_, 4);
+		}
+		return true;
 	}
 
-	else if (g_state == 2)
+	//from: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
+	bool Antialias::createSupportMultisampleBuffer(int width, int height, int samples)
 	{
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glGenFramebuffers(1, &framebuffer_);
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
 
-		antialias.bindMultSampleFrameBuffer();
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
-		Shader * currentShader = shaders_[0];
-		currentShader->turnOn();
-		initUniformVal(currentShader);
+		glGenTextures(1, &textureColorBufferMultiSampled_);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled_);
+		//establishes the data storage,format dimensions and number
+		//samples : the number of samples we want the texture to have
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_RGB, width, height, GL_TRUE);
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+		//attach texture to a framebuffer
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled_, 0);
 
-		getRenderNode(0)->render(currentShader, psi);
 
-		antialias.blitFrameBuffer();
+		//also create renderbuffer for depth and stencil attachments
+		GLuint rbo;
+		glGenRenderbuffers(1, &rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, width, height);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		{
+			Log::printMessage("create framebuffer error in antialias!!!");
+		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST);
-
-		currentShader = shaders_[1];
-		currentShader->turnOn();
-		getRenderNode(1)->bindVAO();
-		glActiveTexture(GL_TEXTURE0);
-		antialias.bindTexture();
-
-		getRenderNode(1)->render(currentShader,psi);
-
+		return true;
 	}
 
-	else if (g_state == 1)
+	bool Antialias::createTextureForDivision(int width, int height)
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		antialias_texture.bindMultSampleFrameBuffer();
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
-		Shader * currentShader = shaders_[0];
-		currentShader->turnOn();
-		initUniformVal(currentShader);
+		// configure second post-processing framebuffer
 
-		getRenderNode(0)->render(currentShader,psi);
+		glGenFramebuffers(1, &intermediateFBO_);
+		glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO_);
+		// create a color attachment texture
 
+		glGenTextures(1, &screenTexture_);
+		glBindTexture(GL_TEXTURE_2D, screenTexture_);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture_, 0);	// we only need a color buffer
+
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			Log::printMessage("ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete!");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glDisable(GL_DEPTH_TEST);
 
-		currentShader = shaders_[2];
-		currentShader->turnOn();
-		getRenderNode(1)->bindVAO();
-		glActiveTexture(GL_TEXTURE0);
-		antialias_texture.bindMultSampleTexture();
-		getRenderNode(1)->render(currentShader, psi);
-		currentShader->turnOff();
+
+		return true;
+	}
+	void Antialias::bindMultSampleFrameBuffer()
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
+	}
+	void Antialias::blitFrameBuffer()
+	{
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer_);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO_);
+		glBlitFramebuffer(0, 0, width_, hight_, 0, 0, width_, hight_, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	}
+	void Antialias::bindTexture()
+	{
+		glBindTexture(GL_TEXTURE_2D, screenTexture_);
+	}
+
+	void Antialias::bindMultSampleTexture()
+	{
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled_);
 	}
 }
 
-int main()
-{
-	
-	LocalScene * scene = new LocalScene;
 
-	Camera *pCamera = new Camera();
 
-	scene->setMasterCamera(pCamera);
-
-	GLFWManager *pWindowManager = new GLFWManager();
-
-	GLApplication application(scene);
-
-	application.setWindowManager(pWindowManager);
-
-	application.loop();
-
-	return true;
-}

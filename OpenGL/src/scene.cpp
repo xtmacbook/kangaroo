@@ -11,8 +11,6 @@
 #include "log.h"
 #include "shader.h"
 #include "inputmanager.h"
-#include "antialias.h"
-#include "const.h"
 #include "renderNode.h"
 #include "axes.h"
 #include "gls.h"

@@ -353,7 +353,7 @@ void Camera::mouse_move_plan(const V2f&pt)
 		else
 			inv_m = inverse(viewMatrix_);
 
-		float fov2 = (float)-tan(0.5 * Const<float>::pi_180() * _fov) * old_viewMatrix_[3][2];
+		float fov2 = (float)-tan(0.5 * PI_180 * _fov) * old_viewMatrix_[3][2];
 
 		V4f in((float)(pt_delta.x * fov2 * _screen_ratio),
 			(float)(pt_delta.y * fov2),
@@ -378,7 +378,7 @@ void Camera::mouse_move_plan(const V2f&pt)
 		V4f eye_obj_pos_ = _camera * V4f(obj_pos.x, obj_pos.y, obj_pos.z, 1.0);
 		V3f eye_obj_pos = V3f(eye_obj_pos_.x, eye_obj_pos_.y, eye_obj_pos_.z);
 
-		float fov2 = (float)(-tan(0.5 * Const<float>::pi_180() * _fov) * eye_obj_pos.z);
+		float fov2 = (float)(-tan(0.5 * PI_180 * _fov) * eye_obj_pos.z);
 
 		V4f shift(
 			(float)(pt_delta.x * fov2 * _screen_ratio),

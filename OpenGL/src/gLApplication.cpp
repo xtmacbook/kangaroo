@@ -13,7 +13,6 @@
 #include "log.h"
 #include "text.h"
 #include "media/ad.h"
-#include "const.h"
 #include "Inputmanager.h"
 #include "gls.h"
 #include "glinter.h"

@@ -10,7 +10,7 @@
 #define OPENGL_M_HEAD_H
 
 #include "type.h"
-#include "const.h"
+#include "util.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/ext.hpp"
 #include "glm/gtx/quaternion.hpp"
@@ -178,14 +178,14 @@ namespace math
 	template <class REAL>
 	REAL									radinToDegree(const REAL&r)
 	{
-		REAL returnVal = (r * 180.0) / math::Const<REAL>::pi();
+		REAL returnVal = (r * 180.0) / PI;
 		return returnVal;
 	}
 
 	template <class REAL>
 	REAL									degreeToRadin(const REAL&d)
 	{
-		return (d * math::Const<REAL>::pi()) / 180.0;
+		return (d * PI) / 180.0;
 	}
 	template <class REAL>
 	math::Vector3<REAL>						mulHomogenPoint(const math::Matrix4<REAL> m, const math::Vector3<REAL>&v)

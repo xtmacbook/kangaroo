@@ -33,7 +33,6 @@ set(libengines_base_files
 )
 
 set(libengines_math_files
-	${Engine_SOURCE_DIR}/OpenGL/include/math/const.h
 	${Engine_SOURCE_DIR}/OpenGL/include/math/helpF.h
 	${Engine_SOURCE_DIR}/OpenGL/include/math/type.h
 	${Engine_SOURCE_DIR}/OpenGL/include/math/alg.h
@@ -152,9 +151,6 @@ set(libengines_files
 	${Engine_SOURCE_DIR}/OpenGL/src/win32_platform.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/window.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/framebuffers.cpp 
-	
-	
-	${Engine_SOURCE_DIR}/OpenGL/src/color/antialias.cpp
 
 	${Engine_SOURCE_DIR}/OpenGL/src/media/ad.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/media/util.cpp
@@ -187,8 +183,6 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/glu.h
 	${Engine_SOURCE_DIR}/OpenGL/include/vertex.h
 	${Engine_SOURCE_DIR}/OpenGL/include/framebuffers.h
-
-	${Engine_SOURCE_DIR}/OpenGL/include/color/antialias.h
 	${Engine_SOURCE_DIR}/OpenGL/include/common.h
 
 	${Engine_SOURCE_DIR}/OpenGL/include/media/ad.h

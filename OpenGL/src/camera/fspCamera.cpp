@@ -2,7 +2,6 @@
 #include "helpF.h"
 #include "glu.h"
 #include "Inputmanager.h"
-#include "const.h"
 
 using namespace math;
 
@@ -234,7 +233,7 @@ void FSPCamera::pitch(float angle)
 {
 	angle = -angle;
 
-	const float limit = 89.0 * math::Const<float>::pi() / 180.0;
+	const float limit = 89.0 * PI_180;
 
 	this->pitch_ += angle;
 
