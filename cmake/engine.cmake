@@ -4,7 +4,6 @@ set (engineName "kangaroo")
 set(libengines_base_files
 	${Engine_SOURCE_DIR}/OpenGL/src/base/image.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/base/log.cpp
-	${Engine_SOURCE_DIR}/OpenGL/src/base/timer.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/base/rgbe.c
 	${Engine_SOURCE_DIR}/OpenGL/src/base/synchron.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/base/thread_win.cpp
@@ -18,7 +17,6 @@ set(libengines_base_files
 	${Engine_SOURCE_DIR}/OpenGL/include/base/exception.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/log.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/smartPointer.h
-	${Engine_SOURCE_DIR}/OpenGL/include/base/timer.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/boundingBox.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/rgbe.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/half.h
@@ -77,11 +75,8 @@ set(libengines_geometry_files
 	${Engine_SOURCE_DIR}/OpenGL/include/geometry/IGeometry.h
 	${Engine_SOURCE_DIR}/OpenGL/include/geometry/mesh.h
 	${Engine_SOURCE_DIR}/OpenGL/include/geometry/dynamicMesh.h
-)
-
-set(libengines_mesh_files
-	${Engine_SOURCE_DIR}/OpenGL/src/mesh/comm.cpp 
-	${Engine_SOURCE_DIR}/OpenGL/include/mesh/comm.h
+	${Engine_SOURCE_DIR}/OpenGL/include/geometry/commMesh.h
+	${Engine_SOURCE_DIR}/OpenGL/src/geometry/commMesh.cpp 
 )
 
 set(libengines_shader_files
@@ -201,7 +196,6 @@ add_library(${engineName} ${SHARED_OR_STATIC}
 						${libengines_base_files}
 						${libengines_base_compiler_files}
 						${libengines_geometry_files}
-						${libengines_mesh_files}
 						${libengines_base_io_files}
 						${libengines_math_files}
 						${libengines_render_files}
@@ -217,7 +211,6 @@ source_group("Source Files\\\\base" FILES ${libengines_base_files})
 source_group("Source Files\\\\geometry" FILES ${libengines_geometry_files})
 source_group("Source Files\\\\stream" FILES ${libengines_base_io_files})
 source_group("Source Files\\\\render" FILES ${libengines_render_files})
-source_group("Source Files\\\\mesh" FILES ${libengines_mesh_files})
 source_group("Source Files\\\\camera" FILES ${libengines_camera_files})
 source_group("Source Files\\\\scene" FILES ${libengines_scene_files})
 

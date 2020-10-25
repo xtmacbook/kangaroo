@@ -6,7 +6,7 @@
 //  Copyright (c) 2015年 xt. All rights reserved.
 //
 
-#include "comm.h"
+#include "commMesh.h"
 #include "gls.h"
 #include "helpF.h"
 
