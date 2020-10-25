@@ -9,7 +9,7 @@
 
 using namespace std;
 using namespace math;
-using namespace Base;
+using namespace base;
 
 
 template <typename T>
