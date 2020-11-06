@@ -48,6 +48,23 @@
 #   error "Unsupported OS"
 #endif
 
+#if defined POSH_CPU_X86_64
+//#   define NV_CPU_X86 1
+#   define EN_CPU_X86_64 1
+#elif defined POSH_CPU_X86
+#   define EN_CPU_X86 1
+#elif defined POSH_CPU_PPC
+#   define EN_CPU_PPC 1
+#elif defined POSH_CPU_STRONGARM
+#   define EN_CPU_ARM 1
+#elif defined POSH_CPU_AARCH64
+#   define EN_CPU_AARCH64 1
+#elif defined POSH_CPU_E2K
+#   define EN_CPU_E2K 1
+#else
+#   error "Unsupported CPU"
+#endif
+
 // Endiannes:
 #define EN_LITTLE_ENDIAN    POSH_LITTLE_ENDIAN
 #define EN_BIG_ENDIAN       POSH_BIG_ENDIAN
