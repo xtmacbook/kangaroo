@@ -840,9 +840,8 @@ namespace IO {
 	}
 
 
-	bool ImageFile::loadDDS(StdInputStream * stream, ::base::SmartPointer<::base::Image>&img) {
+	base::Image* ImageFile::loadDDS(StdInputStream * stream) {
 
-		// read in file marker, make sure its a DDS file
 		char filecode[4];
 
 		//fread(filecode, 1, 4, fp);
@@ -850,8 +849,10 @@ namespace IO {
 
 		if (strncmp(filecode, "DDS ", 4) != 0)
 		{
-			return false;
+			return nullptr;
 		}
+
+		base::DDSImage* img = new base::DDSImage();
 
 		// read in DDS header
 		DDS_HEADER ddsh;
@@ -894,7 +895,9 @@ namespace IO {
 			//check for a complete cubemap
 			if ((img->faces() != 6) || (img->width() != img->height()))
 			{
-				return false;
+				delete img;
+
+				return nullptr;
 			}
 			img->setCubeFlag(true);
 		}
@@ -1287,7 +1290,9 @@ namespace IO {
 			((img->internalformat() >= 0x93B0 && img->internalformat() <= 0x93BD)
 				|| (img->internalformat() >= 0x93D0 && img->internalformat() <= 0x93DD)))
 		{
-			return false;
+			delete img;
+
+			return nullptr;
 		}
 
 		img->setElementSize(bytesPerElement);
@@ -1373,7 +1378,7 @@ namespace IO {
 			img->setformat(finalFormat);
 		}
 
-		return true;
+		return img;
 	}
 }
 
