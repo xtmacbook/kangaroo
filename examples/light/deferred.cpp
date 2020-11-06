@@ -120,7 +120,6 @@ protected:
 	virtual bool					initShader(const SceneInitInfo&);
 	virtual bool					initSceneModels(const SceneInitInfo&);
 	virtual bool					initTexture(const SceneInitInfo&);
-	virtual bool					initKeyCallback();
 	virtual bool					initThisDemo(const SceneInitInfo&);
 	virtual void					initUniformVal(Shader*shader, bool modelNeed = true);
 	virtual bool					initLight(const SceneInitInfo&);
@@ -203,11 +202,6 @@ bool DeferredScene::initTexture(const SceneInitInfo&)
 	return true;
 }
 
-bool DeferredScene::initKeyCallback()
-{
-	bool result = Scene::initKeyCallback();
-	return result;
-}
 
 bool DeferredScene::initThisDemo(const SceneInitInfo&info)
 {
