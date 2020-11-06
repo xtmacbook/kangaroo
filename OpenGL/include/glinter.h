@@ -78,6 +78,7 @@ struct LIBENIGHT_EXPORT WindowConfig
 	int pos_y_;
 
 	const char * title_;
+	bool shouldCreateSharedContext_ = false;
 };
 struct LIBENIGHT_EXPORT DLLLibrary
 {
