@@ -76,19 +76,20 @@ Texture::Texture()
 	internalformat_ = GL_RGBA;
 }
 
-
 Texture::~Texture()
 {
-	if (img_) delete img_;
+	if (img_)
+	{
+		delete img_;
+		img_ = nullptr;
+	}
 	destoryGLObj();
 }
-
 
 void Texture::createObj()
 {
 	glGenTextures(1, &texObject_);
 }
-
 void Texture::initGLObj()
 {
 	contextNULL();
@@ -98,7 +99,6 @@ void Texture::initGLObj()
 	glTexParameteri(target(), GL_TEXTURE_WRAP_T, iWrapT);
 	glTexParameteri(target(), GL_TEXTURE_WRAP_R, iWrapR);
 }
-
 void Texture::destoryGLObj()
 {
 	if (texObject_ != -1)
@@ -116,8 +116,6 @@ GLuint Texture::getTexture(void)const
 {
 	return texObject_;
 }
-
-
 void Texture::activeTexture(unsigned int num)
 {
 	glActiveTexture(GL_TEXTURE0 + num);
@@ -153,49 +151,39 @@ GLenum  Texture::interFormat(void)const
 {
 	return (img_) ? img_->internalformat() : internalformat_;
 }
-
 GLenum Texture::baseInterFormat(void) const
 {
 	return (img_) ? img_->baseInternalformat() : baseInternalformat_;
 }
-
 GLenum Texture::target(void) const
 {
 	GLenum t = (img_) ? img_->target() : target_;
 	return (t == 0) ? target_ : t;
 }
-
 unsigned int Texture::miplevels(void) const
 {
 	return (img_) ? img_->numOfMiplevels() : numOfMiplevels_;
 }
-
 GLenum Texture::type()const
 {
 	return (img_) ? img_->type() : type_;
 }
-
 bool   Texture::mapMapping(void)const
 {
 	return  (img_) ? img_->numOfMiplevels() : numOfMiplevels_;
 }
-
 unsigned int Texture::faces(void) const
 {
 	return (img_) ? img_->faces() : faces_;
 }
-
 unsigned int Texture::typeSize(void) const
 {
 	return (img_) ? img_->typesize() : typesize_;
 }
-
-
 bool Texture::compressed(void) const
 {
 	return (img_) ? img_->isCompressed() : compressed_;
 }
-
 void Texture::initParams()
 {
 	img_ = NULL;
@@ -222,11 +210,13 @@ void Texture::initParams()
 
 void Texture::context1D(void * data)
 {
+	void * rd = data;
+	if (rd == NULL)
+		rd = img_->pixels();
+	
 	glTexStorage1D(GL_TEXTURE_1D, miplevels(), interFormat(), width());
-	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, width(), externFormat(), interFormat(), data);
+	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, width(), externFormat(), interFormat(), rd);
 }
-
-
 void Texture::context2D(void * data)
 {
 	if (data != NULL)
@@ -291,29 +281,32 @@ void Texture::context2D(void * data)
 	}
 
 }
-
-
 void Texture::context3D(void * data)
 {
 	glTexStorage3D(GL_TEXTURE_3D, miplevels(), interFormat(), width(), heigh(), depth());
 	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, width(), heigh(), depth(), externFormat(), type(), data);
 }
-
-
 void Texture::context1DA(void * data)
 {
 	glTexStorage2D(GL_TEXTURE_1D_ARRAY, miplevels(), interFormat(), width(), heigh());
 	glTexSubImage2D(GL_TEXTURE_1D_ARRAY, 0, 0, 0, width(), heigh(), externFormat(), type(), data);
 }
-
-
-void Texture::context2DA(void * data)
+void Texture::context2DA(void ** data)
 {
+
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, miplevels(), interFormat(), width(), heigh(), depth());
-	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, width(), heigh(), depth(), externFormat(), type(), data);
+
+	for (int i = 0; i < depth(); i++)
+	{
+		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 
+			0, //mipmap level
+			0, 0, i, //x y z offset
+			width(), heigh(), 1,//w h d 
+			externFormat(), type(), ((math::uint8**)data)[i]);
+	}
+	CHECK_GL_ERROR;
+
 }
-
-
 void Texture::contextC(void * data)
 {
 	CHECK_GL_ERROR;
@@ -343,78 +336,14 @@ void Texture::contextC(void * data)
 	}
 
 }
-
-
 void Texture::contextCA(void * data)
 {
 	glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, miplevels(), interFormat(), width(), heigh(), depth());
 	glTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 0, width(), heigh(), depth(), externFormat(), type(), data);
 }
-
-void Texture::clampToEdge()
-{
-	glTexParameteri(target(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	if (heigh() != 0)
-	{
-		glTexParameteri(target(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		if (depth() != 0)
-		{
-			glTexParameteri(target(), GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		}
-	}
-}
-
-void Texture::mirrorRepeat()
-{
-	glTexParameteri(target(), GL_TEXTURE_WRAP_S, GL_REPEAT);
-	if (heigh() != 0)
-	{
-		glTexParameteri(target(), GL_TEXTURE_WRAP_T, GL_REPEAT);
-		if (depth() != 0)
-		{
-			glTexParameteri(target(), GL_TEXTURE_WRAP_R, GL_REPEAT);
-		}
-	}
-}
-
-void Texture::filterLinear()
-{
-	if (miplevels())
-	{
-		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		eMinFilter = GL_LINEAR_MIPMAP_LINEAR;
-	}
-	else
-	{
-		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		eMinFilter = GL_LINEAR;
-	}
-	glTexParameteri(target(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	eMagFilter = GL_LINEAR;
-}
-
-void Texture::filterNearest()
-{
-	if (miplevels())
-	{
-		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-		eMinFilter = GL_NEAREST_MIPMAP_NEAREST;
-	}
-	else
-	{
-		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		eMinFilter = GL_NEAREST;
-	}
-	glTexParameteri(target(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	eMagFilter = GL_NEAREST;
-}
-
 bool Texture::context(void *data)
 {
-	if (data == NULL)
-	{ //from image load
-		GLenum t = target();
-		switch (t)
+		switch (target())
 		{
 		case GL_TEXTURE_1D:
 			context1D(data);
@@ -432,10 +361,6 @@ bool Texture::context(void *data)
 			context1DA(data);
 			CHECK_GL_ERROR;
 			break;
-		case GL_TEXTURE_2D_ARRAY:
-			context2DA(data);
-			CHECK_GL_ERROR;
-			break;
 		case GL_TEXTURE_CUBE_MAP_ARRAY:
 			contextCA(data);
 			CHECK_GL_ERROR;
@@ -449,54 +374,24 @@ bool Texture::context(void *data)
 		}
 
 		if (miplevels() > 1)
-			glGenerateMipmap(t);
-
+			glGenerateMipmap(target());
 		return true;
-	}
-	else
+}
+
+bool Texture::contextArr(void ** data)
+{
+	switch (target())
 	{
-		GLenum t = target();
-		switch (t)
-		{
-		case GL_TEXTURE_1D:
-			context1D(data);
-			CHECK_GL_ERROR;
-			break;
-		case GL_TEXTURE_2D:
-			context2D(data);
-			CHECK_GL_ERROR;
-			break;
-		case GL_TEXTURE_3D:
-			context3D(data);
-			CHECK_GL_ERROR;
-			break;
-		case GL_TEXTURE_1D_ARRAY:
-			context1DA(data);
-			CHECK_GL_ERROR;
-			break;
-		case GL_TEXTURE_2D_ARRAY:
-			context2DA(data);
-			CHECK_GL_ERROR;
-			break;
-		case GL_TEXTURE_CUBE_MAP_ARRAY:
-			contextCA(data);
-			CHECK_GL_ERROR;
-			break;
-		case GL_TEXTURE_CUBE_MAP:
-			contextC(data);
-			CHECK_GL_ERROR;
-			break;
-		default:                                               // Should never happen
-			return false;
-		}
-
-		if (miplevels() > 1)
-			glGenerateMipmap(t);
-
-		return true;
+	case GL_TEXTURE_2D_ARRAY:
+		context2DA(data);
+		CHECK_GL_ERROR;
+	default:                                               // Should never happen
+		return false;
 	}
-	//img_->releaseData();
-	return  false;
+
+	if (miplevels() > 1)
+		glGenerateMipmap(target());
+	return true;
 }
 
 bool Texture::contextNULL()
@@ -522,7 +417,62 @@ bool Texture::contextNULL()
 	default:
 		break;// Should never happen
 	}
-
+	CHECK_GL_ERROR;
 	return true;
 }
 
+
+void Texture::clampToEdge()
+{
+	glTexParameteri(target(), GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	if (heigh() != 0)
+	{
+		glTexParameteri(target(), GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		if (depth() != 0)
+		{
+			glTexParameteri(target(), GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		}
+	}
+}
+void Texture::mirrorRepeat()
+{
+	glTexParameteri(target(), GL_TEXTURE_WRAP_S, GL_REPEAT);
+	if (heigh() != 0)
+	{
+		glTexParameteri(target(), GL_TEXTURE_WRAP_T, GL_REPEAT);
+		if (depth() != 0)
+		{
+			glTexParameteri(target(), GL_TEXTURE_WRAP_R, GL_REPEAT);
+		}
+	}
+}
+void Texture::filterLinear()
+{
+	if (miplevels())
+	{
+		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		eMinFilter = GL_LINEAR_MIPMAP_LINEAR;
+	}
+	else
+	{
+		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		eMinFilter = GL_LINEAR;
+	}
+	glTexParameteri(target(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	eMagFilter = GL_LINEAR;
+}
+void Texture::filterNearest()
+{
+	if (miplevels())
+	{
+		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		eMinFilter = GL_NEAREST_MIPMAP_NEAREST;
+	}
+	else
+	{
+		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		eMinFilter = GL_NEAREST;
+	}
+	glTexParameteri(target(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	eMagFilter = GL_NEAREST;
+}
