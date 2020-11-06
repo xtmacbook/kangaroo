@@ -20,6 +20,8 @@ struct Context
 
 struct LIBENIGHT_EXPORT GWindow
 {
+	~GWindow();
+
 	GWindow *		next_ = NULL;
 	WindowWin32		win_;
 	Context			context_;
@@ -33,6 +35,7 @@ struct LIBENIGHT_EXPORT GWindow
 	double              virtualCursorPosX_;
 	double				virtualCursorPosY_;
 
+	Context*			sharedContext_ = nullptr;
 };
 
 #endif
