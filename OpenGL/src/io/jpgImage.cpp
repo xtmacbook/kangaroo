@@ -74,7 +74,7 @@ namespace IO {
 #endif // defined(ENGINE_JPEG)
 
 
-	bool ImageFile::loadJPG(StdInputStream * stream, base::SmartPointer<base::Image>&img)
+	base::Image* ImageFile::loadJPG(StdInputStream * stream)
 	{
 #ifdef ENGINE_JPEG
 
@@ -87,7 +87,6 @@ namespace IO {
 
 		cinfo.err = jpeg_std_error(&jerr);
 		jerr.error_exit = my_error_exit;
-		//³õÊ¼»¯deccompress¶ÔÏó
 		jpeg_create_decompress(&cinfo);
 
 		cinfo.src = (struct jpeg_source_mgr *) (*cinfo.mem->alloc_small)
@@ -119,7 +118,8 @@ namespace IO {
 
 		jpeg_finish_decompress(&cinfo);
 
-		
+		base::Image* img = new base::Image();
+
 		img->allocate(cinfo.output_width, cinfo.output_height, cinfo.output_components);
 		img->levelDataPtr_ = new uint8*[1];
 		img->levelDataPtr_[0] = (uint8*)img->pixels();
@@ -128,7 +128,7 @@ namespace IO {
 		img->setinternalformat(GL_RGB8);
 		img->settype(GL_UNSIGNED_BYTE);
 		img->setformat(GL_RGB);
-
+		
 		uint8 * dst = (uint8*)img->pixels();
 		const int size = img->height() * img->width();
 		const uint8 * src = tmp_buffer;
@@ -165,7 +165,7 @@ namespace IO {
 
 		delete[] tmp_buffer;
 
-		return true;
+		return img;
 #else
 		Log::instance()->printMessage("have no the jpeg lib ....\n");
 		return false;
