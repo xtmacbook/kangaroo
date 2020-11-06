@@ -9,7 +9,10 @@ set(libengines_base_files
 	${Engine_SOURCE_DIR}/OpenGL/src/base/thread_win.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/base/blockDXT.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/base/fence.cpp  
-
+	${Engine_SOURCE_DIR}/OpenGL/src/base/filter.cpp
+	${Engine_SOURCE_DIR}/OpenGL/src/base/debug.cpp 
+	${Engine_SOURCE_DIR}/OpenGL/src/base/str.cpp 
+	
 	${Engine_SOURCE_DIR}/OpenGL/include/base/image.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/color.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/BaseObject.h
@@ -27,6 +30,10 @@ set(libengines_base_files
 	${Engine_SOURCE_DIR}/OpenGL/include/base/blockDXT.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/colorBlock.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/fence.h
+	${Engine_SOURCE_DIR}/OpenGL/include/base/filter.h
+	${Engine_SOURCE_DIR}/OpenGL/include/base/dataQueue.h
+	${Engine_SOURCE_DIR}/OpenGL/include/base/debug.h
+	${Engine_SOURCE_DIR}/OpenGL/include/base/str.h
 	
 )
 
@@ -75,8 +82,11 @@ set(libengines_geometry_files
 	${Engine_SOURCE_DIR}/OpenGL/include/geometry/IGeometry.h
 	${Engine_SOURCE_DIR}/OpenGL/include/geometry/mesh.h
 	${Engine_SOURCE_DIR}/OpenGL/include/geometry/dynamicMesh.h
-	${Engine_SOURCE_DIR}/OpenGL/include/geometry/commMesh.h
-	${Engine_SOURCE_DIR}/OpenGL/src/geometry/commMesh.cpp 
+)
+
+set(libengines_mesh_files
+	${Engine_SOURCE_DIR}/OpenGL/src/mesh/baseMesh.cpp 
+	${Engine_SOURCE_DIR}/OpenGL/include/mesh/baseMesh.h
 )
 
 set(libengines_shader_files
@@ -94,24 +104,36 @@ set(libengines_camera_files
 	
 )
 
+set(libengines_scene_terrain_files
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/terrain/rasterTile.h 
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/terrain/rasterLoader.h 
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/terrain/rasterUpdater.h 
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/terrain/rasterSource.h
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/terrain/rasterLevel.h  
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/terrain/rasterExtent.h
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/terrain/terrainRasterLevel.h 
+	
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/terrain/rasterTile.cpp 
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/terrain/rasterLoader.cpp 
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/terrain/rasterUpdater.cpp 
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/terrain/rasterSource.cpp  
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/terrain/rasterLevel.cpp
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/terrain/terrainRasterLevel.cpp
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/terrain/rasterExtent.cpp
+)
+
+set(libengines_scene_geo_clip_terrain_files
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/geomClippMap/terrainClipLevel.h
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/geomClippMap/terrainClipLevel.cpp
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/geomClippMap/footPrints.h
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/geomClippMap/footPrints.cpp
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/geomClippMap/footPrintsRender.cpp
+	${Engine_SOURCE_DIR}/OpenGL/include/scene/geomClippMap/terrainClipUpdater.h
+	${Engine_SOURCE_DIR}/OpenGL/src/scene/geomClippMap/terrainClipUpdater.cpp
+)
+
 set(libengines_scene_files
-	${Engine_SOURCE_DIR}/OpenGL/include/scene/rasterTile.h 
-	${Engine_SOURCE_DIR}/OpenGL/include/scene/rasterLoader.h 
-	${Engine_SOURCE_DIR}/OpenGL/include/scene/rasterUpdater.h 
-	${Engine_SOURCE_DIR}/OpenGL/include/scene/rasterSource.h
-	${Engine_SOURCE_DIR}/OpenGL/include/scene/rasterLevel.h  
-	${Engine_SOURCE_DIR}/OpenGL/include/scene/rasterExtent.h
-	${Engine_SOURCE_DIR}/OpenGL/include/scene/renderRasterLevel.h
 	${Engine_SOURCE_DIR}/OpenGL/include/scene/dataQequest.h
-	
-	${Engine_SOURCE_DIR}/OpenGL/src/scene/rasterTile.cpp 
-	${Engine_SOURCE_DIR}/OpenGL/src/scene/rasterLoader.cpp 
-	${Engine_SOURCE_DIR}/OpenGL/src/scene/rasterUpdater.cpp 
-	${Engine_SOURCE_DIR}/OpenGL/src/scene/rasterSource.cpp  
-	${Engine_SOURCE_DIR}/OpenGL/src/scene/rasterLevel.cpp
-	${Engine_SOURCE_DIR}/OpenGL/src/scene/renderRasterLevel.cpp
-	${Engine_SOURCE_DIR}/OpenGL/src/scene/rasterUpdaterRender.cpp
-	
 )
 
 set(libengines_render_files
@@ -146,9 +168,11 @@ set(libengines_files
 	${Engine_SOURCE_DIR}/OpenGL/src/win32_platform.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/window.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/framebuffers.cpp 
+	
+	
+	${Engine_SOURCE_DIR}/OpenGL/src/color/antialias.cpp
 
 	${Engine_SOURCE_DIR}/OpenGL/src/media/ad.cpp
-	${Engine_SOURCE_DIR}/OpenGL/src/media/util.cpp
 )
 
 set(libengines_include
@@ -178,10 +202,12 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/glu.h
 	${Engine_SOURCE_DIR}/OpenGL/include/vertex.h
 	${Engine_SOURCE_DIR}/OpenGL/include/framebuffers.h
-	${Engine_SOURCE_DIR}/OpenGL/include/common.h
 
+	${Engine_SOURCE_DIR}/OpenGL/include/color/antialias.h
+	${Engine_SOURCE_DIR}/OpenGL/include/common.h
+	${Engine_SOURCE_DIR}/OpenGL/include/util.h
+	
 	${Engine_SOURCE_DIR}/OpenGL/include/media/ad.h
-	${Engine_SOURCE_DIR}/OpenGL/include/media/util.h
 	
 )
 
@@ -196,12 +222,14 @@ add_library(${engineName} ${SHARED_OR_STATIC}
 						${libengines_base_files}
 						${libengines_base_compiler_files}
 						${libengines_geometry_files}
+						${libengines_mesh_files}
 						${libengines_base_io_files}
 						${libengines_math_files}
 						${libengines_render_files}
 						${libengines_shader_files}
 						${libengines_camera_files}
-						${libengines_scene_files}
+						${libengines_scene_terrain_files}
+						${libengines_scene_geo_clip_terrain_files}
 						)
 
 
@@ -211,8 +239,11 @@ source_group("Source Files\\\\base" FILES ${libengines_base_files})
 source_group("Source Files\\\\geometry" FILES ${libengines_geometry_files})
 source_group("Source Files\\\\stream" FILES ${libengines_base_io_files})
 source_group("Source Files\\\\render" FILES ${libengines_render_files})
+source_group("Source Files\\\\mesh" FILES ${libengines_mesh_files})
 source_group("Source Files\\\\camera" FILES ${libengines_camera_files})
-source_group("Source Files\\\\scene" FILES ${libengines_scene_files})
+source_group("Source Files\\\\scene\\\\terrain" FILES ${libengines_scene_terrain_files})
+source_group("Source Files\\\\scene\\\\terrain\\\\geoClip" FILES ${libengines_scene_geo_clip_terrain_files})
+
 
 
 if(GLFW_FOUND) 
@@ -242,7 +273,9 @@ if(ZLIB_FOUND)
 	target_link_libraries(${engineName} ${ZLIB_LIBARY_RELEASE})
 	target_include_directories(${engineName} PUBLIC ${ZLIB_INCLUDE_DIR})
 endif()
-
+if(WIN32)
+target_link_libraries(${engineName} D:/3rdlib/mesa20.0.5.lib/lib/opengl32.lib)
+endif()
 
 # freetype
 target_link_libraries(${engineName} ${FREETYPE_LIBRARY})
@@ -300,6 +333,8 @@ target_include_directories(${engineName} PUBLIC ${Engine_SOURCE_DIR}/opengl/incl
 											${Engine_SOURCE_DIR}/opengl/include/mesh
 											${Engine_SOURCE_DIR}/opengl/include/camera
 											${Engine_SOURCE_DIR}/opengl/include/scene
+											${Engine_SOURCE_DIR}/opengl/include/scene/terrain
+											${Engine_SOURCE_DIR}/opengl/include/scene/geomClippMap
 											
 							)
 
