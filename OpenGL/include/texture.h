@@ -25,6 +25,15 @@ enum TEXTURE_TYPE
 	T_NONE
 };
 
+/************************************************************************/
+/* 
+	# https://www.khronos.org/opengl/wiki/Texture_Storage
+	levle: mipmaps
+	array Texture :layer
+	cube :face
+*/
+/************************************************************************/
+
 class LIBENIGHT_EXPORT Texture :public base::BaseObject
 {
 public:
@@ -48,6 +57,7 @@ public:
 	void				destoryGLObj();
 	bool				loadData();
 	bool                context(void * data);
+	bool                contextArr(void ** data);
 	bool				contextNULL();
 	unsigned int        getTexture(void)const;
 
@@ -112,7 +122,7 @@ private:
 	void                context2D(void * data);
 	void                context3D(void * data);
 	void                context1DA(void * data);
-	void                context2DA(void * data);
+	void                context2DA(void ** data);
 	void                contextC(void * data);
 	void                contextCA(void * data);
 	
