@@ -40,7 +40,7 @@ public:
 	virtual void	key(const int key, const bool down);
 	void			activated(const bool state);
 
-	void            initialize(const WindowConfig* ,const DeviceConfig* dc);
+	bool            initialize(const WindowConfig* ,const DeviceConfig* dc);
 	void            start();
 
 	void            pressEvents();
