@@ -45,6 +45,7 @@ namespace base
 		uint16 faces()const;
 		uint16& rfaces();
 		bool  cubMap()const;
+		uint8 components()const;
 
 		void setwidth(uint);
 		void setheight(uint);
@@ -60,6 +61,7 @@ namespace base
 		void setfaces(uint);
 		void setElementSize(uint16);
 		void setCubeFlag(bool);
+		void setComponents(uint8);
 
 		void* getLevel(uint level);
 		/// Get a pointer to the pixel data for a given mipmap level and cubemap face.
@@ -101,6 +103,7 @@ namespace base
 		uint16	faces_; //cubemap
 
 		uint16  elementSize_;//bytesPerElement
+		uint8	numofComponet_; 
 
 		uint16	numOfMiplevels_;
 
@@ -144,12 +147,6 @@ namespace base
 		}
 	}
 
-	class LIBENIGHT_EXPORT U8Image :public Image
-	{
-	public:
-		virtual ~U8Image();
-		virtual void allocate(uint w, uint h);
-	};
 
 	class LIBENIGHT_EXPORT OpenExrImage :public Image
 	{
