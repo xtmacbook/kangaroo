@@ -3,7 +3,7 @@
 #include "image.h"
 #include "log.h"
 namespace IO {
-	bool ImageFile::loadBMP(StdInputStream * stream, base::SmartPointer<base::Image>&image)
+	base::Image* ImageFile::loadBMP(StdInputStream * stream)
 	{
 		struct bmpHeader
 		{
@@ -28,6 +28,7 @@ namespace IO {
 			int clrImportant;
 		};
 
+
 		uint8 header[54]; // Each BMP file begins by a 54-bytes header
 		uint32 dataPos;       // Position in the file where the actual data begins
 		uint32 width, height;
@@ -38,12 +39,12 @@ namespace IO {
 		if (stream->isError())
 		{
 			Log::instance()->printMessage("read bmp file is error !\n");
-			return NULL;
+			return nullptr;
 		}
 
 		if (header[0] != 'B' || header[1] != 'M') {
-			Log::instance()->printMessage("Not a correct BMP file\n");
-			return NULL;
+			Log::instance()->printMessage("Not a correct BMP file\n"); 
+			return nullptr;
 		}
 		// Read ints from the byte array
 		dataPos = *(int*)&(header[0x0A]);
@@ -57,7 +58,9 @@ namespace IO {
 		data = new uint8[imageSize];
 		stream->serializeData(data, imageSize);
 
-		image->allocate(width, height);
+		base::Image * image = new base::Image();
+
+		image->allocate(width, height,3);
 
 		image->levelDataPtr_ = new uint8*[1];
 		image->levelDataPtr_[0] = (uint8*)image->pixels();
@@ -75,6 +78,6 @@ namespace IO {
 			src += 3;
 		}
 
-		return true;
+		return image;
 	}
 }
