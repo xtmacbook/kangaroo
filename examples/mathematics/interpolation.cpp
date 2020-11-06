@@ -10,7 +10,7 @@
 #include "windowManager.h"
 #include "log.h"
 #include "helpF.h"
-#include <comm.h>
+#include <baseMesh.h>
 #include <Inputmanager.h>
 #include "glinter.h"
 #include <cmath>
