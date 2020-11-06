@@ -11,20 +11,22 @@ using namespace math;
 
 namespace IO
 {
-	bool ImageFile::loadHDR(const char*file, base::SmartPointer<base::Image>&img)
+	base::Image* ImageFile::loadHDR(const char*file)
 	{
 		FILE *fp = fopen(file, "rb");
 		if (!fp) {
 			std::string err = "Error opening file:";
 			err += file;
 			PRINT_ERROR(err.c_str());
-			return false;
+			return nullptr;
 		}
 
 		rgbe_header_info header;
 		int w, h;
 		if (RGBE_ReadHeader(fp, &w, &h, &header))
-			return false;
+			return nullptr;
+
+		base::OpenExrImage *img = new base::OpenExrImage();
 
 		img->setwidth(w);
 		img->setheight(h);
@@ -33,11 +35,14 @@ namespace IO
 
 		//  if (RGBE_ReadPixels_RLE(fp, img.data, img.width, img.height))
 		if (RGBE_ReadPixels_Raw_RLE(fp, (unsigned char*)img->pixels(), w, h))
-			return false;
+		{
+			delete img;
+			return nullptr;
+		}
 
 		fclose(fp);
 
-		return true;
+		return img;
 	}
 	
 }
