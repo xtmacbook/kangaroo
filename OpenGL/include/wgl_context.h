@@ -83,6 +83,7 @@ struct LibraryWGL
 
 bool _initWGL(void);
 bool _createContextWGL(GWindow*, const DeviceConfig *, const Bconfig* fbconfig);
-bool __createContextWGL(HWND* hand, HGLRC*share, Context*, const DeviceConfig *, const Bconfig* fbconfig);
-bool ___createContextWGL(HWND* hwnd, HDC* hdc /*out*/ , HGLRC* hglrc /*out*/ , HGLRC*share /*in*/, const DeviceConfig *, const Bconfig* fbconfig);
+bool __createContextWGL(HWND* hand, Context*, HGLRC*share, const DeviceConfig *, const Bconfig* fbconfig,bool shared = false);
+bool ___createContextWGL(HWND* hwnd, HDC* hdc /*out*/ , HGLRC* hglrc /*out*/ , HGLRC*share /*in*/, const DeviceConfig *, const Bconfig* fbconfig,bool shared = false);
 void _terminateWgl();
+
