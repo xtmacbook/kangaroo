@@ -6,8 +6,8 @@
 #include "IRenderNode.h"
 #include "texture.h"
 #include <vector>
+#include "mesh.h"
 
-class Mesh;
 
 namespace IO
 {
@@ -15,6 +15,11 @@ namespace IO
 	{
 		std::vector<Mesh_SP > meshs_;
 		std::vector<Texture_Sp> textures_;
+	};
+
+	struct ImageOption
+	{
+		bool clamped_ = false;
 	};
 
 	class LIBENIGHT_EXPORT EngineLoad
@@ -26,7 +31,7 @@ namespace IO
 			ML_NONEPLUG
 		};
 		static bool loadNode(const char*file, LModelInfo&, ModelLoadType = ML_ASSIMP);
-		static base::SmartPointer<base::Image> loadImage(const char*file);
+		static base::SmartPointer<base::Image> loadImage(const char*file, const ImageOption&option = {true});
 	};
 };
 
