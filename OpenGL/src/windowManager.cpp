@@ -14,7 +14,6 @@
 #include "log.h"
 #include "text.h"
 #include "ad.h"
-#include "const.h"
 #include "gls.h"
 #include "gli.h"
 #include "window_w32.h"
@@ -25,6 +24,7 @@ extern void  mouse_curse_pos_callback(GWindow* window, double xpos, double ypos)
 extern void  windowSize(GWindow* window, int width, int height);
 extern void  key_callback(GWindow* window, int, int, int, int);
 
+extern GWindow * g_main_window;
 WindowManager::WindowManager() :inputManager_(nullptr),
 window_(nullptr)
 {
@@ -40,6 +40,8 @@ bool WindowManager::initialize(const DeviceConfig* dc, const WindowConfig* wc)
 	if (!gluInitWindow()) return false;
 
 	window_ = gluCreateWindow(dc, wc);
+
+	g_main_window = window_;
 
 	if (!window_) return false;
 
