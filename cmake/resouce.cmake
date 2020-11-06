@@ -1,10 +1,10 @@
 	
-SET(RESOUCE_CPP_FILE_NAME "${Engine_OpenGl_SOURCE_DIR}OpenGL/src/resource.cpp")
+SET(RESOUCE_CPP_FILE_NAME "${Engine_SOURCE_DIR}OpenGL/src/resource.cpp")
 
 	FILE ( WRITE ${RESOUCE_CPP_FILE_NAME} "#include<resource.h> \n")
 	
 	FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "\n")
-    FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "static std::string g_mediaBasePath  = \"${Engine_OpenGl_SOURCE_DIR}media/\"; \n")
+    FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "static std::string g_mediaBasePath  = \"${Engine_SOURCE_DIR}media/\"; \n")
     FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "static std::string g_shaderBasePath = g_mediaBasePath + \"shader/\"; \n")
 	
 	FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "\n")
@@ -12,7 +12,7 @@ SET(RESOUCE_CPP_FILE_NAME "${Engine_OpenGl_SOURCE_DIR}OpenGL/src/resource.cpp")
     FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "static std::string g_objsBasePath    = g_mediaBasePath + \"models/\";\n")
 	
 	FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "\n")
-	FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "static std::string g_log_file_name = \"${Engine_OpenGl_SOURCE_DIR}log.txt\"; \n")
+	FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "static std::string g_log_file_name = \"${Engine_SOURCE_DIR}log.txt\"; \n")
 	
 	FILE ( APPEND ${RESOUCE_CPP_FILE_NAME} "\n") 
 	
