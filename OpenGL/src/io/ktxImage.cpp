@@ -46,7 +46,7 @@ namespace IO
 		return b.u32;
 	}
 
-	bool ImageFile::loadKtx(const char*filename, base::SmartPointer<base::Image>&img)
+	base::Image* ImageFile::loadKtx(const char*filename)
 	{
 		FILE * fp;
 		GLuint temp = 0;
@@ -58,7 +58,9 @@ namespace IO
 		fp = fopen(filename, "rb");
 
 		if (!fp)
-			return 0;
+			return nullptr;
+
+		base::Image * img = nullptr;
 
 		if (fread(&h, sizeof(h), 1, fp) != 1)
 			goto fail_read;
@@ -133,6 +135,7 @@ namespace IO
 		data_end = ftell(fp);
 		fseek(fp, data_start, SEEK_SET);
 
+		img = new base::Image;
 		img->allocate(data_end - data_start);
 		memset(img->pixels(), 0, data_end - data_start);
 		fread(img->pixels(), 1, data_end - data_start, fp);
