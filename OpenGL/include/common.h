@@ -24,5 +24,12 @@ template<class T> inline std::string					toString(const T& input)
 
 const char *						extension(const char * str);
 
+template <typename T>
+inline void swap(T & a, T & b)
+{
+	T temp(a);
+	a = b;
+	b = temp;
+}
 
 #endif
