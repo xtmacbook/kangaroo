@@ -23,7 +23,7 @@ namespace IO
 		unsigned int  m_uiWidth;
 		unsigned int  m_uiBPP;
 	};
-	bool ImageFile::loadTga(StdInputStream * stream, base::SmartPointer<base::Image>&img)
+	base::Image* ImageFile::loadTga(StdInputStream * stream)
 	{
 		std::vector<uint8> byte_array;
 		byte_array.resize(stream->size());
@@ -32,7 +32,7 @@ namespace IO
 		if (stream->isError())
 		{
 			Log::instance()->printMessage("read tga file is error !\n");
-			return false;
+			return nullptr;
 		}
 
 		if (memcmp(&(byte_array[0]), g_ucUTGAcompare, 12) == 0)
@@ -66,7 +66,7 @@ namespace IO
 
 
 			if ((w <= 0) || (h <= 0) || ((band != 24) && (band != 32)))
-				return false;
+				return nullptr;
 
 			pTGAinfo.m_uiBPP = band;
 			pTGAinfo.m_uiHeight = h;
@@ -76,6 +76,8 @@ namespace IO
 			pTGAinfo.m_uiImageSize = (pTGAinfo.m_uiBytesPerPixel*pTGAinfo.m_uiWidth*pTGAinfo.m_uiHeight);
 
 			uiPixelCount = pTGAinfo.m_uiHeight * pTGAinfo.m_uiWidth;
+
+			base::Image* img = new base::Image();
 
 			img->allocate(pTGAinfo.m_uiWidth, pTGAinfo.m_uiHeight, pTGAinfo.m_uiBytesPerPixel);
 
@@ -127,7 +129,8 @@ namespace IO
 							if (data != NULL)
 								delete[] data;
 
-							return false;
+							delete img;
+							return nullptr;
 						}
 					}
 				}
@@ -162,7 +165,8 @@ namespace IO
 							if (data != NULL)
 								delete[] data;
 
-							return false;
+							delete img;
+							return nullptr;
 						}
 					}
 				}
@@ -170,6 +174,8 @@ namespace IO
 
 			//loop while there are still pixels left
 			while (uiCurrentPixel < uiPixelCount);
+
+			return img;
 		}
 	}
 
