@@ -3,6 +3,7 @@
 #define  _FRAME_BUFFER_
 
 #include "decl.h"
+#include "BaseObject.h"
 
 typedef enum {
 	FBO_DepthBufferType_NONE = 0,

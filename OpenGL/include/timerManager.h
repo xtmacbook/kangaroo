@@ -32,6 +32,7 @@ public:
 	// This returns the current time in seconds (since 1/1/1970, call "epoch")
 	double					getTime();
 
+	double					getMicroTime();
 	// This pauses the current thread for an amount of time in milliseconds
 	void					sleepSec(int milliseconds);
 

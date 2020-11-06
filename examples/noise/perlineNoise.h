@@ -1,6 +1,4 @@
 #include <type.h>
-#include <const.h>
-
 
 using namespace math;
 

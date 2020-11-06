@@ -17,6 +17,7 @@
 #ifdef _Q_TEST_
 #include "glQuery.h"
 #endif
+
 using namespace math;
 
 //WGL_CONTEXT_DEBUG_BIT_ARB
@@ -25,7 +26,7 @@ using namespace math;
  * persistent:you are not frequently mapping and unmapping the buffer. You map it persistently when you create the buffer, and keep it mapped until it's time to delete the buffer.
  */
 template <class T>
-class  FlashBuffer
+class  FlashBuffer :public BaseObject
 {
 public:
 

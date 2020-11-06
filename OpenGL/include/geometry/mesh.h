@@ -5,9 +5,8 @@
 #include "type.h"
 #include "texture.h"
 #include "boundingBox.h"
-#include "util.h"
 #include "vertex.h"
-
+#include "util.h"
 #include <vector>
 
 using namespace math;

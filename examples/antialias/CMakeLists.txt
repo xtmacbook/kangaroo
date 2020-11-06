@@ -1,6 +1,6 @@
 
 # ================================================= MSAA   =================================================
-add_executable(msaa "msaa.cpp")
+add_executable(msaa "msaa.cpp" "antialias.cpp")
 add_dependencies(msaa ${engineName})
 source_group("Source Files" FILES "msaa.cpp")
 

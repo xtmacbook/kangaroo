@@ -39,7 +39,7 @@ bool WindowManager::initialize(const DeviceConfig* dc, const WindowConfig* wc)
 {
 	if (!gluInitWindow()) return false;
 
-	window_ = gluCreateWindow(dc, wc);
+	window_ = gluCreateWindow(dc, wc,wc->shouldCreateSharedContext_);
 
 	g_main_window = window_;
 

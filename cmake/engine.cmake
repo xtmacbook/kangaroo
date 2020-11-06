@@ -169,9 +169,6 @@ set(libengines_files
 	${Engine_SOURCE_DIR}/OpenGL/src/window.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/framebuffers.cpp 
 	
-	
-	${Engine_SOURCE_DIR}/OpenGL/src/color/antialias.cpp
-
 	${Engine_SOURCE_DIR}/OpenGL/src/media/ad.cpp
 )
 
@@ -201,12 +198,10 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/win32_platform.h
 	${Engine_SOURCE_DIR}/OpenGL/include/glu.h
 	${Engine_SOURCE_DIR}/OpenGL/include/vertex.h
-	${Engine_SOURCE_DIR}/OpenGL/include/framebuffers.h
-
-	${Engine_SOURCE_DIR}/OpenGL/include/color/antialias.h
+	${Engine_SOURCE_DIR}/OpenGL/include/framebuffers.h 
 	${Engine_SOURCE_DIR}/OpenGL/include/common.h
 	${Engine_SOURCE_DIR}/OpenGL/include/util.h
-	
+	${Engine_SOURCE_DIR}/OpenGL/include/defsVcWin32.h
 	${Engine_SOURCE_DIR}/OpenGL/include/media/ad.h
 	
 )
@@ -272,9 +267,6 @@ endif()
 if(ZLIB_FOUND)
 	target_link_libraries(${engineName} ${ZLIB_LIBARY_RELEASE})
 	target_include_directories(${engineName} PUBLIC ${ZLIB_INCLUDE_DIR})
-endif()
-if(WIN32)
-target_link_libraries(${engineName} D:/3rdlib/mesa20.0.5.lib/lib/opengl32.lib)
 endif()
 
 # freetype

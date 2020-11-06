@@ -1,6 +1,7 @@
 #include "skydom.h"
 #include "helpF.h"
 #include "type.h"
+#include "util.h"
 #include <log.h>
 
 #define ZENITH_COLOR		{ 0.1f, 0.5f, 0.9f, 1.0f }

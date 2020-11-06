@@ -1,5 +1,6 @@
 #include "cameraBase.h"
 #include "helpF.h"
+#include "util.h"
 #include "occlusion.h"
 
 #define FRUSTUM_RIGHT  0

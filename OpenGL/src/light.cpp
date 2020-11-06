@@ -1,6 +1,7 @@
 #include "light.h"
 #include "shader.h"
 #include "helpF.h"
+#include "util.h"
 #include "gls.h"
 
 #include <string>

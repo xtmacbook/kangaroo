@@ -1,6 +1,7 @@
 #include "fspCamera.h"
 #include "helpF.h"
 #include "glu.h"
+#include "util.h"
 #include "Inputmanager.h"
 
 using namespace math;

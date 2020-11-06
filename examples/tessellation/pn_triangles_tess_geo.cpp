@@ -364,8 +364,8 @@ bool PNTTessScene::initKeyCallback()
 {
 	Scene::initKeyCallback();
 
-	KEY_CALLBACK(GLU_KEY_1, Base::NewPermanentCallback(keyEvent)); //key_1
-	KEY_CALLBACK(GLU_KEY_2, Base::NewPermanentCallback(keyEvent)); //key_2
+	KEY_CALLBACK(GLU_KEY_1, base::NewPermanentCallback(keyEvent)); //key_1
+	KEY_CALLBACK(GLU_KEY_2, base::NewPermanentCallback(keyEvent)); //key_2
 	return true;
 }
 

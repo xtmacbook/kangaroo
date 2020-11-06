@@ -1,7 +1,6 @@
 #include "cloud.h"
 #include <resource.h>
 #include <log.h>
-#include <const.h>
 #include <helpF.h>
 #include <timerManager.h>
 

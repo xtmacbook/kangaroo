@@ -1,5 +1,5 @@
 #include "perlineNoise.h"
-
+#include "helpF.h"
 #include <cmath>
 #include <cstdio>
 #include <random>

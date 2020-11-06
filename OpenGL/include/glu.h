@@ -163,7 +163,7 @@ struct Bconfig;
 
 #include "decl.h"
 bool	    gluInitWindow();
-GWindow *   gluCreateWindow(const DeviceConfig*, const WindowConfig*);
+LIBENIGHT_EXPORT GWindow *   gluCreateWindow(const DeviceConfig*, const WindowConfig*,bool);
 LIBENIGHT_EXPORT Context *   gluCreateContext(HWND*, HGLRC*share,const DeviceConfig*, const Bconfig*);
 LIBENIGHT_EXPORT void		gluDestoryWindow(GWindow*);
 

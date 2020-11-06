@@ -514,6 +514,7 @@ void platformFocusWindow(GWindow* window)
 }
 
 
+GWindow::~GWindow()
+{
 
-
-
+}

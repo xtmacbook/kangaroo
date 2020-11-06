@@ -121,7 +121,7 @@ bool LScene::initSceneModels(const SceneInitInfo&)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-	Base::BoundingBox box(-1, -1, -1, 1, 1, 1);
+	base::BoundingBox box(-1, -1, -1, 1, 1, 1);
 	expandSceneByBox(box);
 
 	RenderNode_SP sphereNode(new RenderNode);
@@ -192,7 +192,7 @@ bool LScene::initKeyCallback()
 {
 	bool result = Scene::initKeyCallback();
 
-	KEY_CALLBACK(GLU_KEY_A, Base::NewPermanentCallback(key));
+	KEY_CALLBACK(GLU_KEY_A, base::NewPermanentCallback(key));
 
 	return result;
 }

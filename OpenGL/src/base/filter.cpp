@@ -38,6 +38,7 @@
 #include "helpF.h"
 #include <string> // memset
 #include <algorithm>
+#include<limits> 
 using namespace base;
 
 namespace
@@ -45,7 +46,7 @@ namespace
     // Sinc function.
     inline static float sincf(const float x)
     {
-        if (fabs(x) < EPSILON) {
+        if (fabs(x) < EPSILION) {
             //return 1.0;
             return 1.0f + x*x*(-1.0f/6.0f + x*x*1.0f/120.0f);
         }
