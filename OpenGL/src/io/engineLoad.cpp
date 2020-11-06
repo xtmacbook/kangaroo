@@ -24,7 +24,7 @@ bool EngineLoad::loadNode(const char* file, LModelInfo&data, ModelLoadType  t/*=
 	return result;
 }
 
-base::SmartPointer<base::Image> EngineLoad::loadImage(const char* file)
+base::SmartPointer<base::Image> EngineLoad::loadImage(const char* file,const ImageOption&option)
 {
 	const char * ext = extension(file);
 
@@ -43,43 +43,38 @@ base::SmartPointer<base::Image> EngineLoad::loadImage(const char* file)
 #if defined(ENGINE_JPEG)
 	if (strCaseDiff(ext, ".jpg") == 0 || strCaseDiff(ext, ".jpeg") == 0)
 	{
-		img = new U8Image();
-		result = ImageFile::loadJPG(&stream, img);
+		img = ImageFile::loadJPG(&stream);
 	}
 #endif
 	if (strCaseDiff(ext, ".bmp") == 0)
 	{
-		img = new U8Image();
-		result = ImageFile::loadBMP(&stream, img);
+		img = ImageFile::loadBMP(&stream);
 	}
 #if defined(ENGINE_PNG)
 	if (strCaseDiff(ext, ".png") == 0)
 	{
-		img = new U8Image();
-		result = ImageFile::loadPNG(&stream, img);
+		img = ImageFile::loadPNG(&stream, &option);
 	}
 #endif
 	if (strCaseDiff(ext, ".ktx") == 0)
 	{
-		img = new U8Image();
-		result = ImageFile::loadKtx(file, img);
+		img = ImageFile::loadKtx(file);
 	}
 #if defined(ENGINE_OPENEXR)
 	if (strCaseDiff(ext, ".hdr") == 0)
 	{
-		img = new OpenExrImage();
 		result = ImageFile::loadHDR(file, img);
 	}
 #endif
 	if (strCaseDiff(ext, ".tga") == 0)
 	{
-		img = new U8Image();
-		result = ImageFile::loadTga(&stream, img);
+		img = ImageFile::loadTga(&stream);
 	}
-		if (strCaseDiff(ext, ".dds") == 0)
+	
+	if (strCaseDiff(ext, ".dds") == 0)
 	{
-		img = new DDSImage();
-		result = ImageFile::loadDDS(&stream, img);
+		
+		return ImageFile::loadDDS(&stream);
 	}
 
 	return img;
