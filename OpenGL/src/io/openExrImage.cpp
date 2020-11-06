@@ -15,7 +15,7 @@
 
 namespace IO
 {
-	bool ImageFile::loadOpenEXRImage(const char *fileName, base::SmartPointer<base::Image>& img)
+	base::Image* ImageFile::loadOpenEXRImage(const char *fileName)
 	{
 #if defined(ENGINE_OPENEXR)
 		try
@@ -55,7 +55,7 @@ namespace IO
 			return false;
 		}
 #endif
-		return true;
+		return nullptr;
 	}
 
 }
