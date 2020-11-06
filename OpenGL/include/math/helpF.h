@@ -10,10 +10,32 @@
 #define OPENGL_M_HEAD_H
 
 #include "type.h"
-#include "util.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/ext.hpp"
 #include "glm/gtx/quaternion.hpp"
+
+namespace math
+{
+	template<class REAL>
+	struct  Const
+	{
+		typedef REAL Real;
+		typedef const REAL cReal;
+
+		static inline const REAL pi() throw() { return REAL(3.141592653589793238462643383279502884197169399375105820974944592); }
+		static inline const REAL tpi() throw() { return REAL(6.28318530718f); }
+		static inline const REAL pi_2() throw() { return pi() / REAL(2.0); }
+		static inline const REAL pi_180() throw() { return pi() / REAL(180.0); }
+		static inline const REAL c180_pi() throw() { return REAL(180.0) / pi(); }
+		static inline const REAL infinity() throw() { return std::numeric_limits<REAL>::infinity(); }
+		static inline const REAL epsilon() throw() { return std::numeric_limits<REAL>::epsilon(); }
+		static inline const REAL near_epsilon() throw() { return REAL(10e-5); }
+		static inline const REAL zero() throw() { return REAL(0.0); }
+		static inline const REAL max_value() throw() { return std::numeric_limits<REAL>::max(); }
+		static inline const REAL min_value() throw() { return std::numeric_limits<REAL>::min(); }
+	};
+}
+
 namespace math
 {
 	template<class REAL>
@@ -178,14 +200,14 @@ namespace math
 	template <class REAL>
 	REAL									radinToDegree(const REAL&r)
 	{
-		REAL returnVal = (r * 180.0) / PI;
+		REAL returnVal = (r * 180.0) / math::Const<REAL>::pi();
 		return returnVal;
 	}
 
 	template <class REAL>
 	REAL									degreeToRadin(const REAL&d)
 	{
-		return (d * PI) / 180.0;
+		return (d * math::Const<REAL>::pi()) / 180.0;
 	}
 	template <class REAL>
 	math::Vector3<REAL>						mulHomogenPoint(const math::Matrix4<REAL> m, const math::Vector3<REAL>&v)
@@ -348,3 +370,4 @@ namespace math
 		return (b > a) ? b : a;
 	}
 }
+
