@@ -62,7 +62,7 @@ namespace base
 
 	void Image::allocate(uint size)
 	{
-		data_ = realloc(data_, size);
+		data_ = new int8[size];
 	}
 
 	void Image::allocate(uint w, uint h, uint elementSize)
@@ -152,6 +152,12 @@ namespace base
 		return cubeMap_;
 	}
 
+
+	math::uint8 Image::components() const
+	{
+		return numofComponet_;
+	}
+
 	void Image::setwidth(uint val)
 	{
 		width_ = val;
@@ -203,6 +209,12 @@ namespace base
 	void Image::setCubeFlag(bool f)
 	{
 		cubeMap_ = f;
+	}
+
+
+	void Image::setComponents(uint8 c)
+	{
+		numofComponet_ = c;
 	}
 
 	void* Image::getLevel(uint level)
@@ -524,22 +536,16 @@ namespace base
 		return false;
 	}
 
-	U8Image::~U8Image()
-	{
-	}
-
-	void U8Image::allocate(uint w, uint h)
-	{
-		Image::allocate(w, h, 1);
-	}
-
 	void Image::destory()
 	{
 		if (data_)
-			free(data_);
+		{
+			delete[] data_;
+			data_ = nullptr;
+		}
 		if (levelDataPtr_)
 		{
-			delete levelDataPtr_;
+			delete[] levelDataPtr_;
 			levelDataPtr_ = nullptr;
 		}
 	}
