@@ -17,6 +17,7 @@
 #include "gls.h"
 #include "glinter.h"
 #include "windowManager.h"
+#include "debug.h"
 
 void GLApplication::openglInit(void)
 {
@@ -74,7 +75,7 @@ void GLApplication::activated(const bool state)
 
 }
 
-void GLApplication::initialize(const WindowConfig* wc, const DeviceConfig* dc)
+bool GLApplication::initialize(const WindowConfig* wc, const DeviceConfig* dc)
 {
 	width_ = wc->width_;
 	hight_ = wc->height_;
@@ -86,8 +87,9 @@ void GLApplication::initialize(const WindowConfig* wc, const DeviceConfig* dc)
 
 	if (!windowManager_ || !windowManager_->initialize(dc, wc))
 	{
-		PRINT_ERROR("GLApplication initialize error!\n");
-		exit(-1);
+		enDebug("GLApplication initialize error!\n");
+		
+		return false;
 	}
 
 	TimeManager::instance().initTime();
@@ -96,6 +98,8 @@ void GLApplication::initialize(const WindowConfig* wc, const DeviceConfig* dc)
 	openglInit();
 
 	KEY_M_CALLBACK(70, base::NewPermanentCallback(this, &GLApplication::showFrameRate, true)); //left
+
+	return true;
 }
 
 void  GLApplication::pressEvents()
