@@ -163,12 +163,22 @@ struct Bconfig;
 
 #include "decl.h"
 bool	    gluInitWindow();
-GWindow *   gluCreateWindow(const DeviceConfig*, const WindowConfig*,bool initGL = true);
+GWindow *   gluCreateWindow(const DeviceConfig*, const WindowConfig*);
 LIBENIGHT_EXPORT Context *   gluCreateContext(HWND*, HGLRC*share,const DeviceConfig*, const Bconfig*);
-void		gluDestoryWindow(GWindow*);
-void		gluMakeCurrentContext(GWindow*);
-void		gluSwapBuffer(GWindow*);
-void		gluTerminate();
+LIBENIGHT_EXPORT void		gluDestoryWindow(GWindow*);
+
+LIBENIGHT_EXPORT void		gluMakeCurrentContext(GWindow*);
+LIBENIGHT_EXPORT void		gluMakeCurrentShareContext(GWindow*);
+LIBENIGHT_EXPORT void		gluMakeCurrentShareContext();
+
+
+LIBENIGHT_EXPORT void		gluMakeCurrentContextNULL(GWindow*);
+LIBENIGHT_EXPORT void		gluMakeCurrentShareContextNULL(GWindow*);
+LIBENIGHT_EXPORT void		gluMakeCurrentShareContextNULL();
+
+
+LIBENIGHT_EXPORT void		gluSwapBuffer(GWindow*);
+LIBENIGHT_EXPORT void		gluTerminate();
 
 void gluPollEvents();
 void gluSwapInterval(int interval);
