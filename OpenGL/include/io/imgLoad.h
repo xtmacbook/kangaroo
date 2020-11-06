@@ -4,7 +4,6 @@
 
 #include "decl.h"
 #include "stream.h"
-#include "smartPointer.h"
 
 namespace base
 {
@@ -14,18 +13,19 @@ namespace base
 
 namespace IO
 {
+	struct ImageOption;
+
     class LIBENIGHT_EXPORT ImageFile
     {
     public:
-
-		static bool					loadDDS(StdInputStream * stream, base::SmartPointer<base::Image>&);
-		static bool					loadOpenEXRImage(const char *fileName, base::SmartPointer<base::Image>&);
-		static bool					loadBMP(StdInputStream * stream, base::SmartPointer<base::Image>&);
-		static bool					loadJPG(StdInputStream * stream, base::SmartPointer<base::Image>&);
-		static bool					loadPNG(StdInputStream * stream, base::SmartPointer<base::Image>&);
-		static bool					loadKtx(const char*fileName, base::SmartPointer<base::Image>&);
-	    static bool					loadTga(StdInputStream * stream, base::SmartPointer<base::Image>&);
-		static bool					loadHDR(const char*fileName , base::SmartPointer<base::Image>&);
+		static base::Image*				loadDDS(StdInputStream * stream);
+		static base::Image*				loadOpenEXRImage(const char *fileName);
+		static base::Image*				loadBMP(StdInputStream * stream);
+		static base::Image*				loadJPG(StdInputStream * stream);
+		static base::Image*				loadPNG(StdInputStream * stream, const ImageOption*);
+		static base::Image*				loadKtx(const char*fileName);
+	    static base::Image*				loadTga(StdInputStream * stream);
+		static base::Image*				loadHDR(const char*fileName);
     };
 }
 #endif
