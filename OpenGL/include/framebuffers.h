@@ -16,7 +16,7 @@ typedef enum {
 
 class Texture;
 
-class FrameBufferObject
+class FrameBufferObject  :public base::BaseObject
 {
 
 public:
