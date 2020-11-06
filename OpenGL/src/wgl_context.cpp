@@ -2,6 +2,7 @@
 #include "window_w32.h"
 #include "windowManager.h"
 #include "thread.h"
+#include "debug.h"
 
 #include <stdlib.h>
 #include <malloc.h>
@@ -653,128 +654,141 @@ static int _choosePixelFormat(HDC* hdc, const DeviceConfig*dc, const Bconfig * f
 	return pixelFormat;
 }
 
-bool ___createContextWGL(HWND* hwnd, HDC* hdc, HGLRC* hglrc,HGLRC*share, const DeviceConfig *dc, const Bconfig* fbconfig)
+ 
+
+bool ___createContextWGL(HWND* hwnd, HDC* hdc, HGLRC* hglrc,HGLRC*share, const DeviceConfig *dc, const Bconfig* fbconfig, bool shared)
 {
-	int attribs[40];
-	int pixelFormat;
-	PIXELFORMATDESCRIPTOR pfd;
-	*hdc = GetDC(*hwnd);
-	if (!*hdc)
-	{
-		PRINT_ERROR("WGL: Failed to retrieve DC for window");
-		return false;
-	}
-
-	pixelFormat = _choosePixelFormat(hdc, dc, fbconfig);
-
-	if (!pixelFormat)
-		return false;
-
-	if (!DescribePixelFormat(*hdc,
-		pixelFormat, sizeof(pfd), &pfd))
-	{
-		PRINT_ERROR("WGL: Failed to retrieve PFD for selected pixel format");
-		return false;
-	}
-
-	if (!SetPixelFormat(*hdc, pixelFormat, &pfd))
-	{
-		PRINT_ERROR("WGL: Failed to set selected pixel format");
-
-		DWORD errorCode = GetLastError();
-
-		return false;
-	}
-
-	if (dc->glVersion_.glforward_compat_)
-	{
-		if (!opg.wgl.ARB_create_context)
-		{
-			PRINT_ERROR("WGL: A forward compatible OpenGL context requested but WGL_ARB_create_context is unavailable");
-			return false;
-		}
-	}
-
-	if (dc->glVersion_.glProfile_)
-	{
-		if (!opg.wgl.ARB_create_context_profile)
-		{
-			PRINT_ERROR("WGL: OpenGL profile requested but WGL_ARB_create_context_profile is unavailable");
-			return false;
-		}
-	}
-
 	if (opg.wgl.ARB_create_context)
 	{
-		int index = 0, mask = 0, flags = 0;
-
-		if (dc->glVersion_.glforward_compat_)
-			flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-		if (dc->glVersion_.glProfile_ == Version_Config::OPENGL_CORE_PROFILE)
-			mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-		else if (dc->glVersion_.glProfile_ == Version_Config::OPENGL_COMPAT_PROFILE)
-			mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
-
-		if (dc->glContext_.debug_context_)
+		if (!shared)
 		{
-			flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
-		}
-
-		if (dc->glContext_.robustness_)
-		{
-			if (opg.wgl.ARB_create_context_robustness)
+			int attribs[40];
+			int pixelFormat;
+			PIXELFORMATDESCRIPTOR pfd;
+			*hdc = GetDC(*hwnd);
+			if (!*hdc)
 			{
-				if (dc->glContext_.robustness_ == Context_Config::NO_RESET_NOTIFICATION)
-				{
-					setAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB,
-						WGL_NO_RESET_NOTIFICATION_ARB);
-				}
-				else if (dc->glContext_.robustness_ == Context_Config::LOSE_CONTEXT_ON_RESET)
-				{
-					setAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB,
-						WGL_LOSE_CONTEXT_ON_RESET_ARB);
-				}
-
-				flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
+				PRINT_ERROR("WGL: Failed to retrieve DC for window");
+				return false;
 			}
-		}
 
-		if (dc->glContext_.robustness_)
-		{
-			if (opg.wgl.ARB_context_flush_control)
+			pixelFormat = _choosePixelFormat(hdc, dc, fbconfig);
+
+			if (!pixelFormat)
+				return false;
+
+			if (!DescribePixelFormat(*hdc,
+				pixelFormat, sizeof(pfd), &pfd))
 			{
-				if (dc->glContext_.release_ == Context_Config::RELEASE_BEHAVIOR_NONE)
+				PRINT_ERROR("WGL: Failed to retrieve PFD for selected pixel format");
+				return false;
+			}
+
+			if (!SetPixelFormat(*hdc, pixelFormat, &pfd))
+			{
+				PRINT_ERROR("WGL: Failed to set selected pixel format");
+
+				DWORD errorCode = GetLastError();
+
+				return false;
+			}
+
+			if (dc->glVersion_.glforward_compat_)
+			{
+				if (!opg.wgl.ARB_create_context)
 				{
-					setAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
-						WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
-				}
-				else if (dc->glContext_.release_ == Context_Config::RELEASE_BEHAVIOR_FLUSH)
-				{
-					setAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
-						WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB);
+					PRINT_ERROR("WGL: A forward compatible OpenGL context requested but WGL_ARB_create_context is unavailable");
+					return false;
 				}
 			}
-		}
 
-		if (dc->glContext_.noerror_)
+			if (dc->glVersion_.glProfile_)
+			{
+				if (!opg.wgl.ARB_create_context_profile)
+				{
+					PRINT_ERROR("WGL: OpenGL profile requested but WGL_ARB_create_context_profile is unavailable");
+					return false;
+				}
+			}
+
+
+			if (opg.wgl.ARB_create_context)
+			{
+				int index = 0, mask = 0, flags = 0;
+
+				if (dc->glVersion_.glforward_compat_)
+					flags |= WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
+				if (dc->glVersion_.glProfile_ == Version_Config::OPENGL_CORE_PROFILE)
+					mask |= WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+				else if (dc->glVersion_.glProfile_ == Version_Config::OPENGL_COMPAT_PROFILE)
+					mask |= WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+
+				if (dc->glContext_.debug_context_)
+				{
+					flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
+				}
+
+				if (dc->glContext_.robustness_)
+				{
+					if (opg.wgl.ARB_create_context_robustness)
+					{
+						if (dc->glContext_.robustness_ == Context_Config::NO_RESET_NOTIFICATION)
+						{
+							setAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB,
+								WGL_NO_RESET_NOTIFICATION_ARB);
+						}
+						else if (dc->glContext_.robustness_ == Context_Config::LOSE_CONTEXT_ON_RESET)
+						{
+							setAttrib(WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB,
+								WGL_LOSE_CONTEXT_ON_RESET_ARB);
+						}
+
+						flags |= WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB;
+					}
+				}
+
+				if (dc->glContext_.robustness_)
+				{
+					if (opg.wgl.ARB_context_flush_control)
+					{
+						if (dc->glContext_.release_ == Context_Config::RELEASE_BEHAVIOR_NONE)
+						{
+							setAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
+								WGL_CONTEXT_RELEASE_BEHAVIOR_NONE_ARB);
+						}
+						else if (dc->glContext_.release_ == Context_Config::RELEASE_BEHAVIOR_FLUSH)
+						{
+							setAttrib(WGL_CONTEXT_RELEASE_BEHAVIOR_ARB,
+								WGL_CONTEXT_RELEASE_BEHAVIOR_FLUSH_ARB);
+						}
+					}
+				}
+
+				if (dc->glContext_.noerror_)
+				{
+					if (opg.wgl.ARB_create_context_no_error)
+						setAttrib(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, true);
+				}
+
+				setAttrib(WGL_CONTEXT_MAJOR_VERSION_ARB, dc->glVersion_.glMaxJor_);
+				setAttrib(WGL_CONTEXT_MINOR_VERSION_ARB, dc->glVersion_.glMinJor_);
+
+				if (flags)
+					setAttrib(WGL_CONTEXT_FLAGS_ARB, flags);
+
+				if (mask)
+					setAttrib(WGL_CONTEXT_PROFILE_MASK_ARB, mask);
+
+				setAttrib(0, 0);
+
+			}
+			*hglrc =
+				wglCreateContextAttribsARB(*hdc, *share, attribs);
+		}
+		else
 		{
-			if (opg.wgl.ARB_create_context_no_error)
-				setAttrib(WGL_CONTEXT_OPENGL_NO_ERROR_ARB, true);
+			*hglrc = wglCreateContextAttribsARB(*hdc, *share, NULL);
 		}
-
-		setAttrib(WGL_CONTEXT_MAJOR_VERSION_ARB, dc->glVersion_.glMaxJor_);
-		setAttrib(WGL_CONTEXT_MINOR_VERSION_ARB, dc->glVersion_.glMinJor_);
-
-		if (flags)
-			setAttrib(WGL_CONTEXT_FLAGS_ARB, flags);
-
-		if (mask)
-			setAttrib(WGL_CONTEXT_PROFILE_MASK_ARB, mask);
-
-		setAttrib(0, 0);
-
-		*hglrc =
-			wglCreateContextAttribsARB(*hdc, *share, attribs);
 
 		if (!*hglrc)
 		{
@@ -822,16 +836,16 @@ bool ___createContextWGL(HWND* hwnd, HDC* hdc, HGLRC* hglrc,HGLRC*share, const D
 	}
 }
 
-bool __createContextWGL(HWND* hand, HGLRC*share, Context*wgl, const DeviceConfig *dc, const Bconfig* fbconfig)
+bool __createContextWGL(HWND* hand, Context*wgl, HGLRC*share, const DeviceConfig *dc, const Bconfig* fbconfig, bool shared)
 {
 	if (fbconfig == NULL)
 	{
 		Bconfig* bcf = &opg.hints.framebuffer;
-		if (!___createContextWGL(hand, &(wgl->wgl_ct_.dc_), &wgl->wgl_ct_.handle_, share, dc, bcf)) return false;
+		if (!___createContextWGL(hand, &(wgl->wgl_ct_.dc_), &wgl->wgl_ct_.handle_, share, dc, bcf,shared)) return false;
 	}
 	else
 	{
-		if (!___createContextWGL(hand, &(wgl->wgl_ct_.dc_), &wgl->wgl_ct_.handle_, share, dc, fbconfig)) return false;
+		if (!___createContextWGL(hand, &(wgl->wgl_ct_.dc_), &wgl->wgl_ct_.handle_, share, dc, fbconfig,shared)) return false;
 	}
 
 	wgl->makeCurrent_ = makeContextCurrentWGL;
@@ -847,7 +861,7 @@ bool __createContextWGL(HWND* hand, HGLRC*share, Context*wgl, const DeviceConfig
 bool _createContextWGL(GWindow * win, const DeviceConfig* dc, const Bconfig* fbconfig)
 {
 	HGLRC share = 0;
-	return __createContextWGL(&win->win_.handle_,&share, &win->context_, dc, fbconfig);
+	return __createContextWGL(&win->win_.handle_,&win->context_, &share, dc, fbconfig);
 }
 
 void _terminateWgl()
