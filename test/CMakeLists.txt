@@ -44,7 +44,7 @@ target_link_libraries(test_multThread ${engineName})
 #install
 install(TARGETS test_multThread RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 # ================================================= testImage===================================================================================
-set(testImage_Source_Files   testImage.cpp)
+set(testImage_Source_Files   testImage.cpp jpgd.cpp jpeg_gpu.cpp)
 add_executable(testImage ${testImage_Source_Files})
 add_dependencies(testImage ${engineName})
 source_group("Source Files" FILES ${testImage_Source_Files})
@@ -69,7 +69,7 @@ target_link_libraries(testDataQequest ${engineName})
 install(TARGETS testDataQequest RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 # ================================================= testClipmap===================================================================================
-set( testClipmap_Source_Files    testClipmap.cpp)
+set( testClipmap_Source_Files    testClipmap.cpp jpgd.cpp clipmap_prepprocessor.cpp jpeg_gpu.cpp)
 add_executable( testClipmap ${testClipmap_Source_Files})
 add_dependencies(testClipmap ${engineName})
 source_group("Source Files" FILES ${testClipmap_Source_Files})
