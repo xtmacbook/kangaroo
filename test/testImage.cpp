@@ -9,6 +9,14 @@
 #include <log.h>
 #include <renderNode.h>
 #include <texture.h>
+#include "jpgd.h"
+#include "framebuffers.h"
+#include "jpeg_gpu.h"
+
+#define  MAX_CHANELS 3
+
+
+
 
 class TestImgScene : public Scene
 {
@@ -17,15 +25,32 @@ protected:
 	virtual void					render(PassInfo&);
 	virtual bool					initTexture(const SceneInitInfo&);
 	virtual bool					initShader(const SceneInitInfo&);
+
+private:
+	int					imageWidth;
+	int					imageHeight;
+	int					componentsNum;
+
+	char				quantTables[MAX_CHANELS][64];
+
+	int					MCU_per_row;
+	int					MCU_blocks_num;
+
+	Jpeg_Data			jpegData_;
 };
+
+
 
 bool TestImgScene::initSceneModels(const SceneInitInfo&)
 {
-	Base::SmartPointer<Quad> quad = new Quad;
+	base::SmartPointer<Quad> quad = new Quad;
 	quad->initGeometry();
 	RenderNode_SP quadRenderNode = new RenderNode;
 	quadRenderNode->setGeometry(quad);
 	addRenderNode(quadRenderNode);
+
+
+
 	return true;
 }
 
@@ -35,78 +60,43 @@ void TestImgScene::render(PassInfo&ps)
 	shader->turnOn();
 	initUniformVal(shader);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D ,texturesObj_[0]->getTexture());
-
 	getRenderNode(0)->render(shader, ps);
 	shader->turnOff();
 }
 
 bool TestImgScene::initTexture(const SceneInitInfo&)
 {
-	std::string tx = get_texture_BasePath() + "heightmap.jpg";
-	Texture* curTexObj = new Texture(tx.c_str());
-	if (curTexObj->loadData())
-	{
-		curTexObj->createObj();
-		curTexObj->bind();
-		curTexObj->mirrorRepeat();
-		curTexObj->filterLinear();
-		if (curTexObj->context(NULL))
-		{
-			curTexObj->unBind();
-			texturesObj_.push_back(curTexObj);
-		}
-		else return false;
-		CHECK_GL_ERROR;
-	}
+	std::string jpegFile = "D:/download/Clipmaps/Direct3D/Media/Clipmaps/Mars1k.jpg";
+	jpegData_.loadFile(jpegFile.c_str());
+
 
 	return true;
 }
 
 bool TestImgScene::initShader(const SceneInitInfo&)
 {
+	Shader * shader = new Shader;
+	std::string code = Shader::loadMultShaderInOneFile("test/jpg_gpu.glsl");
 
-	const char gVertexShaderSource[] =
-	{
-		"#version 330 core\n"
-		"layout (location = 0 ) in vec2 position;\n"
-		"layout (location = 1 ) in vec2 texCoord;\n"
+	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
+	shader->getShaderFromMultCode(Shader::FRAGMENT, "Quad", code);
+	shader->linkProgram();
+	shader->checkProgram();
+	shaders_.push_back(shader);
 
-		"uniform mat4 model;"
-		"uniform mat4 view;"
-		"uniform mat4 projection;"
+	shader = new Shader;
+	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
+	shader->getShaderFromMultCode(Shader::FRAGMENT, "PS_IDCT_Rows", code);
+	shader->linkProgram();
+	shader->checkProgram();
 
-		"out vec2 uv;\n"
-		"void main(void)\n"
-		"{\n"
-		"  gl_Position = projection * view * model * vec4(position,0.0,1.0);\n"
-		"  uv = texCoord;\n"
-		"}\n"
-	};
+	shader = new Shader;
+	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
+	shader->getShaderFromMultCode(Shader::FRAGMENT, "PS_IDCT_Unpack_Rows", code);
+	shader->linkProgram();
+	shader->checkProgram();
 
-	const char gFragmentShaderSource[] =
-	{
-		"#version 330 core\n"
-
-		"out vec4 color;\n"
-		"in vec2 uv;\n"
-
-		"uniform sampler2D sampleTexture;\n"
-
-		"void main(void)\n"
-		"{\n"
-		"  color = texture(sampleTexture, uv );\n"
-		"}\n"
-	};
-
-
-	shaders_.push_back(new Shader);
-	Shader * currentShader = shaders_[0];
-	if (currentShader->loadShaderSouce(gVertexShaderSource, gFragmentShaderSource, nullptr) == -1) return false;
-	currentShader->turnOn();
-	int eunit = currentShader->getVariable("sampleTexture");
-	glUniform1i(eunit, 0);
+	shaders_.push_back(shader);
 
 	return true;
 }
