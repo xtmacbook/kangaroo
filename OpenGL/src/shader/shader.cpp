@@ -45,7 +45,7 @@ bool getShaderStream(const char* file, std::string& stream, bool log)
 std::string Shader::loadMultShaderInOneFile(const char* file)
 {
 	std::string code;
-	if (!getShaderStream(file, code, true))
+	if (!getShaderStream(file, code, false))
 	{
 		if (!getShaderStream((get_shader_BasePath() + file).c_str(), code, true))
 			return false;
@@ -219,6 +219,12 @@ void Shader::setInt(int id, int newValue)const
 	glUniform1i(id, newValue);
 }
 
+
+void Shader::setUInt(int id, int newValue) const
+{
+	glUniform1ui(id, newValue);
+}
+
 void Shader::setFloat(int id, float newValue)const
 {
 	glUniform1f(id, newValue);
@@ -237,6 +243,27 @@ void Shader::setFloat3(int id, float v0, float v1, float v2)
 void Shader::setFloat4(int id, float v0, float v1, float v2, float v3)
 {
 	glUniform4f(id, v0, v1, v2, v3);
+}
+
+void Shader::setVec3f(int id, unsigned int count, const float *values)
+{
+	glUniform3fv(id, count, values);
+}
+
+
+void Shader::setVec2f(int id, unsigned int count, const float *values)
+{
+	glUniform2fv(id, count, values);
+}
+
+void Shader::setVec2Int(int id, unsigned int count, const int *values)
+{
+	glUniform2iv(id, count, values);
+}
+
+void Shader::setVec2UInt(int id, unsigned int count, const unsigned int *values)
+{
+	glUniform2uiv(id, count, values);
 }
 
 // This function frees all of our shader data
@@ -316,7 +343,7 @@ GLuint Shader::loadShaderSource(const char* source, unsigned int shaderType, int
 
 	GLint Result = GL_FALSE;
 	// Check Shader
-	Log::instance()->printOglError(__FILE__, __LINE__);
+	CHECK_GL_ERROR;
 	glGetShaderiv(shaderId, GL_COMPILE_STATUS, &Result);
 	Log::instance()->printShaderInfoLog(shaderId);
 	result = Result;
