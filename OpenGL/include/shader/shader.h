@@ -59,11 +59,17 @@ public:
 
 	// Below are functions to set an integer, a set of floats or a matrix (float[16])
 	void            setInt(int id, int newValue)const;
+	void            setUInt(int id, int newValue)const;
+	
 	void            setFloat(int id, float newValue)const;
 	void            setFloat2(int id, float v0, float v1);
 	void            setFloat3(int id, float v0, float v1, float v2);
 	void            setFloat4(int id, float v0, float v1, float v2, float v3);
-	void            setUniformBlocking(int id, unsigned int value);
+	
+	void			setVec3f(int id, unsigned int count, const float *values);
+	void			setVec2f(int id, unsigned int count, const float *values);
+	void			setVec2Int(int id, unsigned int count, const int *values);
+	void			setVec2UInt(int id, unsigned int count, const unsigned int *values);
 
 	void            setFloat3V(int id, unsigned int count, const float* values);
 	// This allows us to pass in 4x4 matrix (float array of 16) to a shader by the Id received from GetVariable()
@@ -80,7 +86,8 @@ public:
 	unsigned int    getShaderId()const { return shaderProgramId_; }
 
 	//uniform block
-	int           getUniformBlock(const char* uniformName, int& uboDataSize);
+	void            setUniformBlocking(int id, unsigned int value);
+	int             getUniformBlock(const char* uniformName, int& uboDataSize);
 	bool            getUniformsiv(unsigned int uboIndex, const char** uniformNames, unsigned int* indices, int* size, int* offset, int* type, int uboElementsNum);
 
 
