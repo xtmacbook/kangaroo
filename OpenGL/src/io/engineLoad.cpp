@@ -39,7 +39,6 @@ base::SmartPointer<base::Image> EngineLoad::loadImage(const char* file,const Ima
 
 	base::SmartPointer<base::Image> img;
 
-	bool result = false;
 #if defined(ENGINE_JPEG)
 	if (strCaseDiff(ext, ".jpg") == 0 || strCaseDiff(ext, ".jpeg") == 0)
 	{
