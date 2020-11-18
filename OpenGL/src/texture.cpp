@@ -73,7 +73,7 @@ Texture::Texture()
 	type_ = GL_UNSIGNED_BYTE;
 	target_ = GL_TEXTURE_2D;
 	format_ = GL_RGBA;
-	internalformat_ = GL_RGBA;
+	internalformat_ = GL_RGB8;
 }
 
 Texture::~Texture()
@@ -162,7 +162,7 @@ GLenum Texture::target(void) const
 }
 unsigned int Texture::miplevels(void) const
 {
-	return (img_) ? img_->numOfMiplevels() : numOfMiplevels_;
+	return  numOfMiplevels_;
 }
 GLenum Texture::type()const
 {
@@ -197,7 +197,7 @@ void Texture::initParams()
 	depth_ = 0;
 	numOfMiplevels_ = 1;
 	target_ = GL_TEXTURE_2D;
-	internalformat_ = GL_RGB;
+	internalformat_ = GL_RGB8;
 	baseInternalformat_ = GL_RGB;
 	format_ = GL_RGB;
 	type_ = GL_UNSIGNED_BYTE;
@@ -210,12 +210,24 @@ void Texture::initParams()
 
 void Texture::context1D(void * data)
 {
-	void * rd = data;
-	if (rd == NULL)
-		rd = img_->pixels();
+	if (data != NULL)
+	{
+		glTexStorage1D(GL_TEXTURE_1D, miplevels(), interFormat(), width());
+		glTexSubImage1D(GL_TEXTURE_1D, 0, 0, width(), externFormat(), interFormat(), data);
+	}
+	else
+	{
+		unsigned int w = width();
+		glTexStorage1D(GL_TEXTURE_1D, img_->numOfMiplevels(), interFormat(), w);
+		for (int32 l = 0; l < img_->numOfMiplevels(); l++)
+		{
+			glTexSubImage1D(GL_TEXTURE_1D, 0, 0, w, externFormat(), interFormat(), img_->getLevel(l));
+			w >>= 1;
+			w = w ? w : 1;
+		}
+		
+	}
 	
-	glTexStorage1D(GL_TEXTURE_1D, miplevels(), interFormat(), width());
-	glTexSubImage1D(GL_TEXTURE_1D, 0, 0, width(), externFormat(), interFormat(), rd);
 }
 void Texture::context2D(void * data)
 {
@@ -251,7 +263,7 @@ void Texture::context2D(void * data)
 			int32 w = width();
 			int32 h = heigh();
 
-			for (int32_t l = 0; l < miplevels(); l++) {
+			for (int32_t l = 0; l < img_->numOfMiplevels(); l++) {
 				if (compressed()) {
 					glCompressedTexImage2D(GL_TEXTURE_2D, l, interFormat(), w, h,
 						0, img_->getImageSize(l), img_->getLevel(l));
@@ -264,11 +276,12 @@ void Texture::context2D(void * data)
 		}
 		else
 		{
-			glTexStorage2D(GL_TEXTURE_2D, miplevels(), interFormat(), width(), heigh());
 			{
 				unsigned int h = heigh();
 				unsigned int w = width();
-				for (int32 l = 0; l < miplevels(); l++)
+
+				glTexStorage2D(GL_TEXTURE_2D, img_->numOfMiplevels(), interFormat(), w, h);
+				for (int32 l = 0; l < img_->numOfMiplevels(); l++)
 				{
 					glTexSubImage2D(GL_TEXTURE_2D, l, 0, 0, w, h, externFormat(), type(), img_->getLevel(l));;
 					w >>= 1;
@@ -309,7 +322,6 @@ void Texture::context2DA(void ** data)
 }
 void Texture::contextC(void * data)
 {
-	CHECK_GL_ERROR;
 	glTexStorage2D(GL_TEXTURE_CUBE_MAP, miplevels(), interFormat(), width(), heigh());
 	for (int32 f = GL_TEXTURE_CUBE_MAP_POSITIVE_X; f <= GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; f++)
 	{
@@ -336,11 +348,13 @@ void Texture::contextC(void * data)
 	}
 
 }
+
 void Texture::contextCA(void * data)
 {
 	glTexStorage3D(GL_TEXTURE_CUBE_MAP_ARRAY, miplevels(), interFormat(), width(), heigh(), depth());
 	glTexSubImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, 0, 0, 0, width(), heigh(), depth(), externFormat(), type(), data);
 }
+
 bool Texture::context(void *data)
 {
 		switch (target())
@@ -374,7 +388,10 @@ bool Texture::context(void *data)
 		}
 
 		if (miplevels() > 1)
-			glGenerateMipmap(target());
+		{
+			if (img_ && (img_->numOfMiplevels() == 1)) glGenerateMipmap(target());
+			if (!img_) glGenerateMipmap(target());
+		}
 		return true;
 }
 
@@ -409,6 +426,7 @@ bool Texture::contextNULL()
 	case GL_TEXTURE_1D_ARRAY:
 		break;
 	case GL_TEXTURE_2D_ARRAY:
+		glTexStorage3D(GL_TEXTURE_2D_ARRAY, miplevels(), interFormat(), width(), heigh(), depth());
 		break;
 	case GL_TEXTURE_CUBE_MAP:
 		break;
