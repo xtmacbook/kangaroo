@@ -17,7 +17,6 @@
 
 
 
-
 class TestImgScene : public Scene
 {
 protected:
@@ -25,20 +24,18 @@ protected:
 	virtual void					render(PassInfo&);
 	virtual bool					initTexture(const SceneInitInfo&);
 	virtual bool					initShader(const SceneInitInfo&);
+	virtual bool					update();
 
 private:
-	int					imageWidth;
-	int					imageHeight;
-	int					componentsNum;
-
-	char				quantTables[MAX_CHANELS][64];
-
-	int					MCU_per_row;
-	int					MCU_blocks_num;
 
 	Jpeg_Data			jpegData_;
-};
+	Jpeg_Data			JpegDataHM_;
 
+	UpdateInfo			 block_;
+
+	base::SmartPointer<Texture>		targetTexture;
+	base::SmartPointer<FrameBufferObject> frameBufferObj_;
+};
 
 
 bool TestImgScene::initSceneModels(const SceneInitInfo&)
@@ -48,8 +45,6 @@ bool TestImgScene::initSceneModels(const SceneInitInfo&)
 	RenderNode_SP quadRenderNode = new RenderNode;
 	quadRenderNode->setGeometry(quad);
 	addRenderNode(quadRenderNode);
-
-
 
 	return true;
 }
@@ -68,6 +63,30 @@ bool TestImgScene::initTexture(const SceneInitInfo&)
 {
 	std::string jpegFile = "D:/download/Clipmaps/Direct3D/Media/Clipmaps/Mars1k.jpg";
 	jpegData_.loadFile(jpegFile.c_str());
+	Jpeg_Data::initTechnique();
+
+	block_.initialize(1);
+	int srcBlock[2] = { /*jpegData_.width(),jpegData_.height()*/0,0 };
+	int dstBlock[2];
+	block_.addBlock(srcBlock, dstBlock);
+
+	jpegData_.allocateTextures(jpegData_.width(), jpegData_.height());
+	jpegData_.updateTextureData(1, jpegData_.height(), block_.getSrcBlocksPointer());
+
+	targetTexture = new Texture();
+	targetTexture->width_ = jpegData_.width();
+	targetTexture->height_ = jpegData_.height();
+	targetTexture->baseInternalformat_ = GL_RGBA8;
+	targetTexture->createObj();
+	targetTexture->bind();
+	targetTexture->contextNULL();
+	targetTexture->unBind();
+
+	frameBufferObj_ = new FrameBufferObject(GL_FRAMEBUFFER);
+	frameBufferObj_->bindObj(true, false);
+	frameBufferObj_->colorTextureAttachments(targetTexture);
+	frameBufferObj_->bindObj(false, false);
+	CHECK_GL_ERROR;
 
 
 	return true;
@@ -75,29 +94,14 @@ bool TestImgScene::initTexture(const SceneInitInfo&)
 
 bool TestImgScene::initShader(const SceneInitInfo&)
 {
-	Shader * shader = new Shader;
-	std::string code = Shader::loadMultShaderInOneFile("test/jpg_gpu.glsl");
+	
+	return true;
+}
 
-	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
-	shader->getShaderFromMultCode(Shader::FRAGMENT, "Quad", code);
-	shader->linkProgram();
-	shader->checkProgram();
-	shaders_.push_back(shader);
 
-	shader = new Shader;
-	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
-	shader->getShaderFromMultCode(Shader::FRAGMENT, "PS_IDCT_Rows", code);
-	shader->linkProgram();
-	shader->checkProgram();
-
-	shader = new Shader;
-	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
-	shader->getShaderFromMultCode(Shader::FRAGMENT, "PS_IDCT_Unpack_Rows", code);
-	shader->linkProgram();
-	shader->checkProgram();
-
-	shaders_.push_back(shader);
-
+bool TestImgScene::update()
+{
+	jpegData_.uncompressTextureData();
 	return true;
 }
 
