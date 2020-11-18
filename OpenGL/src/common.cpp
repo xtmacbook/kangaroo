@@ -2,6 +2,7 @@
 #include "log.h"
 #include "sys.h"
 #include <sstream>
+#include <vector>
 
 float stringToFloat(const std::string &source)
 {
@@ -50,6 +51,31 @@ int strCaseDiff(const char * s1, const char * s2)
 #else
 	return strcasecmp(s1, s2);
 #endif
+}
+
+std::wstring utf8toUtf16(const std::string& str)
+{
+	if (str.empty())
+		return std::wstring();
+
+	size_t charsNeeded = ::MultiByteToWideChar(CP_UTF8, 0,
+		str.data(), (int)str.size(), NULL, 0);
+	if (charsNeeded == 0)
+	{
+		LOGE("Failed converting UTF-8 string to UTF-16");
+		return std::wstring();
+	}
+
+	std::vector<wchar_t> buffer(charsNeeded);
+	int charsConverted = ::MultiByteToWideChar(CP_UTF8, 0,
+		str.data(), (int)str.size(), &buffer[0], buffer.size());
+	if (charsConverted == 0)
+	{
+		LOGE("Failed converting UTF-8 string to UTF-16");
+		return std::wstring();
+	}
+
+	return std::wstring(&buffer[0], charsConverted);
 }
 
 
