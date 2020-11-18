@@ -62,6 +62,7 @@ namespace math {
 	typedef Vector3<float>   V3f;
 	typedef Vector3<double>  V3d;
 	typedef Vector2<int>     V2i;
+	typedef Vector2<unsigned int>     V2Ui;
 	typedef Vector2<uint8>   V2ui8;
 	typedef Vector2<float>   V2f;
 	typedef Vector2<double>  V2d;
