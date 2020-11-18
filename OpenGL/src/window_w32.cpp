@@ -391,7 +391,7 @@ bool createNativeWindow( GWindow * win,
 	return true;
 }
 
-GWindow * gluCreateWindow(const DeviceConfig*dc, const WindowConfig*wc, bool initGL)
+GWindow * gluCreateWindow(const DeviceConfig*dc, const WindowConfig*wc)
 {
 	GWindow* window = new GWindow;
 	opg.windowListHead_ = window;
@@ -412,19 +412,29 @@ GWindow * gluCreateWindow(const DeviceConfig*dc, const WindowConfig*wc, bool ini
 
 	Bconfig* fbconfig = &opg.hints.framebuffer;
 
-	if (initGL)
+	if (_createContextWGL(window, dc, fbconfig))
 	{
-		if (!_createContextWGL(window, dc, fbconfig))
+		if (wc->shouldCreateSharedContext_)
 		{
-			gluDestoryWindow(window);
-			return NULL;
-		}
+			window->sharedContext_ = new Context;
+			window->sharedContext_->wgl_ct_.dc_ = window->context_.wgl_ct_.dc_;
 
-		if (!platformRefreshContextAttribs(window, dc))
-		{
-			gluDestoryWindow(window);
-			return NULL;
+			if (!__createContextWGL(&window->win_.handle_, window->sharedContext_, &window->context_.wgl_ct_.handle_,  dc, fbconfig,true))
+			{
+				gluDestoryWindow(window);
+				return NULL;
+			}
 		}
+	}
+	else
+	{
+		gluDestoryWindow(window);
+		return NULL;
+	}
+	if (!platformRefreshContextAttribs(window, dc))
+	{
+		gluDestoryWindow(window);
+		return NULL;
 	}
 
 	platformShowWindow(window);
@@ -461,6 +471,10 @@ void PlatformDestroyWindow(GWindow*window)
 
 	if (window->context_.destroy_)
 		window->context_.destroy_(&window->context_);
+
+	if(window->sharedContext_)
+		if(window->sharedContext_->destroy_)
+			window->sharedContext_->destroy_(window->sharedContext_);
 
 	if (window->win_.handle_)
 	{
@@ -514,7 +528,13 @@ void platformFocusWindow(GWindow* window)
 }
 
 
+
+
+
 GWindow::~GWindow()
 {
-
+	if (sharedContext_) {
+		delete sharedContext_;
+		sharedContext_ = nullptr;
+	}
 }
