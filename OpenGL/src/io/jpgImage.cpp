@@ -125,9 +125,8 @@ namespace IO {
 		img->levelDataPtr_[0] = (uint8*)img->pixels();
 
 		img->settarget(GL_TEXTURE_2D);
-		img->setinternalformat(GL_RGB8);
 		img->settype(GL_UNSIGNED_BYTE);
-		img->setformat(GL_RGB);
+
 		
 		uint8 * dst = (uint8*)img->pixels();
 		const int size = img->height() * img->width();
@@ -139,6 +138,8 @@ namespace IO {
 			if (cinfo.num_components == 3)
 			{
 				img->setformat(GL_RGB);
+				img->setinternalformat(GL_RGB8); 
+
 				for (int i = 0; i < size; i++)
 				{
 					*dst++ = src[0];
@@ -155,7 +156,16 @@ namespace IO {
 		}
 		else if (cs == JCS_GRAYSCALE)
 		{
-
+			if (cinfo.num_components == 1)
+			{
+				img->setformat(GL_RED);
+				img->setinternalformat(GL_R8);
+				for (int i = 0; i < size; i++)
+				{
+					*dst++ = src[0];
+					src += 1;
+				}
+			}
 		}
 		else //CMYK
 		{
