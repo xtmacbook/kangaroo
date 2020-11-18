@@ -1,4 +1,5 @@
 
+
 #define ENGINE_FORBID_COPY(Class) \
     private: \
         Class(const Class &); \
@@ -19,20 +20,18 @@
 #define SRANDOM srandom(getpid())
 #endif
 
-#define F32NAN           (0x7F800001)                         // Produces rock solid fp-exceptions.
-#if defined(__GNUC__)
-#define F64NAN          (0x7FF0000000000001ULL)       //!< Produces rock solid fp-exceptions.
-#else
-#define F64NAN          (0x7FF0000000000001)        //!< Produces rock solid fp-exceptions.
-#endif
-
-#define FVF_NONE             0x000
+#define FVF_NONE             0x000;
 #define FVF_XYZ              0x001
 #define FVF_NORMAL           0x002
 #define FVF_TEXT0            0x004
-#define FVF_TANGENT          0x008
-#define FVF_BITANGENT        0x010
+#define FVF_COLOR			 0x008
+#define FVF_TANGENT          0x010
+#define FVF_BITANGENT        0x020
+#define FVF_TEXT1            0x040
+
 #define SQR( number )			( number*number )
+
+
 
 
 #define DRAW_ARRAYS							0 //gldrawarrays glmultidrawarrays
@@ -52,3 +51,6 @@
 #define  NEAR_EPSILION 10e-5
 #define  MAX_VALUE std::numeric_limits<float>::max()
 #define  MIN_VALUE std::numeric_limits<float>::min()
+
+#define	SAFTE_DELETE(x) if(x) {delete x;x = nullptr;};
+#define	SAFTE_DELETE_ARRAY(x) if(x) {delete[] x;x = nullptr;};
