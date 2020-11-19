@@ -16,7 +16,7 @@
 #define  MAX_CHANELS 3
 
 
-
+ 
 class TestImgScene : public Scene
 {
 protected:
@@ -35,6 +35,7 @@ private:
 
 	base::SmartPointer<Texture>		targetTexture;
 	base::SmartPointer<FrameBufferObject> frameBufferObj_;
+
 };
 
 
@@ -46,6 +47,7 @@ bool TestImgScene::initSceneModels(const SceneInitInfo&)
 	quadRenderNode->setGeometry(quad);
 	addRenderNode(quadRenderNode);
 
+
 	return true;
 }
 
@@ -54,6 +56,7 @@ void TestImgScene::render(PassInfo&ps)
 	Shader * shader = shaders_[0];
 	shader->turnOn();
 	initUniformVal(shader);
+	glActiveTexture(0);
 
 	getRenderNode(0)->render(shader, ps);
 	shader->turnOff();
@@ -88,12 +91,41 @@ bool TestImgScene::initTexture(const SceneInitInfo&)
 	frameBufferObj_->bindObj(false, false);
 	CHECK_GL_ERROR;
 
+	jpegData_.uncompressTextureData();
 
 	return true;
 }
 
 bool TestImgScene::initShader(const SceneInitInfo&)
 {
+	Shader * shader = new Shader;
+	//因为obj模型原因此处使用normal作为color
+	char vertShder[] = "#version 330 core \n"
+		"layout(location = 0) in vec2 position;"
+		"layout(location = 1) in vec2 texCoord;"
+
+		"uniform mat4 model;"
+		"uniform mat4 view;"
+		"uniform mat4 projection;"
+
+		"void main()"
+		"{"
+		"	gl_Position = projection * view * model * vec4(position,1.0, 1.0f);"
+		"}";
+
+	char fragShader[] = "#version 330 core \n"
+		"out vec4 color;"
+		"uniform sampler2D diffuseTex;"
+		"void main()"
+		"{"
+			"color = texture(diffuseTex, 1.0f);"
+		"}";
+
+	shader->loadShaderSouce(vertShder, fragShader, NULL);
+	shaders_.push_back(shader);
+
+	shader->turnOn();
+	shader->setInt(shader->getVariable("diffuseTex"), 0);
 	
 	return true;
 }
@@ -101,7 +133,6 @@ bool TestImgScene::initShader(const SceneInitInfo&)
 
 bool TestImgScene::update()
 {
-	jpegData_.uncompressTextureData();
 	return true;
 }
 
