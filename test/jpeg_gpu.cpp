@@ -10,6 +10,30 @@
 #include "boundingBox.h"
 
 
+struct QuadGemetry
+{
+	void initGemetry()
+	{
+		glGenVertexArrays(1, &vao_);
+		glBindVertexArray(vao_);
+		glGenBuffers(1, &vbo_);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+		glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+
+	void draw()
+	{
+		glBindVertexArray(vao_);
+		glDrawArrays(GL_POINTS, 0, 1);
+	}
+	GLuint  vao_;
+	GLuint	vbo_;
+};
+
+static QuadGemetry g_quad_;
+
 UpdateInfo::UpdateInfo()
 {
 	blocksNum = 0;
@@ -165,6 +189,11 @@ int GPU_Data::intitialize(int width, int height, char *pQuantTable)
 	pTextureTarget->contextNULL();
 	pTextureTarget->unBind();
 	CHECK_GL_ERROR;
+	targetFrameBuffer_ = new FrameBufferObject(GL_FRAMEBUFFER);
+	targetFrameBuffer_->bindObj(true, false);
+	targetFrameBuffer_->colorTextureAttachments(pTextureTarget);
+	targetFrameBuffer_->bindObj(false, false);
+	
 
 	return  1;
 }
@@ -369,6 +398,8 @@ bool Jpeg_Data::initTechnique()
 
 	CHECK_GL_ERROR;
 
+	g_quad_.initGemetry();
+
 	return true;
 }
 
@@ -559,12 +590,54 @@ void Jpeg_Data::uncompressTextureData()
 		int width = textureData[i].pTextureTarget->width();
 		int height = textureData[i].pTextureTarget->heigh();
 
+		//pass0
 		Shader *shader = getTechnique("IDCT_Rows");
 		shader->turnOn();
-
+		textureData[i].rowFrameBuffer_->bindObj(true, true);
+		textureData[i].rowFrameBuffer_->clearBuffer();
 		shader->setFloat(shader->getVariable("g_ColScale"), height / 8.0f);
+		glActiveTexture(GL_TEXTURE0);
+		textureData[i].pTextureDCT->bind();
+		glActiveTexture(GL_TEXTURE1);
+		textureData[i].pTextureQ->bind();
+		g_quad_.draw();
+		CHECK_GL_ERROR;
 		
+		//pass1
+		shader = getTechnique("Unpack_Rows");
+		shader->turnOn();
+		shader->setFloat(shader->getVariable("g_RowScale"), width / 8.0f);
+		textureData[i].targetFrameBuffer_->bindObj(true, true);
+		textureData[i].targetFrameBuffer_->clearBuffer();
+		glActiveTexture(GL_TEXTURE0);
+		textureData[i].pTexture1Row->bind();
+		glActiveTexture(GL_TEXTURE1);
+		textureData[i].pTexture2Row->bind();
+		g_quad_.draw();
+		CHECK_GL_ERROR;
 
+		//pass2
+		shader = getTechnique("IDCT_Columns");
+		shader->turnOn();
+		textureData[i].colFrameBuffer_->bindObj(true, true);
+		textureData[i].colFrameBuffer_->clearBuffer();
+		glActiveTexture(GL_TEXTURE0);
+		textureData[i].pTextureTarget->bind();
+		g_quad_.draw();
+		CHECK_GL_ERROR;
+
+		//pass3
+		shader = getTechnique("Unpack_Columns");
+		shader->turnOn();
+		shader->setFloat(shader->getVariable("g_ColScale"), height / 8.0f);
+		textureData[i].targetFrameBuffer_->bindObj(true, true);
+		textureData[i].targetFrameBuffer_->clearBuffer();
+		glActiveTexture(GL_TEXTURE0);
+		textureData[i].pTexture1Col->bind();
+		glActiveTexture(GL_TEXTURE1);
+		textureData[i].pTexture2Col->bind();
+		g_quad_.draw();
+		CHECK_GL_ERROR;
 	}
 }
  
