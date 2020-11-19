@@ -48,11 +48,14 @@ struct GPU_Data
 	base::SmartPointer<Texture>                pTexture1Col;
 	base::SmartPointer<Texture>                pTexture2Col;
 
-	base::SmartPointer<FrameBufferObject>	rowFrameBuffer_;
-	base::SmartPointer<FrameBufferObject>	colFrameBuffer_;
+	base::SmartPointer<FrameBufferObject>		rowFrameBuffer_;
+	base::SmartPointer<FrameBufferObject>		colFrameBuffer_;
 
 	// Final texture
 	base::SmartPointer<Texture>                pTextureTarget;
+
+	base::SmartPointer<FrameBufferObject>		targetFrameBuffer_;
+
 
 	int intitialize(int width, int height, char *pQuantTable);
 	void release();
