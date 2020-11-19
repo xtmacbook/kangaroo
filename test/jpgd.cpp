@@ -30,7 +30,7 @@
 #include <string.h>
 #include <algorithm>
 #include <assert.h>
-
+#include <Windows.h>
 #ifdef _MSC_VER
 #pragma warning (disable : 4611) // warning C4611: interaction between '_setjmp' and C++ object destruction is non-portable
 #endif
@@ -2267,6 +2267,98 @@ namespace jpgd {
 		m_total_lines_left--;
 
 		return JPGD_SUCCESS;
+	}
+
+	int jpeg_decoder::dump_DCT_data(void* outFile)
+	{
+		if (m_error_code || !m_ready_flag)
+			return JPGD_FAILED;
+
+		if (m_total_lines_left == 0)
+			return JPGD_DONE;
+
+		int r, s, component_id;
+		static DWORD bytesWritten;
+
+		static char BLOCK_DATA[4096];
+		int curBlock = 0;
+
+		memset(BLOCK_DATA, 0, 4096);
+
+		for (int mcu_row = 0; mcu_row < m_mcus_per_col; mcu_row++)
+		{
+			int row_block = 0;
+
+			for (int mcu_row = 0; mcu_row < m_mcus_per_row; mcu_row++)
+			{
+				for (int mcu_block = 0; mcu_block < m_blocks_per_mcu; mcu_block++)
+				{
+					component_id = m_mcu_org[mcu_block];
+					char* p = BLOCK_DATA + curBlock * 64;
+
+					if ((s = huff_decode(m_pHuff_tabs[m_comp_dc_tab[component_id]])) != 0)
+					{
+						r = get_bits_no_markers(s);
+						s = HUFF_EXTEND(r, s);
+					}
+
+					m_last_dc_val[component_id] = (s += m_last_dc_val[component_id]);
+
+					p[0] = (char)s;
+
+					huff_tables* Ph = m_pHuff_tabs[m_comp_ac_tab[component_id]];
+
+					int k;
+
+					for (k = 1; k < 64; k++)
+					{
+						s = huff_decode(Ph);
+
+						r = s >> 4;
+						s &= 15;
+
+						if (s)
+						{
+							if (r)
+							{
+								k += r;
+							}
+
+							r = get_bits_no_markers(s);
+							s = HUFF_EXTEND(r, s);
+
+							p[g_ZAG[k]] = (char)s;
+						}
+						else
+						{
+							if (r == 15)
+							{
+								k += 15;
+							}
+							else
+							{
+								break;
+							}
+						}
+					}
+
+					row_block++;
+					curBlock++;
+
+					if (curBlock == 64)
+					{
+						WriteFile(outFile, BLOCK_DATA, 4096, &bytesWritten, NULL);
+						memset(BLOCK_DATA, 0, 4096);
+
+						curBlock = 0;
+					}
+				}
+
+				m_restarts_left--;
+			}
+		}
+
+		return 0;
 	}
 
 	// Creates the tables needed for efficient Huffman decoding.

@@ -126,13 +126,13 @@ namespace scene
 			glActiveTexture(GL_TEXTURE0);
 			texture->bind();
 			::Texture * textures = { frameBufferText };
-			fbuffer_->colorTextureAttachments(textures, 1);
-			fbuffer_->enableRenderToColorAndDepth(0);
+			//fbuffer_->colorTextureAttachments(textures, 1);
+			//fbuffer_->enableRenderToColorAndDepth(0);
 
 			DrawInfo info;
 			info.draw_shader_ = shader_;
-			quad_->drawGeoemtry(info);
-			fbuffer_->disableRenderToColorDepth();
+			//quad_->drawGeoemtry(info);
+			//fbuffer_->disableRenderToColorDepth();
 			textures->unBind();
 
 			CHECK_GL_ERROR;

@@ -162,6 +162,18 @@ namespace jpgd
 		// Returns the total number of bytes actually consumed by the decoder (which should equal the actual size of the JPEG file).
 		inline int get_total_bytes_read() const { return m_total_bytes_read; }
 
+		int get_mcus_per_row()const { return m_mcus_per_row; }
+
+		int get_blocks_per_mcu()const { return m_blocks_per_mcu; }
+
+		jpgd_quant_t* getQuantizationTable(int componentIndex) { return m_quant[m_comp_quant[componentIndex]]; }
+
+		int dump_DCT_data(void* outFile);
+
+#ifdef SUPPORT_X86ASM
+		inline uint jpeg_decoder::huff_extend(uint i, int c);
+#endif
+
 	private:
 		jpeg_decoder(const jpeg_decoder&);
 		jpeg_decoder& operator =(const jpeg_decoder&);
@@ -345,6 +357,59 @@ namespace jpgd
 		static void decode_block_ac_first(jpeg_decoder* pD, int component_id, int block_x, int block_y);
 		static void decode_block_ac_refine(jpeg_decoder* pD, int component_id, int block_x, int block_y);
 	};
+
+	const int extend_test[16] =   /* entry n is 2**(n-1) */
+	{ 0, 0x0001, 0x0002, 0x0004, 0x0008, 0x0010, 0x0020, 0x0040, 0x0080,
+	  0x0100, 0x0200, 0x0400, 0x0800, 0x1000, 0x2000, 0x4000 };
+
+	const int extend_offset[16] = /* entry n is (-1 << n) + 1 */
+	{ 0, ((-1) << 1) + 1, ((-1) << 2) + 1, ((-1) << 3) + 1, ((-1) << 4) + 1,
+	  ((-1) << 5) + 1, ((-1) << 6) + 1, ((-1) << 7) + 1, ((-1) << 8) + 1,
+	  ((-1) << 9) + 1, ((-1) << 10) + 1, ((-1) << 11) + 1, ((-1) << 12) + 1,
+	  ((-1) << 13) + 1, ((-1) << 14) + 1, ((-1) << 15) + 1 };
+
+	#define HUFF_EXTEND_TBL(x,s) ((x) < extend_test[s] ? (x) + extend_offset[s] : (x))
+
+	const int extend_mask[] =
+	{
+	  0,
+	  (1 << 0), (1 << 1), (1 << 2), (1 << 3),
+	  (1 << 4), (1 << 5), (1 << 6), (1 << 7),
+	  (1 << 8), (1 << 9), (1 << 10), (1 << 11),
+	  (1 << 12), (1 << 13), (1 << 14), (1 << 15),
+	  (1 << 16),
+	};
+
+#define HUFF_EXTEND_TBL(x,s) ((x) < extend_test[s] ? (x) + extend_offset[s] : (x))
+
+#ifdef SUPPORT_X86ASM
+	// Use the inline ASM version instead to prevent jump misprediction issues
+#define HUFF_EXTEND(x,s) huff_extend(x, s)
+#define HUFF_EXTEND_P(x,s) Pd->huff_extend(x, s)
+#else
+#define HUFF_EXTEND(x,s) HUFF_EXTEND_TBL(x,s)
+#define HUFF_EXTEND_P(x,s) HUFF_EXTEND_TBL(x,s)
+#endif
+	//------------------------------------------------------------------------------
+#ifdef SUPPORT_X86ASM
+// This code converts the raw unsigned coefficient bits
+// read from the data stream to the proper signed range.
+// There are many ways of doing this, see the HUFF_EXTEND_TBL
+// macro for an alternative way.
+// It purposelly avoids any decision making that requires jumping.
+	inline uint jpeg_decoder::huff_extend(uint i, int c)
+	{
+		_asm
+		{
+			mov ecx, c
+			mov eax, i
+			cmp eax, [ecx * 4 + extend_mask]
+			sbb edx, edx
+			shl edx, cl
+			adc eax, edx
+		}
+	}
+#endif
 
 } // namespace jpgd
 
