@@ -32,12 +32,6 @@ void FrameBufferObject::colorTextureAttachments(std::vector<Texture *>color)
 		glFramebufferTexture2D(target_, GL_COLOR_ATTACHMENT0 + i, colorTextures_[i]->target(), colorTextures_[i]->getTexture(), 0);
 	}
 
-	if (type_ & COLOR_ONLY)
-	{
-		GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3 };
-		glDrawBuffers(ncolorBuffer_, DrawBuffers);
-	}
-
 	checkFramebufferStatus();
 }
 
@@ -133,17 +127,20 @@ void FrameBufferObject::bindObj(bool bind /*= true*/, bool flag)
 			glDepthMask(GL_FALSE);
 		}
 
+		if (type_ & COLOR_ONLY)
+		{
+			GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3 };
+			glDrawBuffers(ncolorBuffer_, DrawBuffers);
+		}
 	}
 	else
 	{
 		glBindFramebuffer(target_, 0);
 		if (!flag) return;
 
-		if (type_ == DEPTH_ONLY)
-		{
-			glDrawBuffer(GL_BACK);
-			glReadBuffer(GL_BACK);
-		}
+		glDrawBuffer(GL_BACK);
+		glReadBuffer(GL_BACK);
+
 		if (type_ == COLOR_ONLY)
 		{
 			glEnable(GL_DEPTH_TEST);
@@ -154,11 +151,10 @@ void FrameBufferObject::bindObj(bool bind /*= true*/, bool flag)
 
 void FrameBufferObject::clearBuffer()
 {
-	GLbitfield bit;
+	GLbitfield bit = 0;
 
 	if (type_ & COLOR_ONLY)
 	{
-		glClearColor(0.0, 0.0, 0.0, 0.0);
 		bit |= GL_COLOR_BUFFER_BIT;
 	}
 	if (type_ & DEPTH_ONLY)
