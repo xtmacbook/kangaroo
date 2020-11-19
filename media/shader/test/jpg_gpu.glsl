@@ -17,11 +17,11 @@ in vec2 texCoord[];
 out vec2 texCoords;
 void main()
 {
-		gl_Position = vec4( 0.0,1.0,0.5,1.0);
+		gl_Position = vec4( -1.0,1.0,0.5,1.0);
 		texCoords = vec2( 0.0, 1.0 );
     EmitVertex();
     
-    gl_Position = vec4( 0.0,0.0,0.5,1.0);
+    gl_Position = vec4( -1.0,-1.0,0.5,1.0);
 		texCoords = vec2( 0.0, 0.0 );
     EmitVertex();
     
@@ -29,7 +29,7 @@ void main()
 		texCoords = vec2( 1.0, 1.0 );
     EmitVertex();
     
-    gl_Position = vec4( 1.0,0.0,0.5,1.0);
+    gl_Position = vec4( 1.0,-1.0,0.5,1.0);
 		texCoords = vec2( 1.0, 0.0 );
     EmitVertex();
     
