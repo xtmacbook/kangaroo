@@ -10,29 +10,24 @@
 #include "boundingBox.h"
 
 
-struct QuadGemetry
+void Jpeg_Data::QuadGemetry::initGemetry()
 {
-	void initGemetry()
-	{
-		glGenVertexArrays(1, &vao_);
-		glBindVertexArray(vao_);
-		glGenBuffers(1, &vbo_);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-		glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
-	}
+	glGenVertexArrays(1, &vao_);
+	glBindVertexArray(vao_);
+	glGenBuffers(1, &vbo_);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+	glBufferData(GL_ARRAY_BUFFER, 0, 0, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
 
-	void draw()
-	{
-		glBindVertexArray(vao_);
-		glDrawArrays(GL_POINTS, 0, 1);
-	}
-	GLuint  vao_;
-	GLuint	vbo_;
-};
 
-static QuadGemetry g_quad_;
+void Jpeg_Data::QuadGemetry::draw()const
+{
+	glBindVertexArray(vao_);
+	glDrawArrays(GL_POINTS, 0, 1);
+}
+
 
 UpdateInfo::UpdateInfo()
 {
@@ -398,7 +393,7 @@ bool Jpeg_Data::initTechnique()
 
 	CHECK_GL_ERROR;
 
-	g_quad_.initGemetry();
+	quadGemetry_.initGemetry();
 
 	return true;
 }
@@ -415,6 +410,8 @@ Shader* Jpeg_Data::getTechnique(const char*code)
 }
 
 std::vector< base::SmartPointer<Shader> > Jpeg_Data::shaders_;
+
+Jpeg_Data::QuadGemetry Jpeg_Data::quadGemetry_;
 
 int Jpeg_Data::allocateTextures(int width, int height)
 {
@@ -600,7 +597,7 @@ void Jpeg_Data::uncompressTextureData()
 		textureData[i].pTextureDCT->bind();
 		glActiveTexture(GL_TEXTURE1);
 		textureData[i].pTextureQ->bind();
-		g_quad_.draw();
+		quadGemetry_.draw();
 		CHECK_GL_ERROR;
 		
 		//pass1
@@ -613,7 +610,7 @@ void Jpeg_Data::uncompressTextureData()
 		textureData[i].pTexture1Row->bind();
 		glActiveTexture(GL_TEXTURE1);
 		textureData[i].pTexture2Row->bind();
-		g_quad_.draw();
+		quadGemetry_.draw();
 		CHECK_GL_ERROR;
 
 		//pass2
@@ -623,7 +620,7 @@ void Jpeg_Data::uncompressTextureData()
 		textureData[i].colFrameBuffer_->clearBuffer();
 		glActiveTexture(GL_TEXTURE0);
 		textureData[i].pTextureTarget->bind();
-		g_quad_.draw();
+		quadGemetry_.draw();
 		CHECK_GL_ERROR;
 
 		//pass3
@@ -636,7 +633,7 @@ void Jpeg_Data::uncompressTextureData()
 		textureData[i].pTexture1Col->bind();
 		glActiveTexture(GL_TEXTURE1);
 		textureData[i].pTexture2Col->bind();
-		g_quad_.draw();
+		quadGemetry_.draw();
 		CHECK_GL_ERROR;
 	}
 }

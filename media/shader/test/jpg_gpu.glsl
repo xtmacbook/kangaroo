@@ -265,9 +265,7 @@ void main()
 #version 330 
 out vec4 color;
 
-in vec2 texCoords;
-
-uniform float g_ColScale;
+in vec2 texCoords; 
 
 uniform sampler2D TextureY;
 uniform sampler2D TextureCb;
@@ -277,7 +275,7 @@ uniform sampler2D TextureHeight;
 
 void main()
 {
-	  float Y = texture( TextureY,texCoords).r;
+	float Y = texture( TextureY,texCoords).r;
     float Cb = texture( TextureCb, texCoords ).r;
     float Cr = texture( TextureCr, texCoords ).r;
         
@@ -285,7 +283,7 @@ void main()
     color.x = Y + 1.402 * ( Cr - 128.0 );
     color.y = Y - 0.34414 * ( Cb - 128.0 ) - 0.71414 * ( Cr - 128.0 );
     color.z = Y + 1.772 * ( Cb - 128.0 );
-    color.w = texture( TextureHeight, texCoords).r;
+    color.w = 1.0;//texture( TextureHeight, texCoords).r;
         
     color.xyzw *= ( 1.0 / 256.0 );
 }

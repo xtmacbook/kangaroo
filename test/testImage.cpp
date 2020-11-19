@@ -12,7 +12,7 @@
 #include "jpgd.h"
 #include "framebuffers.h"
 #include "jpeg_gpu.h"
-
+#include "debug.h"
 #define  MAX_CHANELS 3
 
 
@@ -53,19 +53,22 @@ bool TestImgScene::initSceneModels(const SceneInitInfo&)
 
 void TestImgScene::render(PassInfo&ps)
 {
+	CHECK_GL_ERROR;
 	Shader * shader = shaders_[0];
 	shader->turnOn();
 	initUniformVal(shader);
-	glActiveTexture(0);
-
+	//glActiveTexture(0);
+	//targetTexture->bind();
 	getRenderNode(0)->render(shader, ps);
 	shader->turnOff();
 }
 
+ 
 bool TestImgScene::initTexture(const SceneInitInfo&)
 {
-	std::string jpegFile = "D:/download/Clipmaps/Direct3D/Media/Clipmaps/Mars1k.jpg";
-	jpegData_.loadFile(jpegFile.c_str());
+	std::string jpegFile = "D:/download/Direct3D/Media/Clipmaps/Mars1k.jpg";
+	enAssert(jpegData_.loadFile(jpegFile.c_str()));
+
 	Jpeg_Data::initTechnique();
 
 	block_.initialize(1);
@@ -93,6 +96,9 @@ bool TestImgScene::initTexture(const SceneInitInfo&)
 
 	jpegData_.uncompressTextureData();
 
+
+	
+
 	return true;
 }
 
@@ -107,25 +113,31 @@ bool TestImgScene::initShader(const SceneInitInfo&)
 		"uniform mat4 model;"
 		"uniform mat4 view;"
 		"uniform mat4 projection;"
-
+		"out vec2 texCoords;"
 		"void main()"
 		"{"
 		"	gl_Position = projection * view * model * vec4(position,1.0, 1.0f);"
+			"texCoords = texCoord;"
 		"}";
 
 	char fragShader[] = "#version 330 core \n"
 		"out vec4 color;"
+		"in vec2 texCoords;"
 		"uniform sampler2D diffuseTex;"
 		"void main()"
 		"{"
-			"color = texture(diffuseTex, 1.0f);"
+			"color = vec4(1.0,0.0,0.0,1.0);"
 		"}";
 
 	shader->loadShaderSouce(vertShder, fragShader, NULL);
 	shaders_.push_back(shader);
 
 	shader->turnOn();
-	shader->setInt(shader->getVariable("diffuseTex"), 0);
+	unsigned loc = shader->getVariable("diffuseTex");
+	if (loc)
+	{
+		shader->setInt(loc, 0);
+	}
 	
 	return true;
 }
@@ -133,6 +145,22 @@ bool TestImgScene::initShader(const SceneInitInfo&)
 
 bool TestImgScene::update()
 {
+	Shader* shader = Jpeg_Data::getTechnique("IDCT_RenderToBuffer");
+	shader->turnOn();
+
+	frameBufferObj_->bindObj(true, true);
+	frameBufferObj_->clearBuffer();
+
+	glActiveTexture(GL_TEXTURE0);
+	jpegData_.getFinalTarget(0)->bind();
+	glActiveTexture(GL_TEXTURE1);
+	jpegData_.getFinalTarget(1)->bind();
+	glActiveTexture(GL_TEXTURE2);
+	jpegData_.getFinalTarget(2)->bind();
+	Jpeg_Data::getQuad()->draw();
+	frameBufferObj_->bindObj(false, true);
+
+	CHECK_GL_ERROR;
 	return true;
 }
 

@@ -66,6 +66,14 @@ class Jpeg_Data
 
 public:
 
+	struct QuadGemetry
+	{
+		void initGemetry();
+		void draw()const;
+		unsigned int    vao_;
+		unsigned int	vbo_;
+	};
+
 	Jpeg_Data(const char*file);
 
 	Jpeg_Data();
@@ -87,6 +95,9 @@ public:
 
 	static  Shader*	 getTechnique(const char*);
 	
+	base::SmartPointer<Texture>  getFinalTarget(int idx)const { return textureData[idx].pTextureTarget; }
+
+	static QuadGemetry* getQuad() { return &quadGemetry_; }
 protected:
 	int     imageWidth;
 	int     imageHeight;
@@ -106,5 +117,6 @@ protected:
 	GPU_Data	textureData[MAX_CHANELS];
 
 	static std::vector< base::SmartPointer<Shader> > shaders_;
+	static QuadGemetry quadGemetry_;
 };
 
