@@ -99,7 +99,7 @@ namespace scene
 		Pass::Pass(int w, int h) :width_(w), height_(h)
 		{
 			shader_ = new Shader;
-			fbuffer_ = new FrameBufferObject;
+			fbuffer_ = new FrameBufferObject(GL_FRAMEBUFFER);
 		}
 
 		Pass::~Pass()

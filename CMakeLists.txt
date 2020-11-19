@@ -91,6 +91,6 @@ include(cmake/engine.cmake)
 if(BUILD_EXAMPLES)
 	include(cmake/examples.cmake)  
 endif()
-#include(cmake/test.cmake)
+include(cmake/test.cmake)
 
 ADD_SUBDIRECTORY(tool)
