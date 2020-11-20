@@ -102,6 +102,8 @@ protected:
 	int     imageWidth;
 	int     imageHeight;
 	int     componentsNum;
+	int     imageFormat;
+	int		imageType;
 
 	char    quantTables[MAX_CHANELS][64];
 
@@ -112,8 +114,8 @@ protected:
 	void*	mappingHandle = nullptr;
 	void*	fileHandle = nullptr;
 
-	int      format;
 	int		 type;
+
 	GPU_Data	textureData[MAX_CHANELS];
 
 	static std::vector< base::SmartPointer<Shader> > shaders_;
