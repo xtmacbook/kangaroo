@@ -1,10 +1,8 @@
 --VERTEX-Compiled
 #version 330 core
 
-layout (location = 0) in vec3 vertex; 
-
-uniform int g_SphereMeridianSlices;
-uniform int g_SphereParallelSlices;
+#define MAX_ANISOTROPY 16
+#define MIP_LEVELS_MAX 7
 
 uniform mat4 view;
 uniform mat4 projection; 
@@ -12,14 +10,18 @@ uniform mat4 projection;
 
 uniform vec3 g_EyePosition;
 uniform vec3 g_LightPosition;
+uniform vec3 g_WorldRight;
+uniform vec3 g_WorldUp;
 
-out VertexData
-{
-	vec4 position;
-	vec2 texCoord;
-	vec3 viewVectorTangent;
-	vec3 lightVectorTangent;
-}outData;
+
+uniform vec2 g_StackCenter;
+uniform ivec2 g_TextureSize;
+uniform uint g_StackDepth;
+uniform vec2 g_ScaleFactor;
+uniform int g_SphereMeridianSlices;
+uniform int g_SphereParallelSlices;
+uniform float g_ScreenAspectRatio;
+uniform vec3 g_MipColors[MIP_LEVELS_MAX];
 
 void main()
 {
@@ -43,33 +45,18 @@ void main()
     
     gl_Position = projection * view * vec4(VertexPosition,1.0);
 
-    outData.position = gl_Position;
-    outData.texCoord = vec2( 1.0 - meridianPart, 1.0 - parallelPart );
-    
-    vec3 tangent = vec3( cos_angle1, 0.0, -sin_angle1 );
-    vec3 binormal = vec3( -sin_angle1 * sin_angle2, cos_angle2, -cos_angle1 * sin_angle2 );
-        
-    vec3 viewVector = normalize(g_EyePosition - VertexPosition);
-    
-    outData.viewVectorTangent.x = dot( viewVector, tangent );
-    outData.viewVectorTangent.y = dot( viewVector, binormal);
-    outData.viewVectorTangent.z = dot( viewVector, VertexPosition );
-    
-    vec3 lightVector = normalize( g_LightPosition );
-    
-    outData.lightVectorTangent.x = dot( lightVector, tangent );
-
-     
 }
 
+--FRAGMENT-trilinear
+#version 330 
 
-
---FRAGMENT-base
-#version 330 core
+uniform sampler2D PyramidTexture;
+uniform sampler2D PyramidTextureHM;
+uniform sampler2DArray StackTexture;
 
 out vec4 color;
 
 void main()
 {
-    color = vec4(0.0,1.0,0.0, 1.0f);
+    color = vec4(0.5,1.0,0.1,1.0f);
 }
