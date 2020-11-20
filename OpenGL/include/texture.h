@@ -31,6 +31,18 @@ enum TEXTURE_TYPE
 	levle: mipmaps
 	array Texture :layer
 	cube :face
+
+	glTexStorage2D:
+		For 1D array textures, the number of array layers in each mipmap level is the height​ value. 
+		For rectangle textures, the number of mipmap levels must be 1.
+	glTexStorage3D:
+		For 2D array textures, the number of array layers in each mipmap level is the depth​ value.
+		For 2D cubemap array textures, the number of cubemap layer-faces is the depth​, which must be 
+			a multiple of 6. Therefore, the number of individual cubemaps in the array is given by depth​ / 6.
+	
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, zoffset, width, height, layerCount, GL_RGBA, GL_UNSIGNED_BYTE, texels);
+
+	update from zoffset (layer index) and update count num is layerCount 
 */
 /************************************************************************/
 
