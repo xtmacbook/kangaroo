@@ -89,46 +89,50 @@ void UpdateInfo::release()
 int GPU_Data::intitialize(int width, int height, char *pQuantTable)
 {
 	pTextureDCT = new Texture;
-	pTextureDCT->target_ = GL_TEXTURE_2D;
 	pTextureDCT->internalformat_ = GL_R8_SNORM;
 	pTextureDCT->width_ = width;
 	pTextureDCT->height_ = height;
 	pTextureDCT->createObj();
 	pTextureDCT->bind();
+	pTextureDCT->mirrorRepeat();
+	pTextureDCT->filterLinear();
 	pTextureDCT->contextNULL();
 	pTextureDCT->unBind();
 	CHECK_GL_ERROR;
 
 	pTextureQ = new Texture;
-	pTextureQ->target_ = GL_TEXTURE_2D;
 	pTextureQ->internalformat_ = GL_R8;
 	pTextureQ->width_ = 8;
 	pTextureQ->height_ = 8;
 	pTextureQ->createObj();
 	pTextureQ->bind();
+	pTextureQ->mirrorRepeat();
+	pTextureQ->filterLinear();
 	pTextureQ->context(pQuantTable);
 	pTextureQ->unBind();
 	CHECK_GL_ERROR;
 
 	pTexture1Row = new Texture;
-	pTexture1Row->target_ = GL_TEXTURE_2D;
 	pTexture1Row->internalformat_ = GL_RGBA16F;
 	pTexture1Row->width_ = width / 8;
 	pTexture1Row->height_ = height;
 	pTexture1Row->createObj();
 	pTexture1Row->bind();
+	pTexture1Row->mirrorRepeat();
+	pTexture1Row->filterLinear();
 	pTexture1Row->contextNULL();
 	pTexture1Row->unBind();
 	CHECK_GL_ERROR;
 
 
 	pTexture2Row = new Texture;
-	pTexture2Row->target_ = GL_TEXTURE_2D;
 	pTexture2Row->internalformat_ = GL_RGBA16F;
 	pTexture2Row->width_ = width / 8;
 	pTexture2Row->height_ = height;
 	pTexture2Row->createObj();
 	pTexture2Row->bind();
+	pTexture2Row->mirrorRepeat();
+	pTexture2Row->filterLinear();
 	pTexture2Row->contextNULL();
 	pTexture2Row->unBind();
 	CHECK_GL_ERROR;
@@ -142,26 +146,27 @@ int GPU_Data::intitialize(int width, int height, char *pQuantTable)
 	rowFrameBuffer_->bindObj(false, false);
 
 
-
 	pTexture1Col = new Texture;
-	pTexture1Col->target_ = GL_TEXTURE_2D;
 	pTexture1Col->internalformat_ = GL_RGBA16F;
 	pTexture1Col->width_ = width;
 	pTexture1Col->height_ = height / 8;
 	pTexture1Col->createObj();
 	pTexture1Col->bind();
+	pTexture1Col->mirrorRepeat();
+	pTexture1Col->filterLinear();
 	pTexture1Col->contextNULL();
 	pTexture1Col->unBind();
 	CHECK_GL_ERROR;
 
 
 	pTexture2Col = new Texture;
-	pTexture2Col->target_ = GL_TEXTURE_2D;
 	pTexture2Col->internalformat_ = GL_RGBA16F;
 	pTexture2Col->width_ = width;
 	pTexture2Col->height_ = height / 8;
 	pTexture2Col->createObj();
 	pTexture2Col->bind();
+	pTexture2Col->mirrorRepeat();
+	pTexture2Col->filterLinear();
 	pTexture2Col->contextNULL();
 	pTexture2Col->unBind();
 	CHECK_GL_ERROR;
@@ -175,12 +180,13 @@ int GPU_Data::intitialize(int width, int height, char *pQuantTable)
 
 
 	pTextureTarget = new Texture;
-	pTextureTarget->target_ = GL_TEXTURE_2D;
 	pTextureTarget->internalformat_ = GL_R16F;
 	pTextureTarget->width_ = width;
 	pTextureTarget->height_ = height;
 	pTextureTarget->createObj();
 	pTextureTarget->bind();
+	pTextureTarget->mirrorRepeat();
+	pTextureTarget->filterLinear();
 	pTextureTarget->contextNULL();
 	pTextureTarget->unBind();
 	CHECK_GL_ERROR;
@@ -272,10 +278,9 @@ bool Jpeg_Data::loadFile(const char*file)
 
 	imageWidth = Pd->get_width();
 	imageHeight = Pd->get_height();
-
 	componentsNum = Pd->get_num_components();
-
-	format = GL_RED;
+	int a= Pd->get_bytes_per_pixel();
+	imageFormat = GL_RED;
 	type = GL_BYTE;
 
 	static float scaleFactor[8] = { 1.0f, 1.387039845f, 1.306562965f, 1.175875602f,
@@ -436,7 +441,7 @@ int Jpeg_Data::allocateTextures(int width, int height)
 						box[bid].min_.y, \
 						box[bid].max_.x - box[bid].min_.x, \
 						box[bid].max_.y - box[bid].min_.y, \
-						format, type,pFileData + offset + dataoffset ); \
+						imageFormat, type,pFileData + offset + dataoffset ); \
 						CHECK_GL_ERROR;
 
 
@@ -486,7 +491,7 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 						box.min_.y,
 						box.max_.x - box.min_.x,
 						box.max_.y - box.min_.y,
-						format, type, pFileData + offset);
+						imageFormat, type, pFileData + offset);
 					box.min_.x += 8;
 					box.max_.x += 8;
 					CHECK_GL_ERROR;
@@ -597,6 +602,7 @@ void Jpeg_Data::uncompressTextureData()
 		textureData[i].pTextureDCT->bind();
 		glActiveTexture(GL_TEXTURE1);
 		textureData[i].pTextureQ->bind();
+		glViewport(0, 0, textureData[i].pTexture1Row->width(), textureData[i].pTexture1Row->heigh());
 		quadGemetry_.draw();
 		CHECK_GL_ERROR;
 		
@@ -610,6 +616,7 @@ void Jpeg_Data::uncompressTextureData()
 		textureData[i].pTexture1Row->bind();
 		glActiveTexture(GL_TEXTURE1);
 		textureData[i].pTexture2Row->bind();
+		glViewport(0, 0, textureData[i].pTextureTarget->width(), textureData[i].pTextureTarget->heigh());
 		quadGemetry_.draw();
 		CHECK_GL_ERROR;
 
@@ -620,6 +627,7 @@ void Jpeg_Data::uncompressTextureData()
 		textureData[i].colFrameBuffer_->clearBuffer();
 		glActiveTexture(GL_TEXTURE0);
 		textureData[i].pTextureTarget->bind();
+		glViewport(0, 0, textureData[i].pTexture1Col->width(), textureData[i].pTexture1Col->heigh());
 		quadGemetry_.draw();
 		CHECK_GL_ERROR;
 
@@ -633,6 +641,7 @@ void Jpeg_Data::uncompressTextureData()
 		textureData[i].pTexture1Col->bind();
 		glActiveTexture(GL_TEXTURE1);
 		textureData[i].pTexture2Col->bind();
+		glViewport(0, 0, textureData[i].pTextureTarget->width(), textureData[i].pTextureTarget->heigh());
 		quadGemetry_.draw();
 		CHECK_GL_ERROR;
 	}
