@@ -13,6 +13,8 @@
 
 #include "type.h"
 #include "boundingBox.h"
+#include "clipmap_prepprocessor.h"
+#include <engineLoad.h>
 #include <vector>
 
 
@@ -24,6 +26,33 @@
 #define CLIPMAP_STACK_SIZE_MAX 4096
 #define CLIPMAP_STACK_SIZE_MIN 1024
 #define MIPMAP_LEVELS_MAX 7
+
+#define SOURCE_FILES_NUM 5
+
+const V3f LIGHTPOS{ 10.0,0.0,10.0 };
+
+char g_SrcMediaPath[SOURCE_FILES_NUM][MAX_PATH] = { "Clipmaps//Mars16k.jpg",
+													"Clipmaps/Mars8k.jpg",
+													"Clipmaps/Mars4k.jpg",
+													"Clipmaps/Mars2k.jpg",
+													"Clipmaps/Mars1k.jpg" };
+
+char g_SrcMediaPathHM[SOURCE_FILES_NUM][MAX_PATH] = { "Clipmaps//MarsHm16k.jpg",
+													"Clipmaps/MarsHm8k.jpg",
+													"Clipmaps/MarsHm4k.jpg",
+													"Clipmaps/MarsHm2k.jpg",
+													"Clipmaps/MarsHm1k.jpg" };
+
+float g_MipmapColors[MIPMAP_LEVELS_MAX][3] =
+{
+	{ 0.5f, 1.0f, 0.0f },
+	{ 0.0f, 1.0f, 1.0f },
+	{ 1.0f, 1.0f, 0.0f },
+	{ 0.0f, 1.0f, 0.0f },
+	{ 0.0f, 0.0f, 1.0f },
+	{ 1.0f, 0.0f, 1.0f },
+	{ 1.0f, 0.0f, 0.0f },
+};
 
 using namespace math;
  
@@ -95,17 +124,9 @@ public:
 			}
 
 			glGenVertexArrays(1, &vao_);
-
 			glBindVertexArray(vao_);
+
 			glGenBuffers(1, &vbo_);
-
-			glGenBuffers(1, &vvbo_);
-			glBindBuffer(GL_ARRAY_BUFFER, vvbo_);
-			glBufferData(GL_ARRAY_BUFFER, 0,0, GL_STATIC_DRAW);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(V3f) * vertexs.size(), &vertexs[0], GL_STATIC_DRAW);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo_);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned), pIndices, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -116,7 +137,7 @@ public:
 		void draw()
 		{
 			glBindVertexArray(vao_);
-			glDrawElements(GL_TRIANGLES, SPHERE_MERIDIAN_SLICES_NUM * SPHERE_MERIDIAN_SLICES_NUM + 30,GL_UNSIGNED_INT,0);
+			glDrawElements(GL_TRIANGLES, SPHERE_MERIDIAN_SLICES_NUM * SPHERE_MERIDIAN_SLICES_NUM * 6,GL_UNSIGNED_INT,0);
 			glBindVertexArray(0);
 		}
 
@@ -136,6 +157,7 @@ protected:
 
  
 protected:
+	void							createClipmapTextures();
 	void							calculateClipmapParameters();
 	void							initStackTexture();
 	void							updateMipPosition(int &position, int offset);
@@ -144,6 +166,9 @@ protected:
 public:
 	virtual void					render(PassInfo&);
 
+	base::SmartPointer<Texture>			g_pPyramidTexture;
+	base::SmartPointer<Texture>			g_pPyramidTextureHM;
+	base::SmartPointer<Texture>			g_pStackTexture;
 private:
 	int        g_SourceImageWidth;
 	int        g_SourceImageHeight;
@@ -156,12 +181,15 @@ private:
 	std::vector<int>    g_StackSizeList;
 	std::vector<int>    g_UpdateRegionSizeList;
 
+
 	math::V2f g_StackPosition;
 	int        g_StackDepth;
 	int **g_ppUpdatePositions;                           // Defines positions for each clipmap layer where new data should be placed
 
 
 	SphereGeoemtry		sphere_;
+
+	Clipmap_Manager*		clipmapManager_;
 };
 
 ClipMappingScene::ClipMappingScene()
@@ -254,7 +282,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 				dstBlock[0] = subResourceBox.min_.x;
 				dstBlock[1] = subResourceBox.min_.y;
 
-				//g_JPEG_Manager.AddBlock(i, srcBlock, dstBlock);
+				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
 				subResourceBox.min_.y += tileBlockSize;
 
@@ -262,7 +290,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 					subResourceBox.min_.y = 0;
 			}
 
-			//g_JPEG_Manager.Update(pd3dDevice, i);
+			clipmapManager_->update( i);
 			updateMipPosition(g_ppUpdatePositions[i][0], tileBlockSize);
 		}
 
@@ -284,11 +312,20 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 		baseDimension >>= 1;
 	}
 
-	g_ClipmapStackSize = g_StackSizeList[1];
+	g_ClipmapStackSize = g_StackSizeList[1]; //now select 1 index
 
 	calculateClipmapParameters();
 
 	g_UpdateRegionSize = (int)(16.0 * pow(2.0f, g_StackDepth - 1));
+
+	int blocksPerLayer = g_SourceImageWidth / g_UpdateRegionSize;
+
+	clipmapManager_ = new Clipmap_Manager;
+	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath,g_SrcMediaPathHM);
+	clipmapManager_->allocateBlocks(blocksPerLayer);
+	clipmapManager_->allocateTextures(g_ClipmapStackSize,g_UpdateRegionSize);
+
+	createClipmapTextures();
 
 	initStackTexture();
 
@@ -303,14 +340,20 @@ bool ClipMappingScene::initShader(const SceneInitInfo&)
 	std::string code = Shader::loadMultShaderInOneFile("test/clipmap.glsl");
 
 	shader->getShaderFromMultCode(Shader::VERTEX, "Compiled", code);
-	shader->getShaderFromMultCode(Shader::FRAGMENT, "base", code);
+	shader->getShaderFromMultCode(Shader::FRAGMENT, "trilinear", code);
 	shader->linkProgram();
 	shader->checkProgram();
 
 	shaders_.push_back(shader);
 	shader->turnOn();
+	
 	shader->setInt(shader->getVariable("g_SphereMeridianSlices"), SPHERE_MERIDIAN_SLICES_NUM);
 	shader->setInt(shader->getVariable("g_SphereParallelSlices"), SPHERE_PARALLEL_SLICES_NUM);
+
+	V2i textureSize{ g_SourceImageWidth,g_SourceImageHeight };
+	shader->setVec2Int(shader->getVariable("g_TextureSize"), 1, &textureSize[0]);
+
+
 	shader->turnOff();
 
 	CHECK_GL_ERROR;
@@ -331,6 +374,54 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 	Scene::processKeyboard(key, st, action, mods, deltaTime);
 }
  
+
+void ClipMappingScene::createClipmapTextures()
+{
+	g_pPyramidTexture = new Texture(g_SrcMediaPath[g_StackDepth]);
+	g_pPyramidTexture->target_ = GL_TEXTURE_2D;
+	g_pPyramidTexture->numOfMiplevels_ = g_SourceImageMipsNum - g_StackDepth;
+	if (g_pPyramidTexture->loadData())
+	{
+		g_pPyramidTexture->createObj();
+		g_pPyramidTexture->bind();
+		g_pPyramidTexture->mirrorRepeat();
+		g_pPyramidTexture->filterLinear();
+		if (!g_pPyramidTexture->context(NULL))
+		{
+		}
+		CHECK_GL_ERROR;
+	}
+
+	g_pPyramidTextureHM = new Texture(g_SrcMediaPathHM[g_StackDepth]);
+	g_pPyramidTextureHM->target_ = GL_TEXTURE_2D;
+	g_pPyramidTextureHM->numOfMiplevels_ = g_SourceImageMipsNum - g_StackDepth;
+	if (g_pPyramidTextureHM->loadData())
+	{
+		g_pPyramidTextureHM->createObj();
+		g_pPyramidTextureHM->bind();
+		g_pPyramidTextureHM->mirrorRepeat();
+		g_pPyramidTextureHM->filterLinear();
+		if (!g_pPyramidTextureHM->context(NULL))
+		{
+		}
+		CHECK_GL_ERROR;
+	}
+
+	g_pStackTexture = new Texture;
+	g_pStackTexture->target_ = GL_TEXTURE_2D_ARRAY;
+	g_pStackTexture->internalformat_= GL_RGBA8;
+	g_pStackTexture->width_ = g_ClipmapStackSize;
+	g_pStackTexture->height_ = g_ClipmapStackSize;
+	g_pStackTexture->depth_ = g_StackDepth; //array size;
+	g_pStackTexture->createObj();
+	g_pStackTexture->bind();
+	g_pStackTexture->mirrorRepeat();
+	g_pStackTexture->filterLinear();
+	g_pStackTexture->contextNULL();
+	g_pStackTexture->unBind();
+
+	CHECK_GL_ERROR;
+}
 
 void ClipMappingScene::calculateClipmapParameters()
 {
@@ -380,6 +471,14 @@ void ClipMappingScene::calculateClipmapParameters()
 		g_ppUpdatePositions[i][1] = 0;
 	}
 
+	shaders_[0]->turnOn();
+	shaders_[0]->setUInt(shaders_[0]->getVariable("g_StackDepth"), g_StackDepth);
+	V2f scaleFactor;
+	scaleFactor.x = (float)g_SourceImageWidth / g_ClipmapStackSize;
+	scaleFactor.y = (float)g_SourceImageHeight / g_ClipmapStackSize;
+	shaders_[0]->setVec2f(shaders_[0]->getVariable("g_ScaleFactor"), 1, &scaleFactor[0]);
+	shaders_[0]->setVec3f(shaders_[0]->getVariable("g_MipColors"), MIPMAP_LEVELS_MAX, g_MipmapColors[0]);
+	shaders_[0]->turnOff();
 }
 
 void ClipMappingScene::initStackTexture()
@@ -387,9 +486,10 @@ void ClipMappingScene::initStackTexture()
 	int mipCornerLU[2];
 	int mipCornerRD[2];
 	int tileBlockSize = 0;
-	int blockIndex[2];
+
+	/*int blockIndex[2];
 	int subBlockIndex[2];
-	int blockCorner[2];
+	int blockCorner[2];*/
 
 	base::AABB subResourceBox;
 	subResourceBox.min_.z = 0;
@@ -420,9 +520,9 @@ void ClipMappingScene::initStackTexture()
 				subResourceBox.min_.x = 0;
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
 
-				blockIndex[1] = j / FILE_BLOCK_SIZE;
+				/*blockIndex[1] = j / FILE_BLOCK_SIZE;
 				blockCorner[1] = blockIndex[1] * FILE_BLOCK_SIZE;
-				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;
+				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;*/
 
 				for (int k = mipCornerLU[0]; k < mipCornerRD[0]; k += tileBlockSize)
 				{
@@ -431,10 +531,9 @@ void ClipMappingScene::initStackTexture()
 					if (tempBoundary < 0)
 						tempBoundary += g_ppSourceImageMipsSize[i][0];
 
-					blockIndex[0] = tempBoundary / FILE_BLOCK_SIZE;
-
+					/*blockIndex[0] = tempBoundary / FILE_BLOCK_SIZE;
 					blockCorner[0] = blockIndex[0] * FILE_BLOCK_SIZE;
-					subBlockIndex[0] = (tempBoundary - blockCorner[0]) / tileBlockSize;
+					subBlockIndex[0] = (tempBoundary - blockCorner[0]) / tileBlockSize;*/
 
 					srcBlock[0] = tempBoundary;
 					srcBlock[1] = j;
@@ -442,13 +541,13 @@ void ClipMappingScene::initStackTexture()
 					dstBlock[0] = subResourceBox.min_.x;
 					dstBlock[1] = subResourceBox.min_.y;
 
-					//g_JPEG_Manager.AddBlock(i, srcBlock, dstBlock);
+					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
 					subResourceBox.min_.x += tileBlockSize;
 					subResourceBox.max_.x += tileBlockSize;
 				}
 
-				//g_JPEG_Manager.Update(pd3dDevice, i);
+				clipmapManager_->update(i);
 
 				subResourceBox.min_.y += tileBlockSize;
 				subResourceBox.max_.y += tileBlockSize;
@@ -462,9 +561,9 @@ void ClipMappingScene::initStackTexture()
 				subResourceBox.min_.x = 0;
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
 
-				blockIndex[1] = j / FILE_BLOCK_SIZE;
+				/*blockIndex[1] = j / FILE_BLOCK_SIZE;
 				blockCorner[1] = blockIndex[1] * FILE_BLOCK_SIZE;
-				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;
+				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;*/
 
 				for (int k = mipCornerLU[0]; k < mipCornerRD[0]; k += tileBlockSize)
 				{
@@ -473,10 +572,9 @@ void ClipMappingScene::initStackTexture()
 					if (tempBoundary < 0)
 						tempBoundary += g_ppSourceImageMipsSize[i][0];
 
-					blockIndex[0] = tempBoundary / FILE_BLOCK_SIZE;
-
+					/*blockIndex[0] = tempBoundary / FILE_BLOCK_SIZE;
 					blockCorner[0] = blockIndex[0] * FILE_BLOCK_SIZE;
-					subBlockIndex[0] = (tempBoundary - blockCorner[0]) / tileBlockSize;
+					subBlockIndex[0] = (tempBoundary - blockCorner[0]) / tileBlockSize;*/
 
 					srcBlock[0] = tempBoundary;
 					srcBlock[1] = j;
@@ -484,13 +582,13 @@ void ClipMappingScene::initStackTexture()
 					dstBlock[0] = subResourceBox.min_.x;
 					dstBlock[1] = subResourceBox.min_.y;
 
-					//	g_JPEG_Manager.AddBlock(i, srcBlock, dstBlock);
+					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
 					subResourceBox.min_.x += tileBlockSize;
 					subResourceBox.max_.y += tileBlockSize;
 				}
 
-				//g_JPEG_Manager.Update(pd3dDevice, i);
+				clipmapManager_->update(i);
 
 				subResourceBox.min_.y += tileBlockSize;
 				subResourceBox.max_.y += tileBlockSize;
@@ -503,9 +601,9 @@ void ClipMappingScene::initStackTexture()
 				subResourceBox.min_.x = 0;
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
 
-				blockIndex[1] = j / FILE_BLOCK_SIZE;
+				/*blockIndex[1] = j / FILE_BLOCK_SIZE;
 				blockCorner[1] = blockIndex[1] * FILE_BLOCK_SIZE;
-				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;
+				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;*/
 
 				for (int k = mipCornerLU[0]; k < mipCornerRD[0]; k += tileBlockSize)
 				{
@@ -514,10 +612,9 @@ void ClipMappingScene::initStackTexture()
 					if (tempBoundary < 0)
 						tempBoundary += g_ppSourceImageMipsSize[i][0];
 
-					blockIndex[0] = tempBoundary / FILE_BLOCK_SIZE;
-
+					/*blockIndex[0] = tempBoundary / FILE_BLOCK_SIZE;
 					blockCorner[0] = blockIndex[0] * FILE_BLOCK_SIZE;
-					subBlockIndex[0] = (tempBoundary - blockCorner[0]) / tileBlockSize;
+					subBlockIndex[0] = (tempBoundary - blockCorner[0]) / tileBlockSize;*/
 
 					srcBlock[0] = tempBoundary;
 					srcBlock[1] = j;
@@ -525,13 +622,13 @@ void ClipMappingScene::initStackTexture()
 					dstBlock[0] = subResourceBox.min_.x;
 					dstBlock[1] = subResourceBox.min_.y;
 
-					//	g_JPEG_Manager.AddBlock(i, srcBlock, dstBlock);
+					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
 					subResourceBox.min_.x += tileBlockSize;
 					subResourceBox.max_.x += tileBlockSize;
 				}
 
-				//g_JPEG_Manager.Update(pd3dDevice, i);
+				clipmapManager_->update(i);
 
 				subResourceBox.min_.y += tileBlockSize;
 			}	subResourceBox.max_.y += tileBlockSize;
@@ -542,11 +639,21 @@ void ClipMappingScene::initStackTexture()
 void ClipMappingScene::render(PassInfo&info)
 {
 	shaders_[0]->turnOn();
-
 	initUniformVal(shaders_[0]);
 
-	sphere_.draw();
+	const CameraBase * camera = getCamera();
+	Matrixf viewmatrix = camera->getViewMatrix();
 
+	V3f worldRight{viewmatrix[0][0],viewmatrix[1][0], viewmatrix[2][0]};
+	V3f worldUp{ viewmatrix[0][1],viewmatrix[1][1], viewmatrix[2][1] };
+
+	shaders_[0]->setFloat3V(shaders_[0]->getVariable("g_EyePosition"), 1, &camera->getPosition()[0]);
+	shaders_[0]->setFloat3V(shaders_[0]->getVariable("g_WorldRight"), 1, &worldRight[0]);
+	shaders_[0]->setFloat3V(shaders_[0]->getVariable("g_WorldUp"), 1, &worldUp[0]);
+	shaders_[0]->setFloat3V(shaders_[0]->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
+
+
+	sphere_.draw();
 	shaders_[0]->turnOff();
 	
 	CHECK_GL_ERROR;
