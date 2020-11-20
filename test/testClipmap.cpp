@@ -290,7 +290,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 					subResourceBox.min_.y = 0;
 			}
 
-			clipmapManager_->update( i);
+			clipmapManager_->update( i, g_pStackTexture);
 			updateMipPosition(g_ppUpdatePositions[i][0], tileBlockSize);
 		}
 
@@ -547,7 +547,7 @@ void ClipMappingScene::initStackTexture()
 					subResourceBox.max_.x += tileBlockSize;
 				}
 
-				clipmapManager_->update(i);
+				clipmapManager_->update(i,g_pStackTexture);
 
 				subResourceBox.min_.y += tileBlockSize;
 				subResourceBox.max_.y += tileBlockSize;
@@ -588,7 +588,7 @@ void ClipMappingScene::initStackTexture()
 					subResourceBox.max_.y += tileBlockSize;
 				}
 
-				clipmapManager_->update(i);
+				clipmapManager_->update(i, g_pStackTexture);
 
 				subResourceBox.min_.y += tileBlockSize;
 				subResourceBox.max_.y += tileBlockSize;
@@ -628,7 +628,7 @@ void ClipMappingScene::initStackTexture()
 					subResourceBox.max_.x += tileBlockSize;
 				}
 
-				clipmapManager_->update(i);
+				clipmapManager_->update(i, g_pStackTexture);
 
 				subResourceBox.min_.y += tileBlockSize;
 			}	subResourceBox.max_.y += tileBlockSize;
