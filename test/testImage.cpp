@@ -38,7 +38,6 @@ private:
 
 };
 
-
 bool TestImgScene::initSceneModels(const SceneInitInfo&)
 {
 	base::SmartPointer<Quad> quad = new Quad;
@@ -53,31 +52,26 @@ bool TestImgScene::initSceneModels(const SceneInitInfo&)
 
 void TestImgScene::render(PassInfo&ps)
 {
-	CHECK_GL_ERROR;
 	Shader * shader = shaders_[0];
 	shader->turnOn();
 	initUniformVal(shader);
-	//glActiveTexture(0);
-	//targetTexture->bind();
+	glActiveTexture(GL_TEXTURE0);
+	targetTexture->bind();
 	getRenderNode(0)->render(shader, ps);
 	shader->turnOff();
 }
 
- 
 bool TestImgScene::initTexture(const SceneInitInfo&)
 {
-	std::string jpegFile = "D:/download/Direct3D/Media/Clipmaps/Mars1k.jpg";
+	std::string jpegFile = "D:/download/Clipmaps/Direct3D/Media/Clipmaps/Mars1k.jpg";
 	enAssert(jpegData_.loadFile(jpegFile.c_str()));
 
+	//std::string heightJpegFile = "D:/download/Clipmaps/Direct3D/Media/Clipmaps/MarsHm1k.jpg";
+	//enAssert(JpegDataHM_.loadFile(heightJpegFile.c_str()));
+
+
 	Jpeg_Data::initTechnique();
-
 	block_.initialize(1);
-	int srcBlock[2] = { /*jpegData_.width(),jpegData_.height()*/0,0 };
-	int dstBlock[2];
-	block_.addBlock(srcBlock, dstBlock);
-
-	jpegData_.allocateTextures(jpegData_.width(), jpegData_.height());
-	jpegData_.updateTextureData(1, jpegData_.height(), block_.getSrcBlocksPointer());
 
 	targetTexture = new Texture();
 	targetTexture->width_ = jpegData_.width();
@@ -85,6 +79,8 @@ bool TestImgScene::initTexture(const SceneInitInfo&)
 	targetTexture->baseInternalformat_ = GL_RGBA8;
 	targetTexture->createObj();
 	targetTexture->bind();
+	targetTexture->mirrorRepeat();
+	targetTexture->filterLinear();
 	targetTexture->contextNULL();
 	targetTexture->unBind();
 
@@ -94,10 +90,6 @@ bool TestImgScene::initTexture(const SceneInitInfo&)
 	frameBufferObj_->bindObj(false, false);
 	CHECK_GL_ERROR;
 
-	jpegData_.uncompressTextureData();
-
-
-	
 
 	return true;
 }
@@ -116,7 +108,7 @@ bool TestImgScene::initShader(const SceneInitInfo&)
 		"out vec2 texCoords;"
 		"void main()"
 		"{"
-		"	gl_Position = projection * view * model * vec4(position,1.0, 1.0f);"
+			"gl_Position = projection * view * model * vec4(position,1.0, 1.0f);"
 			"texCoords = texCoord;"
 		"}";
 
@@ -126,7 +118,7 @@ bool TestImgScene::initShader(const SceneInitInfo&)
 		"uniform sampler2D diffuseTex;"
 		"void main()"
 		"{"
-			"color = vec4(1.0,0.0,0.0,1.0);"
+		"color = texture(diffuseTex,texCoords);"
 		"}";
 
 	shader->loadShaderSouce(vertShder, fragShader, NULL);
@@ -142,14 +134,28 @@ bool TestImgScene::initShader(const SceneInitInfo&)
 	return true;
 }
 
-
 bool TestImgScene::update()
 {
+	int srcBlock[2] = { /*jpegData_.width(),jpegData_.height()*/0,0 };
+	int dstBlock[2];
+	block_.addBlock(srcBlock, dstBlock);
+
+	jpegData_.allocateTextures(jpegData_.width(), jpegData_.height());
+	jpegData_.updateTextureData(1, jpegData_.height(), block_.getSrcBlocksPointer());
+
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT,viewport);
+
+	jpegData_.uncompressTextureData();
+	block_.reset();
+
 	Shader* shader = Jpeg_Data::getTechnique("IDCT_RenderToBuffer");
 	shader->turnOn();
 
 	frameBufferObj_->bindObj(true, true);
 	frameBufferObj_->clearBuffer();
+
+	CHECK_GL_ERROR;
 
 	glActiveTexture(GL_TEXTURE0);
 	jpegData_.getFinalTarget(0)->bind();
@@ -157,10 +163,14 @@ bool TestImgScene::update()
 	jpegData_.getFinalTarget(1)->bind();
 	glActiveTexture(GL_TEXTURE2);
 	jpegData_.getFinalTarget(2)->bind();
+	glViewport(0, 0, targetTexture->width(), targetTexture->heigh());
 	Jpeg_Data::getQuad()->draw();
 	frameBufferObj_->bindObj(false, true);
 
 	CHECK_GL_ERROR;
+
+	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+
 	return true;
 }
 
