@@ -419,7 +419,7 @@ bool Texture::contextNULL()
 	case GL_TEXTURE_1D:
 		break;
 	case GL_TEXTURE_2D:
-		glTexImage2D(target(), 0, interFormat(), width(), heigh(), 0, externFormat(), type(), NULL);
+		glTexStorage2D(GL_TEXTURE_2D, miplevels(), interFormat(), width(), heigh());
 		break;
 	case GL_TEXTURE_3D:
 		break;
