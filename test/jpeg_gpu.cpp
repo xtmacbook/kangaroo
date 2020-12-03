@@ -86,7 +86,7 @@ void UpdateInfo::release()
 }
 
 
-int GPU_Data::intitialize(int width, int height, char *pQuantTable)
+int GPU_Data::intitialize(int width, int height, unsigned char *pQuantTable)
 {
 	pTextureDCT = new Texture;
 	pTextureDCT->internalformat_ = GL_R8_SNORM;
@@ -95,44 +95,47 @@ int GPU_Data::intitialize(int width, int height, char *pQuantTable)
 	pTextureDCT->createObj();
 	pTextureDCT->bind();
 	pTextureDCT->mirrorRepeat();
-	pTextureDCT->filterLinear();
+	pTextureDCT->filterNearest();
 	pTextureDCT->contextNULL();
 	pTextureDCT->unBind();
 	CHECK_GL_ERROR;
 
 	pTextureQ = new Texture;
 	pTextureQ->internalformat_ = GL_R8;
+	pTextureQ->format_ = GL_RED;
 	pTextureQ->width_ = 8;
 	pTextureQ->height_ = 8;
 	pTextureQ->createObj();
 	pTextureQ->bind();
 	pTextureQ->mirrorRepeat();
-	pTextureQ->filterLinear();
+	pTextureQ->filterNearest();
 	pTextureQ->context(pQuantTable);
 	pTextureQ->unBind();
 	CHECK_GL_ERROR;
 
 	pTexture1Row = new Texture;
-	pTexture1Row->internalformat_ = GL_RGBA16F;
+	pTexture1Row->internalformat_ = GL_RGBA32F;
+	pTexture1Row->type_ = GL_FLOAT;
 	pTexture1Row->width_ = width / 8;
 	pTexture1Row->height_ = height;
 	pTexture1Row->createObj();
 	pTexture1Row->bind();
 	pTexture1Row->mirrorRepeat();
-	pTexture1Row->filterLinear();
+	pTexture1Row->filterNearest();
 	pTexture1Row->contextNULL();
 	pTexture1Row->unBind();
 	CHECK_GL_ERROR;
 
 
 	pTexture2Row = new Texture;
-	pTexture2Row->internalformat_ = GL_RGBA16F;
+	pTexture2Row->type_ = GL_FLOAT;
+	pTexture2Row->internalformat_ = GL_RGBA32F;
 	pTexture2Row->width_ = width / 8;
 	pTexture2Row->height_ = height;
 	pTexture2Row->createObj();
 	pTexture2Row->bind();
 	pTexture2Row->mirrorRepeat();
-	pTexture2Row->filterLinear();
+	pTexture2Row->filterNearest();
 	pTexture2Row->contextNULL();
 	pTexture2Row->unBind();
 	CHECK_GL_ERROR;
@@ -147,26 +150,28 @@ int GPU_Data::intitialize(int width, int height, char *pQuantTable)
 
 
 	pTexture1Col = new Texture;
-	pTexture1Col->internalformat_ = GL_RGBA16F;
+	pTexture1Col->internalformat_ = GL_RGBA32F;
+	pTexture1Col->type_ = GL_FLOAT;
 	pTexture1Col->width_ = width;
 	pTexture1Col->height_ = height / 8;
 	pTexture1Col->createObj();
 	pTexture1Col->bind();
 	pTexture1Col->mirrorRepeat();
-	pTexture1Col->filterLinear();
+	pTexture1Col->filterNearest();
 	pTexture1Col->contextNULL();
 	pTexture1Col->unBind();
 	CHECK_GL_ERROR;
 
 
 	pTexture2Col = new Texture;
-	pTexture2Col->internalformat_ = GL_RGBA16F;
+	pTexture2Col->internalformat_ = GL_RGBA32F;
+	pTexture2Col->type_ = GL_FLOAT;
 	pTexture2Col->width_ = width;
 	pTexture2Col->height_ = height / 8;
 	pTexture2Col->createObj();
 	pTexture2Col->bind();
 	pTexture2Col->mirrorRepeat();
-	pTexture2Col->filterLinear();
+	pTexture2Col->filterNearest();
 	pTexture2Col->contextNULL();
 	pTexture2Col->unBind();
 	CHECK_GL_ERROR;
@@ -180,13 +185,15 @@ int GPU_Data::intitialize(int width, int height, char *pQuantTable)
 
 
 	pTextureTarget = new Texture;
-	pTextureTarget->internalformat_ = GL_R16F;
+	pTextureTarget->internalformat_ = GL_R32F;
+	pTextureTarget->format_ = GL_RED;
+	pTextureTarget->type_ = GL_FLOAT;
 	pTextureTarget->width_ = width;
 	pTextureTarget->height_ = height;
 	pTextureTarget->createObj();
 	pTextureTarget->bind();
 	pTextureTarget->mirrorRepeat();
-	pTextureTarget->filterLinear();
+	pTextureTarget->filterNearest();
 	pTextureTarget->contextNULL();
 	pTextureTarget->unBind();
 	CHECK_GL_ERROR;
@@ -233,7 +240,7 @@ Jpeg_Data::~Jpeg_Data()
 
 bool Jpeg_Data::loadFile(const char*file)
 {
-	jpgd::jpeg_decoder_file_stream* pinput_stream = new jpgd::jpeg_decoder_file_stream();
+	jpeg_decoder_file_stream* pinput_stream = new jpeg_decoder_file_stream();
 
 	if (!pinput_stream->open(file))
 	{
@@ -241,8 +248,8 @@ bool Jpeg_Data::loadFile(const char*file)
 		return false;
 	}
 
-	jpgd::jpeg_decoder* Pd = new jpgd::jpeg_decoder(pinput_stream);
-	Pd->begin_decoding();
+	jpeg_decoder* Pd = new jpeg_decoder(pinput_stream);
+	Pd->begin();
 
 	std::string temporaryName = std::string(file) + "_UNCOMPRESSED";
 	fileHandle = CreateFile((temporaryName).c_str(),
@@ -288,13 +295,13 @@ bool Jpeg_Data::loadFile(const char*file)
 
 	for (int i = 0; i < componentsNum; i++)
 	{
-		jpgd::jpgd_quant_t * pTable = Pd->getQuantizationTable(i);
+		QUANT_TYPE * pTable = Pd->getQuantizationTable(i);
 
 		for (int row = 0; row < 8; row++)
 		{
 			for (int col = 0; col < 8; col++)
 			{
-				quantTables[i][row * 8 + col] = char(pTable[row * 8 + col] * scaleFactor[row] * scaleFactor[col]);
+				quantTables[i][row * 8 + col] = unsigned char(pTable[row * 8 + col] * scaleFactor[row] * scaleFactor[col]);
 			}
 		}
 		MCU_per_row = Pd->get_mcus_per_row();
@@ -459,8 +466,8 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 		MCU_BLOCK_SIZE = 384;
 	}
 
-	int MCU_NUM_X = blockSize / MCU_SIZE;
-	int MCU_NUM_Y = blockSize / MCU_SIZE;
+	int MCU_NUM_X = 1024 / MCU_SIZE;
+	int MCU_NUM_Y = 512 / MCU_SIZE;
 
 	int updatesNum = 0;
 
