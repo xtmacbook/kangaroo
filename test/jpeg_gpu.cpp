@@ -114,8 +114,8 @@ int GPU_Data::intitialize(int width, int height, unsigned char *pQuantTable)
 	CHECK_GL_ERROR;
 
 	pTexture1Row = new Texture;
-	pTexture1Row->internalformat_ = GL_RGBA32F;
-	pTexture1Row->type_ = GL_FLOAT;
+	pTexture1Row->internalformat_ = GL_RGBA16F;
+	pTexture1Row->type_ = GL_HALF_FLOAT;
 	pTexture1Row->width_ = width / 8;
 	pTexture1Row->height_ = height;
 	pTexture1Row->createObj();
@@ -128,8 +128,8 @@ int GPU_Data::intitialize(int width, int height, unsigned char *pQuantTable)
 
 
 	pTexture2Row = new Texture;
-	pTexture2Row->type_ = GL_FLOAT;
-	pTexture2Row->internalformat_ = GL_RGBA32F;
+	pTexture2Row->type_ = GL_HALF_FLOAT;
+	pTexture2Row->internalformat_ = GL_RGBA16F;
 	pTexture2Row->width_ = width / 8;
 	pTexture2Row->height_ = height;
 	pTexture2Row->createObj();
@@ -150,8 +150,8 @@ int GPU_Data::intitialize(int width, int height, unsigned char *pQuantTable)
 
 
 	pTexture1Col = new Texture;
-	pTexture1Col->internalformat_ = GL_RGBA32F;
-	pTexture1Col->type_ = GL_FLOAT;
+	pTexture1Col->internalformat_ = GL_RGBA16F;
+	pTexture1Col->type_ = GL_HALF_FLOAT;
 	pTexture1Col->width_ = width;
 	pTexture1Col->height_ = height / 8;
 	pTexture1Col->createObj();
@@ -164,8 +164,8 @@ int GPU_Data::intitialize(int width, int height, unsigned char *pQuantTable)
 
 
 	pTexture2Col = new Texture;
-	pTexture2Col->internalformat_ = GL_RGBA32F;
-	pTexture2Col->type_ = GL_FLOAT;
+	pTexture2Col->internalformat_ = GL_RGBA16F;
+	pTexture2Col->type_ = GL_HALF_FLOAT;
 	pTexture2Col->width_ = width;
 	pTexture2Col->height_ = height / 8;
 	pTexture2Col->createObj();
@@ -185,9 +185,9 @@ int GPU_Data::intitialize(int width, int height, unsigned char *pQuantTable)
 
 
 	pTextureTarget = new Texture;
-	pTextureTarget->internalformat_ = GL_R32F;
+	pTextureTarget->internalformat_ = GL_R16F;
 	pTextureTarget->format_ = GL_RED;
-	pTextureTarget->type_ = GL_FLOAT;
+	pTextureTarget->type_ = GL_HALF_FLOAT;
 	pTextureTarget->width_ = width;
 	pTextureTarget->height_ = height;
 	pTextureTarget->createObj();
@@ -466,8 +466,8 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 		MCU_BLOCK_SIZE = 384;
 	}
 
-	int MCU_NUM_X = 1024 / MCU_SIZE;
-	int MCU_NUM_Y = 512 / MCU_SIZE;
+	int MCU_NUM_X = blockSize / MCU_SIZE;
+	int MCU_NUM_Y = blockSize / MCU_SIZE;
 
 	int updatesNum = 0;
 
