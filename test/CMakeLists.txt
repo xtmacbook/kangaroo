@@ -43,13 +43,13 @@ target_link_libraries(test_multThread ${engineName})
  
 #install
 install(TARGETS test_multThread RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-# ================================================= testImage===================================================================================
+# ================================================= test_JPeg_decoding_on_GPU===================================================================================
 set(testImage_Source_Files   testImage.cpp jpgd.cpp jpeg_gpu.cpp)
 add_executable(testImage ${testImage_Source_Files})
 add_dependencies(testImage ${engineName})
 source_group("Source Files" FILES ${testImage_Source_Files})
-set_target_properties(testImage PROPERTIES PROJECT_LABEL "testImage")						# in Visual Studio
-set_target_properties(testImage PROPERTIES OUTPUT_NAME "testImage")
+set_target_properties(testImage PROPERTIES PROJECT_LABEL "testJPeg_decoding_on_GPU")						# in Visual Studio
+set_target_properties(testImage PROPERTIES OUTPUT_NAME "testJPeg_decoding_on_GPU")
 set_target_properties(testImage PROPERTIES FOLDER "test")
 target_link_libraries(testImage ${engineName}) 
  
