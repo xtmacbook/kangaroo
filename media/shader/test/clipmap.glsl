@@ -54,9 +54,11 @@ uniform sampler2D PyramidTexture;
 uniform sampler2D PyramidTextureHM;
 uniform sampler2DArray StackTexture;
 
+uniform ivec2 g_TextureSize;
+
 out vec4 color;
 
 void main()
 {
-    color = vec4(0.5,1.0,0.1,1.0f);
+    color = texture(StackTexture,vec3(0.5,0.5,2.0));
 }
