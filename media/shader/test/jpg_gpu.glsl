@@ -36,6 +36,34 @@ void main()
     EndPrimitive();
 }
 
+--GEOMETRY-GL_Quad
+#version 330 core
+layout (points) in;
+layout (triangle_strip, max_vertices = 4) out;
+
+in vec2 texCoord[];
+out vec2 texCoords;
+void main()
+{
+		gl_Position = vec4( -1.0,1.0,0.5,1.0);
+		texCoords = vec2( 0.0, 0.0 );
+    EmitVertex();
+    
+    gl_Position = vec4( -1.0,-1.0,0.5,1.0);
+		texCoords = vec2( 0.0, 1.0 );
+    EmitVertex();
+    
+    gl_Position = vec4( 1.0,1.0,0.5,1.0);
+		texCoords = vec2( 1.0, 0.0 );
+    EmitVertex();
+    
+    gl_Position = vec4( 1.0,-1.0,0.5,1.0);
+		texCoords = vec2( 1.0, 1.0 );
+    EmitVertex();
+    
+    EndPrimitive();
+}
+
 --FRAGMENT-Quad
 #version 330 
 out vec4 color;
@@ -47,8 +75,8 @@ void main()
 
 --FRAGMENT-PS_IDCT_Rows
 #version 330 
-out vec4 color0;
-out vec4 color1;
+layout (location = 0) out mediump vec4 color0;
+layout (location = 1) out mediump vec4 color1;
 in vec2 texCoords;
 uniform sampler2D TextureDCT;
 uniform sampler2D QuantTexture;
@@ -77,7 +105,7 @@ void main()
 	d[5] *= texture(QuantTexture, vec2(0.6875, texCoords.y * g_ColScale)).r * 256.0f;
 	d[6] *= texture(QuantTexture, vec2(0.8125, texCoords.y * g_ColScale)).r * 256.0f;
 	d[7] *= texture(QuantTexture, vec2(0.9375, texCoords.y * g_ColScale)).r * 256.0f;
-
+	
 	float tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
 	float tmp10, tmp11, tmp12, tmp13;
 	float z5, z10, z11, z12, z13;
@@ -119,19 +147,22 @@ void main()
 	tmp5 = tmp11 - tmp6;
 	tmp4 = tmp10 + tmp5;
 
+	
 	color0.x = tmp0 + tmp7;
-	color1.w = tmp0 - tmp7;
 	color0.y = tmp1 + tmp6;
-	color1.z = tmp1 - tmp6;
 	color0.z = tmp2 + tmp5;
-	color1.y = tmp2 - tmp5;
-	color1.x = tmp3 + tmp4;
 	color0.w = tmp3 - tmp4;
+	
+	
+	color1.x = tmp3 + tmp4;
+	color1.y = tmp2 - tmp5;
+	color1.z = tmp1 - tmp6;
+	color1.w = tmp0 - tmp7;
 }
 
 --FRAGMENT-PS_IDCT_Unpack_Rows
 #version 330 
-out vec4 color;
+layout (location = 0) out mediump float color;
 in vec2 texCoords;
 
 uniform float g_RowScale;
@@ -146,19 +177,17 @@ void main()
     // Calculate a single non-zero index to define an element to be used
     int iindex = int(fract( texCoords.x * g_RowScale ) * 8.0);
     
-    float index = float(iindex);
-    
-    vec4 indexMask1 = vec4(float(index == 0.0), float(index == 1.0),float(index == 2.0),float(index == 3.0) );
-    vec4 indexMask2 = vec4(float(index == 4.0), float(index == 5.0),float(index == 6.0),float(index == 7.0) );
+    vec4 indexMask1 = vec4(float(iindex == 0), float(iindex == 1),float(iindex == 2),float(iindex == 3) );
+    vec4 indexMask2 = vec4(float(iindex == 4), float(iindex == 5),float(iindex == 6),float(iindex == 7) );
     
     float c = dot( values1, indexMask1 ) + dot( values2, indexMask2 );
     
-    color = vec4(c,c,c,c);
+    color = c;
 }
 --FRAGMENT-PS_IDCT_Columns
 #version 330 
-out vec4 color0;
-out vec4 color1;
+layout (location = 0) out mediump vec4 color0;
+layout (location = 1) out mediump vec4 color1;
 in vec2 texCoords;
 
 uniform sampler2D TargetTexture;
@@ -231,7 +260,7 @@ void main()
 --FRAGMENT-PS_IDCT_Unpack_Columns
 #version 330 
 
-out vec4 color;
+layout (location = 0) out mediump float color;
 
 in vec2 texCoords;
 
@@ -247,23 +276,21 @@ void main()
     vec4 values2 = texture( ColumnTexture2, texCoords );
     
      // Calculate a single non-zero index to define an element to be used
-    int iindex = int(fract( texCoords.x * g_ColScale ) * 8.0);
+    int index = int(fract( texCoords.y * g_ColScale ) * 8.0);
     
-    float index = float(iindex);
-    
-    vec4 indexMask1 = vec4(float(index == 0.0), float(index == 1.0),float(index == 2.0),float(index == 3.0) );
-    vec4 indexMask2 = vec4(float(index == 4.0), float(index == 5.0),float(index == 6.0),float(index == 7.0) );
+    vec4 indexMask1 = vec4(float(index == 0), float(index == 1),float(index == 2),float(index == 3) );
+    vec4 indexMask2 = vec4(float(index == 4), float(index == 5),float(index == 6),float(index == 7) );
     
     float c = dot( values1, indexMask1 ) + dot( values2, indexMask2 );
     
 		float d = clamp( c  * 0.125 + 128.0, 0.0, 256.0 );
 		
-    color = vec4(d,d,d,d);
+    color = d;
 }
 
 --FRAGMENT-PS_IDCT_RenderToBuffer
 #version 330 
-out vec4 color;
+layout (location = 0) out mediump vec4 color;
 
 in vec2 texCoords; 
 
@@ -275,7 +302,7 @@ uniform sampler2D TextureHeight;
 
 void main()
 {
-	float Y = texture( TextureY,texCoords).r;
+	  float Y = texture( TextureY,texCoords).r;
     float Cb = texture( TextureCb, texCoords ).r;
     float Cr = texture( TextureCr, texCoords ).r;
         
