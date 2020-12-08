@@ -14,6 +14,7 @@
 #include "type.h"
 #include "boundingBox.h"
 #include "clipmap_prepprocessor.h"
+#include <util.h>
 #include <engineLoad.h>
 #include <vector>
 
@@ -28,6 +29,8 @@
 #define MIPMAP_LEVELS_MAX 7
 
 #define SOURCE_FILES_NUM 5
+
+#define  QUAD_TEST_STACK_TEXTURE
 
 const V3f LIGHTPOS{ 10.0,0.0,10.0 };
 
@@ -54,6 +57,17 @@ float g_MipmapColors[MIPMAP_LEVELS_MAX][3] =
 	{ 1.0f, 0.0f, 0.0f },
 };
 
+static GLfloat quadVertices[] = {
+	// positions   // texCoords
+	-512.0f,  256.0f,  0.0f, 1.0f,
+	-512.0f, -256.0f,  0.0f, 0.0f,
+	512.0f, -256.0f,  1.0f, 0.0f,
+
+	-512.0f,  256.0f,  0.0f, 1.0f,
+	512.0f, -256.0f,  1.0f, 0.0f,
+	512.0f,  256.0f,  1.0f, 1.0f
+};
+
 using namespace math;
  
 
@@ -67,30 +81,19 @@ public:
 		void setUpGeoemtry()
 		{
 
-#if 0
-			std::vector<V3f> vertexs;
-			for (int i = 0; i < SPHERE_MERIDIAN_SLICES_NUM * SPHERE_PARALLEL_SLICES_NUM; i++)
-			{
-				float meridianPart = (i % (SPHERE_MERIDIAN_SLICES_NUM + 1)) / float(SPHERE_MERIDIAN_SLICES_NUM);
-				float parallelPart = (i / (SPHERE_MERIDIAN_SLICES_NUM + 1)) / float(SPHERE_PARALLEL_SLICES_NUM);
 
-				float angle1 = meridianPart * 3.14159265 * 2.0;
-				float angle2 = (0.5 - parallelPart) * 3.14159265;
-
-				float cos_angle1 = cos(angle1);
-				float sin_angle1 = sin(angle1);
-				float cos_angle2 = cos(angle2);
-				float sin_angle2 = sin(angle2);
-
-				V3f VertexPosition;
-				VertexPosition.x = cos_angle1 * cos_angle2;
-				VertexPosition.y = sin_angle2;
-				VertexPosition.z = sin_angle1 * cos_angle2;
-
-				vertexs.push_back(VertexPosition);
-			}
-			
-#endif
+#ifdef QUAD_TEST_STACK_TEXTURE
+			glGenVertexArrays(1, &vao_);
+			glBindVertexArray(vao_);
+			glGenBuffers(1, &vbo_);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+			glBindVertexArray(0);
+#else
 			int IndexNumber = SPHERE_MERIDIAN_SLICES_NUM * SPHERE_PARALLEL_SLICES_NUM * 6;
 
 			unsigned *pIndices = new unsigned[IndexNumber];
@@ -131,14 +134,23 @@ public:
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned), pIndices, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
+#endif
+		
 		}
 
 		 
 		void draw()
 		{
+#ifdef QUAD_TEST_STACK_TEXTURE
+			glBindVertexArray(vao_);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
+#else
 			glBindVertexArray(vao_);
 			glDrawElements(GL_TRIANGLES, SPHERE_MERIDIAN_SLICES_NUM * SPHERE_MERIDIAN_SLICES_NUM * 6,GL_UNSIGNED_INT,0);
 			glBindVertexArray(0);
+#endif
+			
 		}
 
 		GLuint  vao_;
@@ -223,18 +235,55 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 	float posHorizontal;
 	float posVertical;
 
+	if (eyePos.z >= 0)
+	{
+		if (eyePos.x <= 0)
+			posHorizontal = atanf(-(eyePos.x / eyePos.z)) / (PI * 2);
+		else
+			posHorizontal = 1.0f - atanf(eyePos.x / eyePos.z) / (PI * 2);
+	}
+	else
+	{
+		posHorizontal = 0.5f - atanf((eyePos.x / eyePos.z)) / (PI * 2);
+	}
+
+	posVertical = 0.5f - atanf(eyePos.y / length) / PI;
+
+	V2f updateBorder;
+	// Calculate border sizes to be updated
+	updateBorder.x = posHorizontal - g_StackPosition.x;
+
+	if (updateBorder.x > 0)
+	{
+		if (updateBorder.x > 0.5f)
+			updateBorder.x = updateBorder.x - 1.0f;
+	}
+	else
+	{
+		if (updateBorder.x < -0.5f)
+			updateBorder.x += 1.0f;
+	}
+
+	updateBorder.y = posVertical - g_StackPosition.y;
+
+
+	int updateBorderSize[2];
+	updateBorderSize[0] = int(updateBorder.x * g_SourceImageWidth);
+	updateBorderSize[1] = int(updateBorder.y * g_SourceImageHeight);
+
+	int srcBlock[2];
+	int dstBlock[2];
+
 	int tileBlockSize = 0;
 	int mipCornerLU[2];
 	int mipCornerRD[2];
-	int srcBlock[2];
-	int dstBlock[2];
 
 	base::AABB subResourceBox;
 	subResourceBox.min_.z = 0;
 	subResourceBox.max_.z = 1;
 	unsigned correction = 0;
 
-	if (1)
+	if (updateBorderSize[0] > g_UpdateRegionSize)
 	{
 		for (int i = 0; i < g_StackDepth; ++i)
 		{
@@ -290,7 +339,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 					subResourceBox.min_.y = 0;
 			}
 
-			clipmapManager_->update( i, g_pStackTexture);
+			clipmapManager_->update( i,g_pStackTexture);
 			updateMipPosition(g_ppUpdatePositions[i][0], tileBlockSize);
 		}
 
@@ -321,7 +370,7 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 	int blocksPerLayer = g_SourceImageWidth / g_UpdateRegionSize;
 
 	clipmapManager_ = new Clipmap_Manager;
-	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath,g_SrcMediaPathHM);
+	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath,nullptr/*g_SrcMediaPathHM*/);
 	clipmapManager_->allocateBlocks(blocksPerLayer);
 	clipmapManager_->allocateTextures(g_ClipmapStackSize,g_UpdateRegionSize);
 
@@ -331,11 +380,47 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 
 	sphere_.setUpGeoemtry();
 
+	CHECK_GL_ERROR;
 	return true;
 }
 
 bool ClipMappingScene::initShader(const SceneInitInfo&)
 {
+#ifdef QUAD_TEST_STACK_TEXTURE
+	Shader * shader = new Shader;
+	//因为obj模型原因此处使用normal作为color
+	char vertShder[] = "#version 330 core \n"
+		"layout(location = 0) in vec2 position;"
+		"layout(location = 1) in vec2 texCoord;"
+
+		"uniform mat4 view;"
+		"uniform mat4 projection;"
+		"out vec2 texCoords;"
+		"void main()"
+		"{"
+		"gl_Position = projection * view *  vec4(position,1.0, 1.0f);"
+		"texCoords = texCoord;"
+		"}";
+
+	char fragShader[] = "#version 330 core \n"
+		"out vec4 color;"
+		"in vec2 texCoords;"
+		"uniform sampler2DArray diffuseTex;"
+		"void main()"
+		"{"
+		"color = texture(diffuseTex,vec3(texCoords,0));"
+		"}";
+
+	shader->loadShaderSouce(vertShder, fragShader, NULL);
+	shaders_.push_back(shader);
+
+	shader->turnOn();
+	unsigned loc = shader->getVariable("diffuseTex");
+	if (loc)
+	{
+		shader->setInt(loc, 0);
+	}
+#else
 	Shader * shader = new Shader;
 	std::string code = Shader::loadMultShaderInOneFile("test/clipmap.glsl");
 
@@ -346,15 +431,19 @@ bool ClipMappingScene::initShader(const SceneInitInfo&)
 
 	shaders_.push_back(shader);
 	shader->turnOn();
-	
+
 	shader->setInt(shader->getVariable("g_SphereMeridianSlices"), SPHERE_MERIDIAN_SLICES_NUM);
 	shader->setInt(shader->getVariable("g_SphereParallelSlices"), SPHERE_PARALLEL_SLICES_NUM);
 
 	V2i textureSize{ g_SourceImageWidth,g_SourceImageHeight };
 	shader->setVec2Int(shader->getVariable("g_TextureSize"), 1, &textureSize[0]);
 
+	shader->setInt(shader->getVariable("StackTexture"), 0);
+	shader->setInt(shader->getVariable("PyramidTexture"), 1);
+	shader->setInt(shader->getVariable("PyramidTextureHM"), 2);
 
 	shader->turnOff();
+#endif
 
 	CHECK_GL_ERROR;
 	/*texture0_ = shader_->getVariable("texture0");
@@ -365,7 +454,7 @@ bool ClipMappingScene::initShader(const SceneInitInfo&)
 
 bool ClipMappingScene::update()
 {
-	updatestackTexture(getCamera()->getPosition());
+	//updatestackTexture(getCamera()->getPosition());
 	return true;
 }
 
@@ -409,7 +498,9 @@ void ClipMappingScene::createClipmapTextures()
 
 	g_pStackTexture = new Texture;
 	g_pStackTexture->target_ = GL_TEXTURE_2D_ARRAY;
-	g_pStackTexture->internalformat_= GL_RGBA8;
+	g_pStackTexture->internalformat_ = GL_RGBA8;
+	g_pStackTexture->format_ = GL_RGBA;
+	g_pStackTexture->type_ = GL_HALF_FLOAT;;
 	g_pStackTexture->width_ = g_ClipmapStackSize;
 	g_pStackTexture->height_ = g_ClipmapStackSize;
 	g_pStackTexture->depth_ = g_StackDepth; //array size;
@@ -547,7 +638,7 @@ void ClipMappingScene::initStackTexture()
 					subResourceBox.max_.x += tileBlockSize;
 				}
 
-				clipmapManager_->update(i,g_pStackTexture);
+				clipmapManager_->update(i, g_pStackTexture);
 
 				subResourceBox.min_.y += tileBlockSize;
 				subResourceBox.max_.y += tileBlockSize;
@@ -580,7 +671,7 @@ void ClipMappingScene::initStackTexture()
 					srcBlock[1] = j;
 
 					dstBlock[0] = subResourceBox.min_.x;
-					dstBlock[1] = subResourceBox.min_.y;
+					dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
 
 					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -620,7 +711,7 @@ void ClipMappingScene::initStackTexture()
 					srcBlock[1] = j;
 
 					dstBlock[0] = subResourceBox.min_.x;
-					dstBlock[1] = subResourceBox.min_.y;
+					dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
 
 					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -636,10 +727,12 @@ void ClipMappingScene::initStackTexture()
 	}
 }
 
+
 void ClipMappingScene::render(PassInfo&info)
 {
-	shaders_[0]->turnOn();
-	initUniformVal(shaders_[0]);
+
+	Shader* curShader = shaders_[0];
+
 
 	const CameraBase * camera = getCamera();
 	Matrixf viewmatrix = camera->getViewMatrix();
@@ -647,14 +740,22 @@ void ClipMappingScene::render(PassInfo&info)
 	V3f worldRight{viewmatrix[0][0],viewmatrix[1][0], viewmatrix[2][0]};
 	V3f worldUp{ viewmatrix[0][1],viewmatrix[1][1], viewmatrix[2][1] };
 
-	shaders_[0]->setFloat3V(shaders_[0]->getVariable("g_EyePosition"), 1, &camera->getPosition()[0]);
-	shaders_[0]->setFloat3V(shaders_[0]->getVariable("g_WorldRight"), 1, &worldRight[0]);
-	shaders_[0]->setFloat3V(shaders_[0]->getVariable("g_WorldUp"), 1, &worldUp[0]);
-	shaders_[0]->setFloat3V(shaders_[0]->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
+	curShader->turnOn();
+	initUniformVal(curShader);
+#ifdef QUAD_TEST_STACK_TEXTURE
+#else
+	curShader->setFloat3V(curShader->getVariable("g_EyePosition"), 1, &camera->getPosition()[0]);
+	curShader->setFloat3V(curShader->getVariable("g_WorldRight"), 1, &worldRight[0]);
+	curShader->setFloat3V(curShader->getVariable("g_WorldUp"), 1, &worldUp[0]);
+	curShader->setFloat3V(curShader->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
+#endif
+	
 
+	glActiveTexture(GL_TEXTURE0);
+	g_pStackTexture->bind();
 
 	sphere_.draw();
-	shaders_[0]->turnOff();
+	curShader->turnOff();
 	
 	CHECK_GL_ERROR;
 }
