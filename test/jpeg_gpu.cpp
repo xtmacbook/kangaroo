@@ -286,7 +286,6 @@ bool Jpeg_Data::loadFile(const char*file)
 	imageWidth = Pd->get_width();
 	imageHeight = Pd->get_height();
 	componentsNum = Pd->get_num_components();
-	int a= Pd->get_bytes_per_pixel();
 	imageFormat = GL_RED;
 	type = GL_BYTE;
 
@@ -392,7 +391,7 @@ bool Jpeg_Data::initTechnique()
 	shaders_.push_back(new Shader);
 	shader = shaders_[shaders_.size() - 1];
 	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
-	shader->getShaderFromMultCode(Shader::GEOMETRY, "Quad", code);
+	shader->getShaderFromMultCode(Shader::GEOMETRY, "GL_Quad", code);
 	shader->getShaderFromMultCode(Shader::FRAGMENT, "PS_IDCT_RenderToBuffer", code);
 	shader->linkProgram();
 	shader->checkProgram();
