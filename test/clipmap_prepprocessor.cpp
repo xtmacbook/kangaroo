@@ -10,7 +10,7 @@
 #include "framebuffers.h"
 #include "common.h"
 #include "shader.h"
-
+#include <iostream>
 #include <algorithm>
 
 Clipmap_Manager::Clipmap_Manager()
@@ -129,32 +129,35 @@ void Clipmap_Manager::update(int level, base::SmartPointer<Texture> stackTexture
 		int *pDstBlocks = pUpdateBlocks[level].getDstBlocksPointer();
 		int levelBlockSize = blockSize >> level;
 
-		int srcLeft = 0;
-		int srcBottom = 0;
+		int srcX = 0;
+		int srcY = 0;
 
 		// Copy fully unpacked data to the clipmap stack texture
 		for (int i = 0; i < blocksNum; i++)
 		{
 			
-			glCopyImageSubData(ppBakedTextures[level]->getTexture(),//GLuint srcName,
-				GL_TEXTURE_2D,//GLenum srcTarget,
-				0,//GLint srcLevel,
-				srcLeft,//GLint srcX,
-				srcBottom,//GLint srcY,
-				0,//GLint srcZ,
-				stackTexture->getTexture(),//GLuint dstName,
-				GL_TEXTURE_2D_ARRAY,//GLenum dstTarget,
-				0,//GLint dstLevel,
-				pDstBlocks[i * 2],//GLint dstX,
-				pDstBlocks[i * 2 + 1],//GLint dstY,
+			glCopyImageSubData(ppBakedTextures[level]->getTexture(),
+				GL_TEXTURE_2D,
+				0,
+				srcX,
+				srcY,
+				0,
+				stackTexture->getTexture(),
+				GL_TEXTURE_2D_ARRAY,
+				0,
+				pDstBlocks[i * 2],
+				pDstBlocks[i * 2 + 1],
 				level,
-				levelBlockSize,//GLsizei srcWidth,
-				levelBlockSize,//GLsizei srcHeight,
-				0);//GLsizei srcDepth
-			 
-			srcLeft += levelBlockSize;
-			srcBottom += levelBlockSize;
+				levelBlockSize, 
+				levelBlockSize, 
+				1); 
+
+			//CHECK_GL_ERROR;
+			srcX += levelBlockSize;
+
+			//std::cout << "copy from: " << srcX << " " << srcY << "to: " << pDstBlocks[i * 2] << " " << pDstBlocks[i * 2 + 1] << std::endl;
 		}
+
 	}
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 }
@@ -171,12 +174,14 @@ int Clipmap_Manager::allocateTextures(int stackSize, int border)
 	for (int i = 0; i < levelsNum; i++)
 	{
 		enAssert((pimgData[i].allocateTextures(stackSize, border)));
-		//enAssert((pimgDataHM[i].allocateTextures(stackSize, border)));
+		if(pimgDataHM)enAssert((pimgDataHM[i].allocateTextures(stackSize, border)));
 
 		ppBakedTextures[i] = new Texture;
 		ppBakedTextures[i]->width_ = stackSize;
 		ppBakedTextures[i]->height_ = border;
 		ppBakedTextures[i]->internalformat_ = GL_RGBA8;
+		ppBakedTextures[i]->format_ = GL_RGBA;
+		ppBakedTextures[i]->type_ = GL_HALF_FLOAT;
 		ppBakedTextures[i]->createObj();
 		ppBakedTextures[i]->bind();
 		ppBakedTextures[i]->mirrorRepeat();
