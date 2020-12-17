@@ -23,8 +23,8 @@ class Clipmap_Manager
 	int         textureSize;    // The biggest size of 0 level.
 	int         blockSize;      // Updatable region size for 0 level.
 
-	Image_Data   *pimgData;
-	Image_Data   *pimgDataHM;   // Used to store additional height maps values
+	Image_Data   *pimgData = nullptr;
+	Image_Data   *pimgDataHM = nullptr;   // Used to store additional height maps values
 	UpdateInfo  *pUpdateBlocks;
 	Texture **ppBakedTextures;  // This textures are used at a final pass and they hold
 										// an uncomprssed data ready for a clipmap stack texture update
