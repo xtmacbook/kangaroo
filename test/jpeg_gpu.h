@@ -105,7 +105,7 @@ protected:
 	int     imageFormat;
 	int		imageType;
 
-	char    quantTables[MAX_CHANELS][64];
+	unsigned char    quantTables[MAX_CHANELS][64];
 
 	int     MCU_per_row;
 	int     MCU_blocks_num;
