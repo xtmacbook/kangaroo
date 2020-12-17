@@ -57,7 +57,7 @@ struct GPU_Data
 	base::SmartPointer<FrameBufferObject>		targetFrameBuffer_;
 
 
-	int intitialize(int width, int height, char *pQuantTable);
+	int intitialize(int width, int height, unsigned char *pQuantTable);
 	void release();
 };
 
