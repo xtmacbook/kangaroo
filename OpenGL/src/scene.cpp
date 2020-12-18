@@ -284,7 +284,7 @@ void Scene::processKeyboard(int key, int st, int action, int mods, float deltaTi
 {
 	if (action == GLU_PRESS)
 	{
-		if (key == GLU_KEY_P)
+		if (key == GLU_KEY_U)
 		{
 			GLint mode[2];
 			glGetIntegerv(GL_POLYGON_MODE, mode);
