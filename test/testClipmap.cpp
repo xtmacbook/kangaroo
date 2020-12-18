@@ -17,6 +17,8 @@
 #include <util.h>
 #include <engineLoad.h>
 #include <baseMesh.h>
+#include <stateSet.h>
+
 #include <vector>
 
 
@@ -179,6 +181,11 @@ public:
 	base::SmartPointer<Texture>			g_pPyramidTexture;
 	base::SmartPointer<Texture>			g_pPyramidTextureHM;
 	base::SmartPointer<Texture>			g_pStackTexture;
+
+	base::SmartPointer<SampleObject>     samplerLinear_;
+	base::SmartPointer<SampleObject>     samplerPoint_;
+	base::SmartPointer<SampleObject>     samplerStackLinear_;
+
 private:
 	int        g_SourceImageWidth;
 	int        g_SourceImageHeight;
@@ -678,8 +685,6 @@ void ClipMappingScene::createClipmapTextures()
 	{
 		g_pPyramidTexture->createObj();
 		g_pPyramidTexture->bind();
-		g_pPyramidTexture->mirrorRepeat();
-		g_pPyramidTexture->filterLinear();
 		if (!g_pPyramidTexture->context(NULL))
 		{
 		}
@@ -693,8 +698,6 @@ void ClipMappingScene::createClipmapTextures()
 	{
 		g_pPyramidTextureHM->createObj();
 		g_pPyramidTextureHM->bind();
-		g_pPyramidTextureHM->mirrorRepeat();
-		g_pPyramidTextureHM->filterLinear();
 		if (!g_pPyramidTextureHM->context(NULL))
 		{
 		}
@@ -711,10 +714,28 @@ void ClipMappingScene::createClipmapTextures()
 	g_pStackTexture->depth_ = g_StackDepth; //array size;
 	g_pStackTexture->createObj();
 	g_pStackTexture->bind();
-	g_pStackTexture->mirrorRepeat();
-	g_pStackTexture->filterLinear();
 	g_pStackTexture->contextNULL();
 	g_pStackTexture->unBind();
+
+
+	samplerLinear_ = new SampleObject;
+	samplerLinear_->sampleParameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	samplerLinear_->sampleParameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	samplerLinear_->sampleParameteri(GL_TEXTURE_WRAP_S, GL_REPEAT);
+	samplerLinear_->sampleParameteri(GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	samplerPoint_ = new SampleObject;
+	samplerPoint_->sampleParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	samplerPoint_->sampleParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	samplerPoint_->sampleParameteri(GL_TEXTURE_WRAP_S, GL_REPEAT);
+	samplerPoint_->sampleParameteri(GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	samplerStackLinear_ = new SampleObject;
+	samplerStackLinear_->sampleParameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	samplerStackLinear_->sampleParameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	samplerStackLinear_->sampleParameteri(GL_TEXTURE_WRAP_S, GL_REPEAT);
+	samplerStackLinear_->sampleParameteri(GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 
 	CHECK_GL_ERROR;
 }
@@ -970,8 +991,10 @@ void ClipMappingScene::render(PassInfo&info)
 	
 	glActiveTexture(GL_TEXTURE0);
 	g_pStackTexture->bind();
+	samplerStackLinear_->bindTexture(g_pStackTexture->getTexture());
 	glActiveTexture(GL_TEXTURE1);
 	g_pPyramidTexture->bind();
+	samplerLinear_->bindTexture(g_pPyramidTexture->getTexture());
 
 	sphere_.draw();
 
