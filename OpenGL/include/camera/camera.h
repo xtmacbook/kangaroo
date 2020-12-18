@@ -22,40 +22,9 @@ class Scene;
 class LIBENIGHT_EXPORT Camera :public CameraBase
 {
 public:
-	enum Camera_Movement
+	
+	typedef enum 
 	{
-		FORWARD,
-		BACKWARD,
-		LEFT,
-		RIGHT,
-		UP,
-		DOWN
-	};
-
-	enum Camera_Mouse_Button
-	{
-		LEFT_BUTTON,
-		RIGHT_BUTTON,
-		MIDDLE_BUTTON
-	};
-
-	enum Camera_Mouse_Action
-	{
-		PRESS,
-		RELEASE,
-		DRAG,
-		SCROLLUP,
-		SCROLLDOWN
-	};
-
-	enum Camera_Key_Action
-	{
-		KEY_PRESS,
-		KEY_RELEASE,
-		KEY_REPEAT
-	};
-
-	typedef enum {
 		CAMERA				= 0x00000001,
 		OBJECT				= 0x00000002,
 		CAMERA_THIRD_PERSON = 0x00000004,
@@ -63,74 +32,75 @@ public:
 		ZOOM			    = 0x00000010,
 		PAN					= 0x00000020,
 		ROTATE				= 0x00000040,
-
-		ALL					= ZOOM | PAN | ROTATE,
+		
+		ALL					= 0x00000070,
 		DONT_TRANSLATE_FOCUS= 0x00000100,
 		PAN_RELATIVE		= 0x00000200,
 
 	}Behavior;
 
-	typedef enum {
-		_NIL,
-		_TUMBLE,
-		_DOLLY,
-		_PAN 
+	typedef enum 
+	{
+		NIL_MODE,
+		TUMBLE_MODE,
+		DOLLY_MODE,
+		PAN_MODE 
 	} Mode;
 
-	Camera();
+	Camera(int behavior = CAMERA | ALL | PAN_RELATIVE);
 
 	virtual ~Camera();
 
 	virtual Matrixf				getViewMatrix()const;
 	virtual Matrixf				getProjectionMatrix()const;
 	virtual void				update()override;
-    void						setBehavior(int flag);
 	
 	virtual void                positionCamera(float positionX, float positionY, float positionZ,
-		float centerX, float centerY, float centerZ,
-		float upX, float upY, float upZ);
+									float centerX, float centerY, float centerZ,
+									float upX, float upY, float upZ);
 
 	virtual void				setEyePos(const V3f&);
+	void						setFousePos(const V3f&);
+	void						setBehavior(int flag);
+	void						setObject(const Matrixf& m);
+
 	virtual V3f					getPosition()const;
 	virtual V3f					getViewDir()const override;
 
-	void						setFousePos(const V3f&);
+	virtual void				processKeyboard(int key, int st, int action, int mods, float deltaTime);
+	virtual void				mouse_move(const V2f & pt, const float & z_scale);
+	virtual void				mouse_down(int button,const V2f& pt, int state);
+	virtual void				mouse_up(int button,const V2f& pt, int state);
+	virtual void				mouse_scroll(double xoffset,double yoffset);
 
-	virtual void		processKeyboard(int key, int st, int action, int mods, float deltaTime);
-	virtual void		mouse_move(const V2f & pt, const float & z_scale);
-	virtual void        mouse_down(int button,const V2f& pt, int state);
-	virtual void		mouse_up(int button,const V2f& pt, int state);
-	virtual void        mouse_scroll(double xoffset,double yoffset);
-
-    bool                isAABBVisible_E(const AABB&)const;
+    bool						isAABBVisible_E(const AABB&)const;
 protected:
-	virtual void       mouse_move_tumble(const V2f&pt);
-	virtual void       mouse_move_plan(const V2f&pt);
-	virtual void       mouse_move_dolly(const V2f&pt);
+	virtual void				mouse_move_tumble(const V2f&pt);
+	virtual void				mouse_move_plan(const V2f&pt);
+	virtual void				mouse_move_dolly(const V2f&pt);
 private:
 
 protected:
-	Mode				_mode;
-	long				_behavior;
+	Mode						mode_;
+	long						behavior_;
 
-	glm::quat            _track_quat;
-	glm::quat            _curquat;
+	glm::quat					track_quat_;
+	glm::quat					curquat_;
 
-	V2f		             _mouse_start;
+	V2f							mouse_start_;
 
-	V3f		             _eye_pos;
-	V3f					 _prev_eye_pos;
+	V3f							eye_pos_;
+	V3f							focus_pos_;
+	V3f							world_up_;
 
-	V3f					_focus_pos;
-	V3f					_prev_focus_pos;
+	V3f							prev_eye_pos_;
+	V3f							prev_focus_pos_;
 
-	V3f		            _eye_y;
 
-	Matrixf	            viewMatrix_;
-	Matrixf             old_viewMatrix_;
+	Matrixf						viewMatrix_;
+	Matrixf						old_viewMatrix_;
 	
-	Matrixf	            _p;
-	Matrixf             _camera;
+	Matrixf						obj_local_;
 
 };
 
