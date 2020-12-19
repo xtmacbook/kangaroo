@@ -168,7 +168,7 @@ set(libengines_files
 	${Engine_SOURCE_DIR}/OpenGL/src/win32_platform.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/window.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/framebuffers.cpp 
-	
+	${Engine_SOURCE_DIR}/OpenGL/src/stateSet.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/media/ad.cpp
 )
 
@@ -203,6 +203,7 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/util.h
 	${Engine_SOURCE_DIR}/OpenGL/include/defsVcWin32.h
 	${Engine_SOURCE_DIR}/OpenGL/include/media/ad.h
+	${Engine_SOURCE_DIR}/OpenGL/include/stateSet.h
 	
 )
 

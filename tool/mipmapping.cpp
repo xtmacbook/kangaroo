@@ -160,7 +160,7 @@ HeighImg<T>* HeighImg<T>::resize(const Filter & filter, uint w, uint h)
 		}
 	}
 	
-	return dst_image.release();
+	return dst_image;
 }
 
 template <class T>

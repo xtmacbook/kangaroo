@@ -10,7 +10,7 @@
 #include "windowManager.h"
 #include "log.h"
 #include "helpF.h"
-#include <comm.h>
+#include <common.h>
 #include <Inputmanager.h>
 #include <callback.h>
 #include <text.h>
@@ -43,7 +43,7 @@ TestScene::TestScene()
 
 bool TestScene::initSceneModels(const SceneInitInfo&)
 {
-	Base::SmartPointer<DynamicMeshGeoemtry> mg = new DynamicMeshGeoemtry(4, 1248 * 1248, 1248 * 1248);
+	base::SmartPointer<DynamicMeshGeoemtry> mg = new DynamicMeshGeoemtry(4, 1248 * 1248, 1248 * 1248);
 	mg->RFVF() |= FVF_XYZ;
 	mg->RFVF() |= FVF_NORMAL;
 	mg->initGeometry();

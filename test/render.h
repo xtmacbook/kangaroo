@@ -6,12 +6,12 @@
 #include "BaseObject.h"
 #include "thread.h"
 
-class  IRender :public Base::BaseObject
+class  IRender :public base::BaseObject
 {
 
 };
 
-class  Render :public IRender,public Base::Thread
+class  Render :public IRender,public base::Thread
 {
 public:
 	Render();
@@ -25,5 +25,5 @@ public:
 
 };
 
-typedef Base::SmartPointer<Render>  Render_SP;
+typedef base::SmartPointer<Render>  Render_SP;
 #endif

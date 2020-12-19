@@ -55,18 +55,6 @@ target_link_libraries(testImage ${engineName})
  
 #install
 install(TARGETS testImage RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-# ================================================= testDataQequest===================================================================================
-set( testDataQequest_Source_Files    testDataQequest.cpp)
-add_executable( testDataQequest ${testDataQequest_Source_Files})
-add_dependencies(testDataQequest ${engineName})
-source_group("Source Files" FILES ${testDataQequest_Source_Files})
-set_target_properties(testDataQequest PROPERTIES PROJECT_LABEL "testDataQequest")						# in Visual Studio
-set_target_properties(testDataQequest PROPERTIES OUTPUT_NAME "testDataQequest")
-set_target_properties(testDataQequest PROPERTIES FOLDER "test")
-target_link_libraries(testDataQequest ${engineName}) 
- 
-#install
-install(TARGETS testDataQequest RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 # ================================================= testClipmap===================================================================================
 set( testClipmap_Source_Files    testClipmap.cpp jpgd.cpp clipmap_prepprocessor.cpp jpeg_gpu.cpp)

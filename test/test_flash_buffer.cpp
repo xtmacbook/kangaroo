@@ -10,7 +10,6 @@
 #include "windowManager.h"
 #include "log.h"
 #include "helpF.h"
-#include <comm.h>
 #include <Inputmanager.h>
 #include <callback.h>
 #include <text.h>
