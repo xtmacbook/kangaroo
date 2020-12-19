@@ -39,16 +39,16 @@ void main()
     texCoord = vec2(meridianPart, parallelPart );
     gl_Position = projection * view * vec4(VertexPosition,1.0);
 		
-		vec3 tangent = vec3(-sin_angle1,0.0,cos_angle1);
-		vec3 binormal = vec3(sin_angle2 * cos_angle1,cos_angle2,sin_angle1 * sin_angle2);
+	vec3 tangent = vec3(-sin_angle1,0.0,cos_angle1);
+	vec3 binormal = vec3(sin_angle2 * cos_angle1,cos_angle2,sin_angle1 * sin_angle2);
 		
-		vec3 viewnormal = normalize(g_EyePosition - VertexPosition);
+	vec3 viewnormal = normalize(g_EyePosition - VertexPosition);
 		
-		viewVectorTangent.x =  dot(viewnormal,tangent);
-		viewVectorTangent.y =  dot(viewnormal,binormal);
-		viewVectorTangent.z =  dot(viewnormal,viewnormal);
+	viewVectorTangent.x =  dot(viewnormal,tangent);
+	viewVectorTangent.y =  dot(viewnormal,binormal);
+	viewVectorTangent.z =  dot(viewnormal,viewnormal);
 		
-		vec3 lightVector = normalize( g_LightPosition );
+	vec3 lightVector = normalize( g_LightPosition );
     
     lightVectorTangent.x = dot( lightVector, tangent );
     lightVectorTangent.y = dot( lightVector, binormal);
@@ -100,27 +100,27 @@ float getMinimumStackLevel(vec2 coordinates)
 
 void main()
 {
-		vec2 pixelCoord = vec2(texCoord.x * g_TextureSize.x,texCoord.y * g_TextureSize.y);
-		vec2 dx = dFdx(pixelCoord);
-		vec2 dy = dFdy(pixelCoord);
+	vec2 pixelCoord = vec2(texCoord.x * g_TextureSize.x,texCoord.y * g_TextureSize.y);
+	vec2 dx = dFdx(pixelCoord);
+	vec2 dy = dFdy(pixelCoord);
 		
-		float d = max(length(dx),length(dy));
+	float d = max(length(dx),length(dy));
 		
-		float mipLevel = max( log2( d ), getMinimumStackLevel( texCoord ) );
+	float mipLevel = max( log2( d ), getMinimumStackLevel( texCoord ) );
     float blendGlobal = clamp(g_StackDepth - mipLevel,0,1);
 		
-		float diffuse = clamp( lightVectorTangent.z ,0.0,1.0);
-		diffuse = max( diffuse, 0.05 );
+	float diffuse = clamp( lightVectorTangent.z ,0.0,1.0);
+	diffuse = max( diffuse, 0.05 );
 		
-		vec4 color0 = texture(PyramidTexture,texCoord );
-		
-		if(blendGlobal == 0.0)
-		{
-			color = color0 * diffuse;
-		}
-		else
-		{
-			color = vec4(1.0,0.0,0.0,1.0) * diffuse;
-		}
+	vec4 color0 = texture(PyramidTexture,texCoord );
+	
+	if(blendGlobal == 0.0)
+	{
+		color = color0 * diffuse;
+	}
+	else
+	{
+		color = vec4(1.0,0.0,0.0,1.0) * diffuse;
+	}
 		
 }

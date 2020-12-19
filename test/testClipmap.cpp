@@ -988,7 +988,8 @@ void ClipMappingScene::render(PassInfo&info)
 	curShader->setFloat3V(curShader->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
 	curShader->setVec2f(curShader->getVariable("g_StackCenter"), 1, &g_StackPosition[0]);
 #endif
-	
+	CHECK_GL_ERROR;
+
 	glActiveTexture(GL_TEXTURE0);
 	g_pStackTexture->bind();
 	samplerStackLinear_->bindTexture(g_pStackTexture->getTexture());

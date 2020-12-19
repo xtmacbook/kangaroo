@@ -21,7 +21,7 @@
 
 void GLApplication::openglInit(void)
 {
-	glClearColor(0.3f, 0.2f, 0.4f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
