@@ -83,20 +83,6 @@ public:
 	{
 		void setUpGeoemtry()
 		{
-
-
-#ifdef QUAD_TEST_STACK_TEXTURE
-			glGenVertexArrays(1, &vao_);
-			glBindVertexArray(vao_);
-			glGenBuffers(1, &vbo_);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
-			glBindVertexArray(0);
-#else
 			int IndexNumber = SPHERE_MERIDIAN_SLICES_NUM * SPHERE_PARALLEL_SLICES_NUM * 6;
 
 			unsigned *pIndices = new unsigned[IndexNumber];
@@ -134,23 +120,15 @@ public:
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned), pIndices, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
-#endif
 		
 		}
 
 		 
 		void draw()
 		{
-#ifdef QUAD_TEST_STACK_TEXTURE
-			glBindVertexArray(vao_);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindVertexArray(0);
-#else
 			glBindVertexArray(vao_);
 			glDrawElements(GL_TRIANGLES, SPHERE_MERIDIAN_SLICES_NUM * SPHERE_MERIDIAN_SLICES_NUM * 6,GL_UNSIGNED_INT,0);
 			glBindVertexArray(0);
-#endif
-			
 		}
 
 		GLuint  vao_;
@@ -552,7 +530,6 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 
 bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 {
-	addRenderNode(getPoints(LIGHTPOS, V3f(1.0, 0.0, 0.0), false));
 
 	g_SourceImageWidth = 16384;
 	g_SourceImageHeight = 8192;
@@ -587,44 +564,7 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 
 bool ClipMappingScene::initShader(const SceneInitInfo&info)
 {
-	Scene::initShader(info);
-#ifdef QUAD_TEST_STACK_TEXTURE
-	Shader * shader = new Shader;
-	//因为obj模型原因此处使用normal作为color
-	char vertShder[] = "#version 330 core \n"
-		"layout(location = 0) in vec2 position;"
-		"layout(location = 1) in vec2 texCoord;"
 
-		"uniform mat4 view;"
-		"uniform mat4 projection;"
-		"out vec2 texCoords;"
-		"void main()"
-		"{"
-		"gl_Position = projection * view *  vec4(position,1.0, 1.0f);"
-		"texCoords = texCoord;"
-		"}";
-
-	char fragShader[] = "#version 330 core \n"
-		"out vec4 color;"
-		"in vec2 texCoords;"
-		"uniform sampler2D diffuseTex;"
-		"void main()"
-		"{"
-		"color = texture(diffuseTex,texCoords);"
-		"}";
-
-	shader->loadShaderSouce(vertShder, fragShader, NULL);
-	shaders_.push_back(shader);
-
-	shader->turnOn();
-	unsigned loc = shader->getVariable("diffuseTex");
-	if (loc)
-	{
-		shader->setInt(loc, 0);
-	}
-	shader->turnOff();
-
-#else
 	Shader * shader = new Shader;
 	std::string code = Shader::loadMultShaderInOneFile("test/clipmap.glsl");
 
@@ -647,12 +587,8 @@ bool ClipMappingScene::initShader(const SceneInitInfo&info)
 	shader->setInt(shader->getVariable("PyramidTextureHM"), 2);
 
 	shader->turnOff();
-#endif
 
 	CHECK_GL_ERROR;
-	/*texture0_ = shader_->getVariable("texture0");
-	viewportOrthographicMatrix_ = shader_->getVariable("viewportOrthographicMatrix");
-	initUniform();*/
 	return true;
 }
 
@@ -787,7 +723,7 @@ void ClipMappingScene::calculateClipmapParameters()
 		g_ppUpdatePositions[i][1] = 0;
 	}
 
-	Shader * shader = shaders_[1];
+	Shader * shader = shaders_[0];
 	shader->turnOn();
 	GLuint loc = shader->getVariable("g_StackDepth");
 	if (loc >= 0)
@@ -965,18 +901,14 @@ void ClipMappingScene::initStackTexture()
 
 void ClipMappingScene::render(PassInfo&info)
 {
-	Shader* curShader = shaders_[0];
-	curShader->turnOn();
-	initUniformVal(curShader);
-	getRenderNode(0)->render(curShader, info);
+	Shader* curShader;
 
-	printf("start render...\n");
 	const CameraBase * camera = getCamera();
 	Matrixf viewmatrix = camera->getViewMatrix();
 
 	V3f worldRight{viewmatrix[0][0],viewmatrix[1][0], viewmatrix[2][0]};
 	V3f worldUp{ viewmatrix[0][1],viewmatrix[1][1], viewmatrix[2][1] };
-	curShader = shaders_[1];
+	curShader = shaders_[0];
 
 	curShader->turnOn();
 	initUniformVal(curShader);
@@ -988,8 +920,7 @@ void ClipMappingScene::render(PassInfo&info)
 	curShader->setFloat3V(curShader->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
 	curShader->setVec2f(curShader->getVariable("g_StackCenter"), 1, &g_StackPosition[0]);
 #endif
-	CHECK_GL_ERROR;
-
+	
 	glActiveTexture(GL_TEXTURE0);
 	g_pStackTexture->bind();
 	samplerStackLinear_->bindTexture(g_pStackTexture->getTexture());
@@ -1007,7 +938,7 @@ void ClipMappingScene::render(PassInfo&info)
 int main()
 {
 	ClipMappingScene * scene = new ClipMappingScene;
-	Camera *pCamera = new Camera();
+	Camera *pCamera = new Camera(Camera::CAMERA | Camera::ALL);
 
 	pCamera->setClipPlane(1.0f, 5000.0f);
 	scene->setMasterCamera(pCamera);
