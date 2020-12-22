@@ -33,6 +33,8 @@
 
 #define SOURCE_FILES_NUM 5
 
+GLint g_maxUnits = 0;
+
 //#define  QUAD_TEST_STACK_TEXTURE
 
 const V3f LIGHTPOS{ 10.0,0.0,10.0 };
@@ -95,18 +97,19 @@ public:
 					pIndices[indexCount] = i * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j;
 					indexCount++;
 
-					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j;
-					indexCount++;
 					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
 					indexCount++;
-					
+
+					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j;
+					indexCount++;
+					 
 					pIndices[indexCount] = i * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j;
 					indexCount++;
 
-					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
+					pIndices[indexCount] = i * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
 					indexCount++;
 
-					pIndices[indexCount] = i * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
+					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
 					indexCount++;
 
 				}
@@ -530,6 +533,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 
 bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 {
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &g_maxUnits);
 
 	g_SourceImageWidth = 16384;
 	g_SourceImageHeight = 8192;
@@ -604,9 +608,9 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 
 	if (action == GLU_PRESS)
 	{
-		if (key == GLU_KEY_T)
+		if (key == GLU_KEY_SPACE)
 		{
-			getCamera()->setEyePos(V3f(0.0,0.0,0.0));
+			getCamera()->positionCamera(0.0, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 		}
 	}
 }
@@ -708,8 +712,8 @@ void ClipMappingScene::calculateClipmapParameters()
 		g_ppSourceImageMipsSize[i][1] = g_SourceImageHeight / (unsigned)pow(2.0f, i);
 	}
 
-	g_StackPosition.x = 0.0625f;
-	g_StackPosition.y = 0.125f;
+	g_StackPosition.x = 0.0f;
+	g_StackPosition.y = 0.5f;
 
 	assert(g_StackDepth);
 
@@ -923,10 +927,10 @@ void ClipMappingScene::render(PassInfo&info)
 	
 	glActiveTexture(GL_TEXTURE0);
 	g_pStackTexture->bind();
-	samplerStackLinear_->bindTexture(g_pStackTexture->getTexture());
+	samplerStackLinear_->bindTexture(0);
 	glActiveTexture(GL_TEXTURE1);
 	g_pPyramidTexture->bind();
-	samplerLinear_->bindTexture(g_pPyramidTexture->getTexture());
+	samplerLinear_->bindTexture(1);
 
 	sphere_.draw();
 
