@@ -32,15 +32,15 @@ void main()
         
     vec3 VertexPosition;
   
-    VertexPosition.x = cos_angle1 * cos_angle2;
+    VertexPosition.x = sin_angle1 * cos_angle2;
     VertexPosition.y = sin_angle2;
-    VertexPosition.z = sin_angle1 * cos_angle2;
+    VertexPosition.z = cos_angle1 * cos_angle2;
     
-    texCoord = vec2(meridianPart, parallelPart );
+    texCoord = vec2(meridianPart, 1.0 -  parallelPart );
     gl_Position = projection * view * vec4(VertexPosition,1.0);
 		
-		vec3 tangent = vec3(-sin_angle1,0.0,cos_angle1);
-		vec3 binormal = vec3(sin_angle2 * cos_angle1,cos_angle2,sin_angle1 * sin_angle2);
+		vec3 tangent = vec3(cos_angle1,0.0,-sin_angle1);
+		vec3 binormal = vec3(-sin_angle2 * sin_angle1,-cos_angle2,-cos_angle1 * sin_angle2);
 		
 		vec3 viewnormal = normalize(g_EyePosition - VertexPosition);
 		
@@ -108,37 +108,20 @@ void main()
     float mipLevel = max( log2( d ), getMinimumStackLevel( texCoord ) );
     float blendGlobal = clamp(float(g_StackDepth) - mipLevel,0.0,1.0);
             
-     
     float diffuse = clamp( lightVectorTangent.z,0.0,1.0 );
     diffuse = max( diffuse, 0.05 );
     
-    vec4 color0 = texture(PyramidTexture, texCoord );
+     vec4 color0 = texture(PyramidTexture, texCoord );
+     
+      
     
     // Make early out for cases where we don't need to fetch from clipmap stack
-    if( blendGlobal == 0.0 )
+      if( blendGlobal == 0.0 )
     {
         color = color0 * diffuse;
     }
     else
     {
-				float blendLayers = modf( mipLevel, mipLevel );
-        blendLayers = clamp(blendLayers,0.0,1.0);
-        
-        float nextMipLevel = mipLevel + 1.0;
-        float isd = float(g_StackDepth) - 1.0;
-        nextMipLevel = clamp( nextMipLevel, 0.0, isd );
-        mipLevel = clamp( mipLevel, 0.0, isd );
-            
-        vec2 clipTexCoord = texCoord / pow( 2, mipLevel );
-        clipTexCoord *= g_ScaleFactor;
-        vec4 color1 = texture( StackTexture, vec3( clipTexCoord + 0.5, mipLevel ) );
-            
-        clipTexCoord = texCoord / pow( 2, nextMipLevel );
-        clipTexCoord *= g_ScaleFactor;
-        vec4 color2 = texture( StackTexture, vec3( clipTexCoord + 0.5, nextMipLevel ) );
-        
-        color = mix( color0, mix( color1, color2, blendLayers ), blendGlobal ) * diffuse;
-     
-		
-}
+    	color = vec4(1.0,0.0,0.0,1.0);
+    }
 }
