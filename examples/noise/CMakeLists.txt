@@ -29,7 +29,7 @@ install(TARGETS 1D_noise RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 set(Worley_noise_Source_Files Worley_noise.cpp worley.cpp worley.h)
 add_executable(Worley_noise ${Worley_noise_Source_Files})
 add_dependencies(Worley_noise ${engineName})
-source_group("Source Files" FILES ${2D_noise_Source_Files})
+source_group("Source Files" FILES ${Worley_noise_Source_Files})
 set_target_properties(Worley_noise PROPERTIES PROJECT_LABEL "Worley_noise")						# in Visual Studio
 set_target_properties(Worley_noise PROPERTIES OUTPUT_NAME "Worley_noise")
 set_target_properties(Worley_noise PROPERTIES FOLDER "examples/noise")
@@ -43,7 +43,7 @@ add_executable(noise_patterns ${noise_patterns_Source_Files})
 add_dependencies(noise_patterns ${engineName})
 source_group("Source Files" FILES ${noise_patterns_Source_Files})
 set_target_properties(noise_patterns PROPERTIES PROJECT_LABEL "noise_patterns")						# in Visual Studio
-set_target_properties(noise_patterns PROPERTIES OUTPUT_NAME "2D_noise")
+set_target_properties(noise_patterns PROPERTIES OUTPUT_NAME "noise_patterns")
 set_target_properties(noise_patterns PROPERTIES FOLDER "examples/noise")
 target_link_libraries(noise_patterns ${engineName}) 
 #install
@@ -55,7 +55,7 @@ add_executable(perlinNoise ${perlinNoise_Source_Files})
 add_dependencies(perlinNoise ${engineName})
 source_group("Source Files" FILES ${perlinNoise_Source_Files})
 set_target_properties(perlinNoise PROPERTIES PROJECT_LABEL "perlinNoise")						# in Visual Studio
-set_target_properties(perlinNoise PROPERTIES OUTPUT_NAME "2D_noise")
+set_target_properties(perlinNoise PROPERTIES OUTPUT_NAME "perlinNoise")
 set_target_properties(perlinNoise PROPERTIES FOLDER "examples/noise")
 target_link_libraries(perlinNoise ${engineName}) 
 #install
