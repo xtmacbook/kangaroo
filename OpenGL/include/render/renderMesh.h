@@ -42,7 +42,9 @@ struct LIBENIGHT_EXPORT IRenderMeshObj :public base::BaseObject
 
 	int							 stride_ = 0; //for indirect
 
-	Mesh_SP						mesh_;
+		unsigned int				mode_ = 0;
+
+	DrawArraysIndirectCommand*						aIndirectCom_ = NULL;
 };
 
 struct LIBENIGHT_EXPORT RenderMeshObj :public IRenderMeshObj
