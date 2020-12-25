@@ -1,4 +1,5 @@
 
+
 set (engineName "kangaroo")
 
 set(libengines_base_files
@@ -92,6 +93,8 @@ set(libengines_mesh_files
 set(libengines_shader_files
 	${Engine_SOURCE_DIR}/OpenGL/include/shader/shader.h
 	${Engine_SOURCE_DIR}/OpenGL/src/shader/shader.cpp
+	${Engine_SOURCE_DIR}/OpenGL/include/shader/comShader.h
+	${Engine_SOURCE_DIR}/OpenGL/src/shader/comShader.cpp
 )
 
 set(libengines_camera_files
@@ -201,12 +204,11 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/framebuffers.h 
 	${Engine_SOURCE_DIR}/OpenGL/include/common.h
 	${Engine_SOURCE_DIR}/OpenGL/include/util.h
-	${Engine_SOURCE_DIR}/OpenGL/include/defsVcWin32.h
+	
 	${Engine_SOURCE_DIR}/OpenGL/include/media/ad.h
 	${Engine_SOURCE_DIR}/OpenGL/include/stateSet.h
 	
 )
-
 				
  if(SHARED_LIBS)
 	ADD_DEFINITIONS(-DENGINE_DLLS)
