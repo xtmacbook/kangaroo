@@ -14,6 +14,8 @@
 #include "type.h"
 #include "boundingBox.h"
 #include "clipmap_prepprocessor.h"
+#include <comShader.h>
+
 #include <util.h>
 #include <engineLoad.h>
 #include <baseMesh.h>
@@ -188,10 +190,19 @@ private:
 	SphereGeoemtry		sphere_;
 
 	Clipmap_Manager*		clipmapManager_;
+
+	float hudOffsetx_ = -0.9;
+	float hudOffsety_ = 0.8;
+	float hudSizeY_ = 0.4;
+
+	Shader_SP	hudShader_;
 };
 
 ClipMappingScene::ClipMappingScene()
 {
+	g_SourceImageWidth = 16384;
+	g_SourceImageHeight = 8192;
+
 }
 
 ClipMappingScene::~ClipMappingScene()
@@ -535,8 +546,8 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 {
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &g_maxUnits);
 
-	g_SourceImageWidth = 16384;
-	g_SourceImageHeight = 8192;
+	addRenderNode(getHud(hudOffsetx_, hudOffsety_, 0.3, hudSizeY_, false));
+	hudShader_ = createHudShader();
 
 	int baseDimension = CLIPMAP_STACK_SIZE_MAX;
 	while (baseDimension >= CLIPMAP_STACK_SIZE_MIN)
@@ -602,6 +613,8 @@ bool ClipMappingScene::update()
 	return true;
 }
 
+float g_test = 0.0f;
+
 void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, float deltaTime)
 {
 	Scene::processKeyboard(key, st, action, mods, deltaTime);
@@ -611,6 +624,16 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 		if (key == GLU_KEY_SPACE)
 		{
 			getCamera()->positionCamera(0.0, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+		}
+		if (key == GLU_KEY_UP)
+		{
+			g_test++;
+			printf("test is: %f\n", g_test);
+		}
+		if (key == GLU_KEY_DOWN)
+		{
+			g_test--;
+			printf("test is: %f\n", g_test);
 		}
 	}
 }
@@ -905,6 +928,17 @@ void ClipMappingScene::initStackTexture()
 
 void ClipMappingScene::render(PassInfo&info)
 {
+	hudShader_->turnOn();
+	hudShader_->setFloat(hudShader_->getVariable("sizeY"), hudSizeY_);
+	hudShader_->setFloat(hudShader_->getVariable("offsetX"), hudOffsetx_);
+	hudShader_->setFloat(hudShader_->getVariable("offsetY"), hudOffsety_);
+	hudShader_->setFloat(hudShader_->getVariable("g_ScreenAspectRatio"), 1.5);
+	hudShader_->setInt(hudShader_->getVariable("StackTexture"), 0);
+	glActiveTexture(GL_TEXTURE0);
+	g_pStackTexture->bind();
+	samplerStackLinear_->bindTexture(0);
+	getRenderNode(0)->render(hudShader_, info);
+
 	Shader* curShader;
 
 	const CameraBase * camera = getCamera();
@@ -918,13 +952,17 @@ void ClipMappingScene::render(PassInfo&info)
 	initUniformVal(curShader);
 
 #ifndef QUAD_TEST_STACK_TEXTURE
-	curShader->setFloat3V(curShader->getVariable("g_EyePosition"), 1, &camera->getPosition()[0]);
-	curShader->setFloat3V(curShader->getVariable("g_WorldRight"), 1, &worldRight[0]);
-	curShader->setFloat3V(curShader->getVariable("g_WorldUp"), 1, &worldUp[0]);
+	//curShader->setFloat3V(curShader->getVariable("g_EyePosition"), 1, &camera->getPosition()[0]);
+	//curShader->setFloat3V(curShader->getVariable("g_WorldRight"), 1, &worldRight[0]);
+	//curShader->setFloat3V(curShader->getVariable("g_WorldUp"), 1, &worldUp[0]);
 	curShader->setFloat3V(curShader->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
 	curShader->setVec2f(curShader->getVariable("g_StackCenter"), 1, &g_StackPosition[0]);
 #endif
 	
+	if (curShader->getVariable("test_"))
+	{
+		curShader->setFloat(curShader->getVariable("test_"), g_test);
+	}
 	glActiveTexture(GL_TEXTURE0);
 	g_pStackTexture->bind();
 	samplerStackLinear_->bindTexture(0);
