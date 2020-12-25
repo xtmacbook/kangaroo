@@ -114,7 +114,7 @@ namespace IO
 		png_byte sig[8];
 		int bit_depth, color_type;
 		double              gamma;
-		png_uint_32 channels, row_bytes;
+		png_uint_32 channels, row_bytes, w, h;
 		png_structp png_ptr = 0;
 		png_infop info_ptr = 0;
 
@@ -175,44 +175,106 @@ namespace IO
 
 		png_set_sig_bytes(png_ptr, 8);
 
-		// read all PNG info up to image data
-		png_read_info(png_ptr, info_ptr);
-
 		/*     Read and decode PNG stream   */
-		//png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-
-		// get width, height, bit-depth and color-type	
-		png_uint_32  w, h;
-		png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, 0, 0, 0);
-
-		// expand images of all color-type and bit-depth to 3x8 bit RGB images
-		// let the library process things like alpha, transparency, background
-
-		if (bit_depth == 16) png_set_strip_16(png_ptr);
-		if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_expand(png_ptr);
-		if (bit_depth < 8) png_set_expand(png_ptr);
-		if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) png_set_expand(png_ptr);
-		if (color_type == PNG_COLOR_TYPE_GRAY ||
-			color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-			png_set_gray_to_rgb(png_ptr);
-
-
-		// if required set gamma conversion
-		if (png_get_gAMA(png_ptr, info_ptr, &gamma)) png_set_gamma(png_ptr, (double) 2.2, gamma);
-
-		// after the transformations have been registered update info_ptr data
-		png_read_update_info(png_ptr, info_ptr);
+		png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
 
 		// get again width, height and the new bit-depth and color-type
 		png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, 0, 0, 0);
 
-		// row_bytes is the width x number of channels
 		row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 		channels = png_get_channels(png_ptr, info_ptr);
 
+		int byte_formats = bit_depth / 8;
+		
+		base::Image * image = new base::Image;
+		image->setwidth(w);
+		image->setheight(h);
+		image->settarget(GL_TEXTURE_2D);
+		image->allocate(row_bytes * h);
+		image->levelDataPtr_ = new uint8*[1];
+		image->levelDataPtr_[0] = (uint8*)image->pixels();
+		image->setComponents(channels);
 
+		if(byte_formats == 1) image->settype(GL_UNSIGNED_BYTE);
+		else if (byte_formats == 2) image->settype(GL_UNSIGNED_SHORT);
+		else
+		{
+			LOGE("png load byte formate is error!!\n");
+			png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+			return nullptr;
+		}
+
+		switch (color_type)
+		{
+		case PNG_COLOR_TYPE_GRAY:
+			if (byte_formats == 1)
+				image->setinternalformat(GL_R8);
+			else if (byte_formats == 2)
+				image->setinternalformat(GL_R16);
+			else
+			{
+				LOGE("png load PNG_COLOR_TYPE_GRAY is error!!\n");
+				png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+				return nullptr;
+			}
+			image->setformat(GL_RED);
+
+			break;
+		case PNG_COLOR_TYPE_RGB:
+			if (byte_formats == 1)
+				image->setinternalformat(GL_RGB8);
+			else if (byte_formats == 2)
+				image->setinternalformat(GL_RGB16);
+			else
+			{
+				LOGE("png load PNG_COLOR_TYPE_RGB is error!!\n");
+				png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+				return nullptr;
+			}
+			image->setformat(GL_RGB);
+			break;
+		case PNG_COLOR_TYPE_RGB_ALPHA:
+			if (byte_formats == 1)
+				image->setinternalformat(GL_RGBA8);
+			else if(byte_formats == 2)
+				image->setinternalformat(GL_RGBA16);
+			else
+			{
+				LOGE("png load PNG_COLOR_TYPE_RGB_ALPHA is error!!\n");
+				png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+				return nullptr;
+			}
+			image->setformat(GL_RGBA);
+			break;
+		case PNG_COLOR_TYPE_GRAY_ALPHA:
+			LOGE("png load PNG_COLOR_TYPE_GRAY_ALPHA is error!!\n");
+			png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+			return nullptr;
+		default:
+			LOGE("png load no color_type exist!!\n");
+			png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+			return nullptr;
+		}
+		
+
+		image->settypesize(0);
+		image->setfaces(1);
+		image->setElementSize(byte_formats * channels);
+		image->setdepth(1);
+
+		png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+		for (int i = 0; i < h; i++)
+		{
+			// note that png is ordered top to
+			// bottom, but OpenGL expect it bottom to top
+			// so the order or swapped
+			if (byte_formats == 1) memcpy((uint8*)image->pixels() + (row_bytes * (h - 1 - i)), row_pointers[i], row_bytes);
+			else memcpy((uint16*)image->pixels() + (row_bytes * (h - 1 - i)), row_pointers[i], row_bytes);
+		}
+
+		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 #endif
-		return nullptr;
+		return image;
 	}
 
 }
