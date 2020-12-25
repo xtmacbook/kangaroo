@@ -29,21 +29,21 @@ void IRenderMeshObj::draw()
 	CHECK_GL_ERROR;
 
 	if (DRAW_ARRAYS == call_)
-		glMultiDrawArrays(mesh_->mode_, first_, count_, drawcount_);
+		glMultiDrawArrays(mode_, first_, count_, drawcount_);
 	else if (DRAW_ARRAYS_INDIRECT == call_)
-		glMultiDrawArraysIndirect(mesh_->mode_, mesh_->aIndirectCom_,drawcount_, stride_);
+		glMultiDrawArraysIndirect(mode_, aIndirectCom_,drawcount_, stride_);
 	else if (DRAW_ARRAYS_INSTANC == call_)
-		glDrawArraysInstancedBaseInstance(mesh_->mode_, first_[0], count_[0], instanceCount_, baseInstance_);
+		glDrawArraysInstancedBaseInstance(mode_, first_[0], count_[0], instanceCount_, baseInstance_);
 	else if (DRAW_ELEMENTS == call_)
-		glMultiDrawElements(mesh_->mode(), (GLsizei*)count_, type_, (const GLvoid**)indices_, drawcount_);
+		glMultiDrawElements(mode_, (GLsizei*)count_, type_, (const GLvoid**)indices_, drawcount_);
 	else if (DRAW_ELEMENTS_BASE_VERTEX == call_)
-		glMultiDrawElementsBaseVertex(mesh_->mode_, const_cast<int *>(count_), type_, const_cast<void **>(indices_), drawcount_, basevertex_);
+		glMultiDrawElementsBaseVertex(mode_, const_cast<int *>(count_), type_, const_cast<void **>(indices_), drawcount_, basevertex_);
 	else if (DRAW_ELEMENT_INSTANCE_BASE_VERTEX == call_)
-		glDrawElementsInstancedBaseVertex(mesh_->mode_, count_[0], type_, indices_[0], instanceCount_, basevertex_[0]);
+		glDrawElementsInstancedBaseVertex(mode_, count_[0], type_, indices_[0], instanceCount_, basevertex_[0]);
 	else if (DRAW_ELEMENT_INSTANCE_BASE_INSTANCE == call_)
-		glDrawElementsInstancedBaseInstance(mesh_->mode_, count_[0], type_, indices_[0], instanceCount_, baseInstance_);
+		glDrawElementsInstancedBaseInstance(mode_, count_[0], type_, indices_[0], instanceCount_, baseInstance_);
 	else if (DRAW_ELEMENT_INDIRECT == call_)
-		glMultiDrawElementsIndirect(mesh_->mode_, type_, (GLvoid*)0, drawcount_, stride_);
+		glMultiDrawElementsIndirect(mode_, type_, (GLvoid*)0, drawcount_, stride_);
 	else
 	{
 		PRINT_ERROR("no draw api enable");

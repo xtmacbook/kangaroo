@@ -35,8 +35,18 @@ public:
 	void popPoint();
 };
 
+
+class  HUDGeoemtry :public MeshGeometryX<Vertex_PT>
+{
+public:
+	HUDGeoemtry(float xoffset, int yoffset,int width,int height,bool update=false);
+};
+
+
 LIBENIGHT_EXPORT IRenderNode_SP getLine(const V3f& s, const V3f& e, const V3f& color, bool);
 LIBENIGHT_EXPORT IRenderNode_SP getPoints(const V3f& s, const V3f& color, bool);
 LIBENIGHT_EXPORT IRenderNode_SP getRay(const V3f& s, const V3f& end, const V3f& color, bool);
+LIBENIGHT_EXPORT IRenderNode_SP getHud(float xoffset, int yoffset, int width, int height, bool);
 
-#endif /* defined(__OpenGL__comm__) */
+
+#endif  

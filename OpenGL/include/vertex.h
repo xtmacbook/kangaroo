@@ -20,4 +20,14 @@ struct LIBENIGHT_EXPORT Vertex
 	// bitangent
 	V3f Bitangent;
 };
+
+struct LIBENIGHT_EXPORT Vertex_P
+{
+	V3f Position;
+};
+
+struct LIBENIGHT_EXPORT Vertex_PT :public Vertex_P
+{
+	V2f TexCoords;
+};
 #endif

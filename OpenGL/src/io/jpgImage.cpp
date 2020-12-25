@@ -14,46 +14,10 @@ namespace IO {
 
 #if defined(ENGINE_JPEG)
 
-	static void init_source(j_decompress_ptr /*cinfo*/)
-	{}
-
-	static boolean fill_input_buffer(j_decompress_ptr cinfo)
-	{
-		struct jpeg_source_mgr * src = cinfo->src;
-		static JOCTET FakeEOI[] = { 0xFF, JPEG_EOI };
-
-		// Generate warning
-		Log::instance()->printMessage("jpeglib: Premature end of file\n");
-
-		// Insert a fake EOI marker
-		src->next_input_byte = FakeEOI;
-		src->bytes_in_buffer = 2;
-
-		return TRUE;
-	}
-
-	static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
-	{
-		struct jpeg_source_mgr * src = cinfo->src;
-
-		if (num_bytes >= (long)src->bytes_in_buffer) {
-			fill_input_buffer(cinfo);
-			return;
-		}
-
-		src->bytes_in_buffer -= num_bytes;
-		src->next_input_byte += num_bytes;
-	}
-
-	static void term_source(j_decompress_ptr /*cinfo*/)
-	{
-		// no work necessary here
-	}
-
 	//jpeg
-	struct my_error_mgr {
+	struct my_error_mgr 
+	{
 		struct jpeg_error_mgr pub;	/* "public" fields */
-
 		jmp_buf setjmp_buffer;	/* for return to caller */
 	};
 
@@ -78,102 +42,120 @@ namespace IO {
 	{
 #ifdef ENGINE_JPEG
 
+		char * signature = "\xFF\xD8\xFF";
+
+		/* This struct contains the JPEG decompression parameters and pointers to
+		* working space (which is allocated as needed by the JPEG library).
+		*/
+		jpeg_decompress_struct cinfo;
+		my_error_mgr jerr;
+
+		cinfo.err = jpeg_std_error(&jerr.pub);
+		jerr.pub.error_exit = my_error_exit;
+
+		/* Establish the setjmp return context for my_error_exit to use. */
+		if (setjmp(jerr.setjmp_buffer))
+		{
+			/* If we get here, the JPEG code has signaled an error.
+			* We need to clean up the JPEG object, close the input file, and return.
+			*/
+			jpeg_destroy_decompress(&cinfo);
+			return nullptr;
+		}
+
+		/* Now we can initialize the JPEG decompression object. */
+		jpeg_create_decompress(&cinfo);
+
 		std::vector<uint8> byte_array;
 		byte_array.resize(stream->size());
 		stream->serializeData(byte_array.data(), stream->size());
 
-		jpeg_decompress_struct cinfo;
-		jpeg_error_mgr jerr;
-
-		cinfo.err = jpeg_std_error(&jerr);
-		jerr.error_exit = my_error_exit;
-		jpeg_create_decompress(&cinfo);
-
-		cinfo.src = (struct jpeg_source_mgr *) (*cinfo.mem->alloc_small)
-			((j_common_ptr)&cinfo, JPOOL_PERMANENT, sizeof(struct jpeg_source_mgr));
-		cinfo.src->init_source = init_source;
-		cinfo.src->fill_input_buffer = fill_input_buffer;
-		cinfo.src->skip_input_data = skip_input_data;
-		cinfo.src->resync_to_restart = jpeg_resync_to_restart;	// use default method
-		cinfo.src->term_source = term_source;
-		cinfo.src->bytes_in_buffer = byte_array.size();
-		cinfo.src->next_input_byte = byte_array.data();
-
+		/* Step 2: specify data source (eg, a file) */
+		jpeg_mem_src(&cinfo, &byte_array[0], stream->size());
+		/* Step 3: read file parameters with jpeg_read_header() */
 		jpeg_read_header(&cinfo, TRUE);
-		jpeg_start_decompress(&cinfo);
 
-		/*
-		cinfo.do_fancy_upsampling = FALSE;	// fast decompression
-		cinfo.dct_method = JDCT_FLOAT;			// Choose floating point DCT method.
+
+		if (cinfo.ac_huff_tbl_ptrs[0] == NULL &&
+			cinfo.ac_huff_tbl_ptrs[1] == NULL &&
+			cinfo.dc_huff_tbl_ptrs[0] == NULL &&
+			cinfo.dc_huff_tbl_ptrs[1] == NULL)
+		{
+			LOGE("load jpeg : fail to parse this color because the load dht (opencv) !\n");
+			jpeg_destroy_decompress(&cinfo);
+			return nullptr;
+		}
+
+		/* Step 4: set parameters for decompression */
+
+		/* In this example, we don't need to change any of the defaults set by
+		* jpeg_read_header(), so we do nothing here.
 		*/
 
-		uint8 * tmp_buffer = new uint8[cinfo.output_width * cinfo.output_height * cinfo.output_components];
-		uint8 * scanline = tmp_buffer;
+		/* Step 5: Start decompressor */
+		jpeg_start_decompress(&cinfo);
+		
 
-		while (cinfo.output_scanline < cinfo.output_height) 
+		J_COLOR_SPACE cs = cinfo.out_color_space;
+		int width =  cinfo.output_width;
+		int height = cinfo.output_height;
+		int channels = cinfo.output_components;
+
+		base::Image* img = new base::Image();
+		img->allocate(width * height * channels);
+
+		img->levelDataPtr_ = new uint8*[1];
+		img->levelDataPtr_[0] = (uint8*)img->pixels();
+
+		img->setwidth(width);
+		img->setheight(height);
+		img->settarget(GL_TEXTURE_2D);
+		img->settype(GL_UNSIGNED_BYTE);
+		img->setComponents(channels);
+		img->setnumOfMiplevels(1);
+		switch (cs)
 		{
-			int num_scanlines = jpeg_read_scanlines(&cinfo, &scanline, 1);
-			scanline += num_scanlines * cinfo.output_width * cinfo.output_components;
+		case JCS_GRAYSCALE:
+			img->setformat(GL_RED);
+			img->setinternalformat(GL_R8);
+			break;
+		case JCS_RGB:
+			img->setformat(GL_RGB);
+			img->setinternalformat(GL_RGB8);
+			break;
+		default:
+			LOGE("load jpeg : fail to parse this color space type !\n");
+			return img;
+			break;
+		}
+
+		img->settypesize(0);
+		img->setfaces(1);
+		img->setElementSize(channels);
+		img->setdepth(1);
+
+		/* copy data for openGL */
+		int row_stride = cinfo.output_width * cinfo.output_components;
+
+		uint8 * data = (uint8*) img->pixels();
+
+		JSAMPROW rowptr[1];
+
+		while (cinfo.output_scanline < cinfo.output_height)
+		{
+			/* jpeg_read_scanlines expects an array of pointers to scanlines.
+			* Here the array is only one element long, but you could ask for
+			* more than one scanline at a time if that's more convenient.
+			*/
+			rowptr[0] = data + (cinfo.output_height - cinfo.output_scanline - 1) * row_stride;//for opengl
+
+			jpeg_read_scanlines(&cinfo, rowptr, 1);
 		}
 
 		jpeg_finish_decompress(&cinfo);
 
-		base::Image* img = new base::Image();
-
-		img->allocate(cinfo.output_width, cinfo.output_height, cinfo.output_components);
-		img->levelDataPtr_ = new uint8*[1];
-		img->levelDataPtr_[0] = (uint8*)img->pixels();
-
-		img->settarget(GL_TEXTURE_2D);
-		img->settype(GL_UNSIGNED_BYTE);
-
-		
-		uint8 * dst = (uint8*)img->pixels();
-		const int size = img->height() * img->width();
-		const uint8 * src = tmp_buffer;
-
-		J_COLOR_SPACE cs = cinfo.out_color_space;
-		if (cs == JCS_RGB)
-		{
-			if (cinfo.num_components == 3)
-			{
-				img->setformat(GL_RGB);
-				img->setinternalformat(GL_RGB8); 
-
-				for (int i = 0; i < size; i++)
-				{
-					*dst++ = src[0];
-					*dst++ = src[1];
-					*dst++ = src[2];
-
-					src += 3;
-				}
-			}
-			else
-			{
-
-			}
-		}
-		else if (cs == JCS_GRAYSCALE)
-		{
-			if (cinfo.num_components == 1)
-			{
-				img->setformat(GL_RED);
-				img->setinternalformat(GL_R8);
-				for (int i = 0; i < size; i++)
-				{
-					*dst++ = src[0];
-					src += 1;
-				}
-			}
-		}
-		else //CMYK
-		{
-		}
-
 		jpeg_destroy_decompress(&cinfo);
 
-		delete[] tmp_buffer;
 
 		return img;
 #else

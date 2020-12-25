@@ -1,8 +1,6 @@
 --VERTEX-Compiled
 #version 330 core
 
-
-
 uniform mat4 view;
 uniform mat4 projection; 
 
@@ -32,15 +30,20 @@ void main()
         
     vec3 VertexPosition;
   
-    VertexPosition.x = cos_angle1 * cos_angle2;
+    VertexPosition.x = sin_angle1 * cos_angle2;
     VertexPosition.y = sin_angle2;
-    VertexPosition.z = sin_angle1 * cos_angle2;
+    VertexPosition.z = cos_angle1 * cos_angle2;
     
     texCoord = vec2(meridianPart, parallelPart );
     gl_Position = projection * view * vec4(VertexPosition,1.0);
 		
+<<<<<<< HEAD
 		vec3 tangent = vec3(-sin_angle1,0.0,cos_angle1);
 		vec3 binormal = vec3(sin_angle2 * cos_angle1,cos_angle2,sin_angle1 * sin_angle2);
+=======
+		vec3 tangent = vec3(cos_angle1,0.0,-sin_angle1);
+		vec3 binormal = vec3(-sin_angle2 * sin_angle1,-cos_angle2,-cos_angle1 * sin_angle2);
+>>>>>>> 291e3509b9a2c4548d7453f9a43cd51fecbc5639
 		
 		vec3 viewnormal = normalize(g_EyePosition - VertexPosition);
 		
@@ -79,6 +82,7 @@ uniform vec3 g_WorldRight;
 uniform vec3 g_WorldUp;
 
 uniform vec3 g_MipColors[MIP_LEVELS_MAX];
+uniform float test_;
 
 out vec4 color;
 in vec2 texCoord;
@@ -119,8 +123,10 @@ void main()
     {
         color = color0 * diffuse * 1.5;
     }
+
     else
     {
+		
 		float blendLayers = modf( mipLevel, mipLevel );
         blendLayers = clamp(blendLayers,0.0,1.0);
         
@@ -138,7 +144,6 @@ void main()
         vec4 color2 = texture( StackTexture, vec3( clipTexCoord + 0.5, nextMipLevel ) );
         
         color = mix( color0, mix( color1, color2, blendLayers ), blendGlobal ) * diffuse;
-     
-		
-}
+
+     }
 }

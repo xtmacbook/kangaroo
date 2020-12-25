@@ -185,17 +185,7 @@ bool Scene::initSceneModels(const SceneInitInfo&)
 
 void Scene::render(PassInfo&ps)
 {
-	if (shaders_.empty()) return;
-
-	Shader * shader = shaders_[0];
-	shader->turnOn();
-	initUniformVal(shader);
-
-	for each (IRenderNode_SP r in renderNodes_)
-	{
-		r->render(shader, ps);
-	}
-	shader->turnOff();
+	 
 
 	CHECK_GL_ERROR;
 }

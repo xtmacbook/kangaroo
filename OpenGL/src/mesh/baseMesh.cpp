@@ -9,8 +9,8 @@
 #include "baseMesh.h"
 #include "gls.h"
 #include "helpF.h"
-
- 
+#include "shader.h"
+#include "log.h"
 
 Mesh_SP createArrow(const V3f& color)
 {
@@ -82,6 +82,15 @@ LIBENIGHT_EXPORT IRenderNode_SP getRay(const V3f& s, const V3f& e, const V3f& co
 	return rn;
 }
 
+IRenderNode_SP getHud(float xoffset, int yoffset, int width, int height, bool update)
+{
+	RenderNode_SP rn = new RenderNode;
+	HUDGeoemtry* mg = new HUDGeoemtry(xoffset, yoffset, width,height,update);
+	mg->initGeometry();
+	if (rn) rn->setGeometry(mg);
+	return rn;
+}
+
 DLineMeshGeoemtry::DLineMeshGeoemtry(const V3f& s, const V3f& e, const V3f& color, bool update /*= false*/) :MeshGeometry(update)
 {
 	Vertex start, end;
@@ -146,3 +155,18 @@ void DPointsMeshGeoemtry::popPoint()
 {
 
 }
+
+
+HUDGeoemtry::HUDGeoemtry(float xoffset, int yoffset, int width, int height, bool update/*=false*/):MeshGeometryX<Vertex_PT>(update)
+{
+	MeshX<Vertex_PT>*  ms = new MeshX<Vertex_PT>;
+	ms->rmode() = GL_POINTS;
+	ms->RFVF() = FVF_TEXT0;
+	Vertex_PT point;
+	ms->addVertex(point);
+	ms->computeBox();
+	meshs_.push_back(ms);
+}
+
+
+

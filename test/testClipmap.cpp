@@ -14,6 +14,8 @@
 #include "type.h"
 #include "boundingBox.h"
 #include "clipmap_prepprocessor.h"
+#include <comShader.h>
+
 #include <util.h>
 #include <engineLoad.h>
 #include <baseMesh.h>
@@ -32,6 +34,8 @@
 #define MIPMAP_LEVELS_MAX 7
 
 #define SOURCE_FILES_NUM 5
+
+GLint g_maxUnits = 0;
 
 //#define  QUAD_TEST_STACK_TEXTURE
 
@@ -95,18 +99,19 @@ public:
 					pIndices[indexCount] = i * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j;
 					indexCount++;
 
-					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j;
-					indexCount++;
 					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
 					indexCount++;
 
+					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j;
+					indexCount++;
+					 
 					pIndices[indexCount] = i * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j;
 					indexCount++;
 
-					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
+					pIndices[indexCount] = i * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
 					indexCount++;
 
-					pIndices[indexCount] = i * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
+					pIndices[indexCount] = (i + 1) * (SPHERE_MERIDIAN_SLICES_NUM + 1) + j + 1;
 					indexCount++;
 
 				}
@@ -120,7 +125,6 @@ public:
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned), pIndices, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
-
 		}
 
 
@@ -168,8 +172,8 @@ private:
 	int        g_SourceImageWidth;
 	int        g_SourceImageHeight;
 	int        g_SourceImageMipsNum;
-	int** g_ppSourceImageMipsSize = nullptr;
-	int* g_pMipDataOffset = nullptr;     // Offset in bytes for each mip level data stored in a temporary file
+	int**		g_ppSourceImageMipsSize = nullptr;
+	int*		g_pMipDataOffset = nullptr;     // Offset in bytes for each mip level data stored in a temporary file
 
 	int			g_UpdateRegionSize = 64;
 	int			g_ClipmapStackSize;
@@ -184,11 +188,20 @@ private:
 
 	SphereGeoemtry		sphere_;
 
-	Clipmap_Manager* clipmapManager_;
+	Clipmap_Manager*		clipmapManager_;
+
+	float hudOffsetx_ = -0.9;
+	float hudOffsety_ = 0.8;
+	float hudSizeY_ = 0.4;
+
+	Shader_SP	hudShader_;
 };
 
 ClipMappingScene::ClipMappingScene()
 {
+	g_SourceImageWidth = 16384;
+	g_SourceImageHeight = 8192;
+
 }
 
 ClipMappingScene::~ClipMappingScene()
@@ -533,8 +546,8 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 	GLint max_combined_texture_image_units;
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
 
-	g_SourceImageWidth = 16384;
-	g_SourceImageHeight = 8192;
+	addRenderNode(getHud(hudOffsetx_, hudOffsety_, 0.3, hudSizeY_, false));
+	hudShader_ = createHudShader();
 
 	int baseDimension = CLIPMAP_STACK_SIZE_MAX;
 	while (baseDimension >= CLIPMAP_STACK_SIZE_MIN)
@@ -567,7 +580,7 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 bool ClipMappingScene::initShader(const SceneInitInfo& info)
 {
 
-	Shader* shader = new Shader;
+	Shader * shader = new Shader;
 	std::string code = Shader::loadMultShaderInOneFile("test/clipmap.glsl");
 
 	shader->getShaderFromMultCode(Shader::VERTEX, "Compiled", code);
@@ -600,15 +613,27 @@ bool ClipMappingScene::update()
 	return true;
 }
 
+float g_test = 0.0f;
+
 void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, float deltaTime)
 {
 	Scene::processKeyboard(key, st, action, mods, deltaTime);
 
 	if (action == GLU_PRESS)
 	{
-		if (key == GLU_KEY_T)
+		if (key == GLU_KEY_SPACE)
 		{
-			getCamera()->setEyePos(V3f(0.0, 0.0, 0.0));
+			getCamera()->positionCamera(0.0, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+		}
+		if (key == GLU_KEY_UP)
+		{
+			g_test++;
+			printf("test is: %f\n", g_test);
+		}
+		if (key == GLU_KEY_DOWN)
+		{
+			g_test--;
+			printf("test is: %f\n", g_test);
 		}
 	}
 }
@@ -710,8 +735,8 @@ void ClipMappingScene::calculateClipmapParameters()
 		g_ppSourceImageMipsSize[i][1] = g_SourceImageHeight / (unsigned)pow(2.0f, i);
 	}
 
-	g_StackPosition.x = 0.0625f;
-	g_StackPosition.y = 0.125f;
+	g_StackPosition.x = 0.0f;
+	g_StackPosition.y = 0.5f;
 
 	assert(g_StackDepth);
 
@@ -725,7 +750,7 @@ void ClipMappingScene::calculateClipmapParameters()
 		g_ppUpdatePositions[i][1] = 0;
 	}
 
-	Shader* shader = shaders_[0];
+	Shader * shader = shaders_[0];
 	shader->turnOn();
 	GLuint loc = shader->getVariable("g_StackDepth");
 	if (loc >= 0)
@@ -906,6 +931,19 @@ void ClipMappingScene::render(PassInfo& info)
 	Shader* curShader;
 
 	const CameraBase* camera = getCamera();
+	hudShader_->turnOn();
+	hudShader_->setFloat(hudShader_->getVariable("sizeY"), hudSizeY_);
+	hudShader_->setFloat(hudShader_->getVariable("offsetX"), hudOffsetx_);
+	hudShader_->setFloat(hudShader_->getVariable("offsetY"), hudOffsety_);
+	hudShader_->setFloat(hudShader_->getVariable("g_ScreenAspectRatio"), 1.5);
+	hudShader_->setInt(hudShader_->getVariable("StackTexture"), 0);
+	glActiveTexture(GL_TEXTURE0);
+	g_pStackTexture->bind();
+	samplerStackLinear_->bindTexture(0);
+	getRenderNode(0)->render(hudShader_, info);
+
+	Shader* curShader;
+
 	Matrixf viewmatrix = camera->getViewMatrix();
 
 	V3f worldRight{ viewmatrix[0][0],viewmatrix[1][0], viewmatrix[2][0] };
@@ -916,22 +954,28 @@ void ClipMappingScene::render(PassInfo& info)
 	initUniformVal(curShader);
 
 #ifndef QUAD_TEST_STACK_TEXTURE
-	curShader->setFloat3V(curShader->getVariable("g_EyePosition"), 1, &camera->getPosition()[0]);
-	curShader->setFloat3V(curShader->getVariable("g_WorldRight"), 1, &worldRight[0]);
-	curShader->setFloat3V(curShader->getVariable("g_WorldUp"), 1, &worldUp[0]);
+	//curShader->setFloat3V(curShader->getVariable("g_EyePosition"), 1, &camera->getPosition()[0]);
+	//curShader->setFloat3V(curShader->getVariable("g_WorldRight"), 1, &worldRight[0]);
+	//curShader->setFloat3V(curShader->getVariable("g_WorldUp"), 1, &worldUp[0]);
 	curShader->setFloat3V(curShader->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
 	curShader->setVec2f(curShader->getVariable("g_StackCenter"), 1, &g_StackPosition[0]);
 #endif
-
 
 	glActiveTexture(GL_TEXTURE0);
 	g_pStackTexture->bind();
 	samplerStackLinear_->bindTexture(g_pStackTexture->getTexture());
 	CHECK_GL_ERROR;
-
+	
+	if (curShader->getVariable("test_"))
+	{
+		curShader->setFloat(curShader->getVariable("test_"), g_test);
+	}
+	glActiveTexture(GL_TEXTURE0);
+	g_pStackTexture->bind();
+	samplerStackLinear_->bindTexture(0);
 	glActiveTexture(GL_TEXTURE1);
 	g_pPyramidTexture->bind();
-	samplerLinear_->bindTexture(g_pPyramidTexture->getTexture());
+	samplerLinear_->bindTexture(1);
 
 	sphere_.draw();
 	curShader->turnOff();
@@ -941,8 +985,8 @@ void ClipMappingScene::render(PassInfo& info)
 
 int main()
 {
-	ClipMappingScene* scene = new ClipMappingScene;
-	Camera* pCamera = new Camera(Camera::CAMERA | Camera::ALL);
+	ClipMappingScene * scene = new ClipMappingScene;
+	Camera *pCamera = new Camera(Camera::CAMERA | Camera::ALL);
 
 	pCamera->setClipPlane(1.0f, 5000.0f);
 	scene->setMasterCamera(pCamera);
