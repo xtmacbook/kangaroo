@@ -38,6 +38,8 @@ namespace math
 
 namespace math
 {
+	const double EPSLION = 0.00001;
+
 	template<class REAL>
 	math::Matrix4<REAL>						translateR(const math::Matrix4<REAL>&m, const math::Vector3<REAL>&t)
 	{
@@ -294,10 +296,11 @@ namespace math
 		math::Vector3<REAL> d;
 		float t;
 
-		if (pt1.x == pt2.x && pt1.y == pt2.y)
+		if ((abs(pt1.x - pt2.x)<EPSLION) && (abs(pt1.y - pt2.y)<EPSLION))
+		//if (pt1.x == pt2.x && pt1.y == pt2.y)
 		{
 			// Zero rotation
-			q = math::Quat<REAL>((REAL)0.0, (REAL)0.0, (REAL)0.0, (REAL)1.0);
+			q = math::Quat<REAL>(1.0,0.0,0.0,0.0);
 			return q;
 		}
 
