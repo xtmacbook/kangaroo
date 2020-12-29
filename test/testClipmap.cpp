@@ -76,7 +76,7 @@ static GLfloat quadVertices[] = {
 };
 
 using namespace math;
-
+ 
 
 class ClipMappingScene :public Scene
 {
@@ -89,7 +89,7 @@ public:
 		{
 			int IndexNumber = SPHERE_MERIDIAN_SLICES_NUM * SPHERE_PARALLEL_SLICES_NUM * 6;
 
-			unsigned* pIndices = new unsigned[IndexNumber];
+			unsigned *pIndices = new unsigned[IndexNumber];
 			unsigned indexCount = 0;
 
 			for (int i = 0; i < SPHERE_PARALLEL_SLICES_NUM; i++)
@@ -125,13 +125,14 @@ public:
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned), pIndices, GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
+		
 		}
 
-
+		 
 		void draw()
 		{
 			glBindVertexArray(vao_);
-			glDrawElements(GL_TRIANGLES, SPHERE_MERIDIAN_SLICES_NUM * SPHERE_MERIDIAN_SLICES_NUM * 6, GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, SPHERE_MERIDIAN_SLICES_NUM * SPHERE_MERIDIAN_SLICES_NUM * 6,GL_UNSIGNED_INT,0);
 			glBindVertexArray(0);
 		}
 
@@ -149,13 +150,13 @@ protected:
 	virtual bool					update();
 	virtual void					processKeyboard(int key, int st, int action, int mods, float deltaTime);
 
-
+ 
 protected:
 	void							createClipmapTextures();
 	void							calculateClipmapParameters();
 	void							initStackTexture();
-	void							updateMipPosition(int& position, int offset);
-	void							updatestackTexture(const V3f& eyePos);
+	void							updateMipPosition(int &position, int offset);
+	void							updatestackTexture(const V3f&eyePos);
 
 public:
 	virtual void					render(PassInfo&);
@@ -172,8 +173,8 @@ private:
 	int        g_SourceImageWidth;
 	int        g_SourceImageHeight;
 	int        g_SourceImageMipsNum;
-	int**		g_ppSourceImageMipsSize = nullptr;
-	int*		g_pMipDataOffset = nullptr;     // Offset in bytes for each mip level data stored in a temporary file
+	int**      g_ppSourceImageMipsSize = nullptr;
+	int*       g_pMipDataOffset = nullptr;     // Offset in bytes for each mip level data stored in a temporary file
 
 	int			g_UpdateRegionSize = 64;
 	int			g_ClipmapStackSize;
@@ -183,14 +184,14 @@ private:
 
 	math::V2f g_StackPosition;
 	int        g_StackDepth;
-	int** g_ppUpdatePositions;                           // Defines positions for each clipmap layer where new data should be placed
+	int **g_ppUpdatePositions;                           // Defines positions for each clipmap layer where new data should be placed
 
 
 	SphereGeoemtry		sphere_;
 
 	Clipmap_Manager*		clipmapManager_;
 
-	float hudOffsetx_ = -0.9;
+	float hudOffsetx_ = -0.94;
 	float hudOffsety_ = 0.8;
 	float hudSizeY_ = 0.4;
 
@@ -206,10 +207,10 @@ ClipMappingScene::ClipMappingScene()
 
 ClipMappingScene::~ClipMappingScene()
 {
-
+	
 }
 
-void ClipMappingScene::updateMipPosition(int& position, int offset)
+void ClipMappingScene::updateMipPosition(int &position, int offset)
 {
 	position += offset;
 
@@ -225,7 +226,7 @@ void ClipMappingScene::updateMipPosition(int& position, int offset)
 	}
 }
 
-void ClipMappingScene::updatestackTexture(const V3f& eyePos)
+void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 {
 	float length = sqrtf(eyePos.x * eyePos.x + eyePos.z * eyePos.z);
 	float posHorizontal;
@@ -324,7 +325,7 @@ void ClipMappingScene::updatestackTexture(const V3f& eyePos)
 				srcBlock[1] = j;
 
 				dstBlock[0] = subResourceBox.min_.x;
-				dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
+				dstBlock[1] = g_ClipmapStackSize -  subResourceBox.max_.y;
 
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -334,7 +335,7 @@ void ClipMappingScene::updatestackTexture(const V3f& eyePos)
 					subResourceBox.min_.y = 0;
 			}
 
-			clipmapManager_->update(i, g_pStackTexture);
+			clipmapManager_->update( i,g_pStackTexture);
 			updateMipPosition(g_ppUpdatePositions[i][0], tileBlockSize);
 		}
 
@@ -543,10 +544,12 @@ void ClipMappingScene::updatestackTexture(const V3f& eyePos)
 
 bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 {
-	GLint max_combined_texture_image_units;
-	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_combined_texture_image_units);
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &g_maxUnits);
 
-	addRenderNode(getHud(hudOffsetx_, hudOffsety_, 0.3, hudSizeY_, false));
+	addRenderNode(getHud(hudOffsetx_, hudOffsety_, 0.3, hudSizeY_, 0.0,false));
+	addRenderNode(getHud(hudOffsetx_, hudOffsety_ - 0.5, 0.3, hudSizeY_,1.0, false));
+	addRenderNode(getHud(hudOffsetx_, hudOffsety_ - 1.0, 0.3, hudSizeY_, 2.0, false));
+
 	hudShader_ = createHudShader();
 
 	int baseDimension = CLIPMAP_STACK_SIZE_MAX;
@@ -564,9 +567,9 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 	int blocksPerLayer = g_SourceImageWidth / g_UpdateRegionSize;
 
 	clipmapManager_ = new Clipmap_Manager;
-	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath, nullptr/*g_SrcMediaPathHM*/);
+	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath,nullptr/*g_SrcMediaPathHM*/);
 	clipmapManager_->allocateBlocks(blocksPerLayer);
-	clipmapManager_->allocateTextures(g_ClipmapStackSize, g_UpdateRegionSize);
+	clipmapManager_->allocateTextures(g_ClipmapStackSize,g_UpdateRegionSize);
 	createClipmapTextures();
 	initStackTexture();
 
@@ -577,7 +580,7 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 	return true;
 }
 
-bool ClipMappingScene::initShader(const SceneInitInfo& info)
+bool ClipMappingScene::initShader(const SceneInitInfo&info)
 {
 
 	Shader * shader = new Shader;
@@ -637,7 +640,7 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 		}
 	}
 }
-
+ 
 
 void ClipMappingScene::createClipmapTextures()
 {
@@ -725,7 +728,7 @@ void ClipMappingScene::calculateClipmapParameters()
 		}
 	}
 
-	g_ppSourceImageMipsSize = new int* [g_SourceImageMipsNum];
+	g_ppSourceImageMipsSize = new int*[g_SourceImageMipsNum];
 
 	for (int i = 0; i < g_SourceImageMipsNum; ++i)
 	{
@@ -741,7 +744,7 @@ void ClipMappingScene::calculateClipmapParameters()
 	assert(g_StackDepth);
 
 	g_pMipDataOffset = new int[g_StackDepth];
-	g_ppUpdatePositions = new int* [g_StackDepth];
+	g_ppUpdatePositions = new int*[g_StackDepth];
 
 	for (int i = 0; i < g_StackDepth; ++i)
 	{
@@ -764,13 +767,14 @@ void ClipMappingScene::calculateClipmapParameters()
 		shader->setVec2f(loc, 1, &scaleFactor[0]);
 	}
 	loc = shader->getVariable("g_MipColors");
-	if (loc >= 0)
+	if(loc >= 0)
 		shader->setVec3f(loc, MIPMAP_LEVELS_MAX, g_MipmapColors[0]);
 	shader->turnOff();
 }
 
 void ClipMappingScene::initStackTexture()
 {
+	printf("initStackTexture...\n");
 	int mipCornerLU[2];
 	int mipCornerRD[2];
 	int tileBlockSize = 0;
@@ -788,11 +792,13 @@ void ClipMappingScene::initStackTexture()
 
 	for (int i = 0; i < g_StackDepth; ++i)
 	{
-		mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] - g_ClipmapStackSize * 0.5f);
-		mipCornerLU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] - g_ClipmapStackSize * 0.5f);
+		printf("initStackTexture in level :%d...\n",i);
 
-		mipCornerRD[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] + g_ClipmapStackSize * 0.5f);
-		mipCornerRD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] + g_ClipmapStackSize * 0.5f);
+		mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] - g_ClipmapStackSize* 0.5f);
+		mipCornerLU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] - g_ClipmapStackSize* 0.5f);
+
+		mipCornerRD[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] + g_ClipmapStackSize* 0.5f);
+		mipCornerRD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] + g_ClipmapStackSize* 0.5f);
 
 		tileBlockSize = int(g_UpdateRegionSize / pow(2.0, i));
 
@@ -827,7 +833,7 @@ void ClipMappingScene::initStackTexture()
 					srcBlock[1] = j;
 
 					dstBlock[0] = subResourceBox.min_.x;
-					dstBlock[1] = subResourceBox.min_.y;
+					dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
 
 					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -844,7 +850,7 @@ void ClipMappingScene::initStackTexture()
 			subResourceBox.min_.y = g_ClipmapStackSize / 2;
 			subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
 
-			for (int j = mipCornerLU[1]; j < mipCornerRD[1] - g_ClipmapStackSize * 0.5; j += tileBlockSize)
+			for (int j = mipCornerLU[1]; j < mipCornerRD[1] - g_ClipmapStackSize* 0.5; j += tileBlockSize)
 			{
 				subResourceBox.min_.x = 0;
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
@@ -920,31 +926,29 @@ void ClipMappingScene::initStackTexture()
 
 				subResourceBox.min_.y += tileBlockSize;
 				subResourceBox.max_.y += tileBlockSize;
-			}
+			}	
 		}
 	}
 }
 
 
-void ClipMappingScene::render(PassInfo& info)
+void ClipMappingScene::render(PassInfo&info)
 {
-	const CameraBase* camera = getCamera();
 	hudShader_->turnOn();
-	hudShader_->setFloat(hudShader_->getVariable("sizeY"), hudSizeY_);
-	hudShader_->setFloat(hudShader_->getVariable("offsetX"), hudOffsetx_);
-	hudShader_->setFloat(hudShader_->getVariable("offsetY"), hudOffsety_);
-	hudShader_->setFloat(hudShader_->getVariable("g_ScreenAspectRatio"), 1.5);
 	hudShader_->setInt(hudShader_->getVariable("StackTexture"), 0);
 	glActiveTexture(GL_TEXTURE0);
 	g_pStackTexture->bind();
 	samplerStackLinear_->bindTexture(0);
 	getRenderNode(0)->render(hudShader_, info);
+	getRenderNode(1)->render(hudShader_, info);
+	getRenderNode(2)->render(hudShader_, info);
 
 	Shader* curShader;
 
+	const CameraBase * camera = getCamera();
 	Matrixf viewmatrix = camera->getViewMatrix();
 
-	V3f worldRight{ viewmatrix[0][0],viewmatrix[1][0], viewmatrix[2][0] };
+	V3f worldRight{viewmatrix[0][0],viewmatrix[1][0], viewmatrix[2][0]};
 	V3f worldUp{ viewmatrix[0][1],viewmatrix[1][1], viewmatrix[2][1] };
 	curShader = shaders_[0];
 
@@ -958,22 +962,20 @@ void ClipMappingScene::render(PassInfo& info)
 	curShader->setFloat3V(curShader->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
 	curShader->setVec2f(curShader->getVariable("g_StackCenter"), 1, &g_StackPosition[0]);
 #endif
-
 	
-	if (curShader->getVariable("test_"))
-	{
-		curShader->setFloat(curShader->getVariable("test_"), g_test);
-	}
 	glActiveTexture(GL_TEXTURE0);
 	g_pStackTexture->bind();
 	samplerStackLinear_->bindTexture(0);
 	glActiveTexture(GL_TEXTURE1);
 	g_pPyramidTexture->bind();
 	samplerLinear_->bindTexture(1);
-
+	if (curShader->getVariable("test_"))
+	{
+		curShader->setFloat(curShader->getVariable("test_"), g_test);
+	}
 	sphere_.draw();
 	curShader->turnOff();
-
+	
 	CHECK_GL_ERROR;
 }
 
@@ -984,7 +986,7 @@ int main()
 
 	pCamera->setClipPlane(1.0f, 5000.0f);
 	scene->setMasterCamera(pCamera);
-	WindowManager* pWindowManager = new WindowManager();
+	WindowManager *pWindowManager = new WindowManager();
 	GLApplication application(scene);
 	application.setWindowManager(pWindowManager);
 
