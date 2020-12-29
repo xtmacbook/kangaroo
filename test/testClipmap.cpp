@@ -928,8 +928,6 @@ void ClipMappingScene::initStackTexture()
 
 void ClipMappingScene::render(PassInfo& info)
 {
-	Shader* curShader;
-
 	const CameraBase* camera = getCamera();
 	hudShader_->turnOn();
 	hudShader_->setFloat(hudShader_->getVariable("sizeY"), hudSizeY_);
@@ -961,10 +959,6 @@ void ClipMappingScene::render(PassInfo& info)
 	curShader->setVec2f(curShader->getVariable("g_StackCenter"), 1, &g_StackPosition[0]);
 #endif
 
-	glActiveTexture(GL_TEXTURE0);
-	g_pStackTexture->bind();
-	samplerStackLinear_->bindTexture(g_pStackTexture->getTexture());
-	CHECK_GL_ERROR;
 	
 	if (curShader->getVariable("test_"))
 	{

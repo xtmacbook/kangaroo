@@ -415,7 +415,8 @@ IRenderMeshObj_SP MeshGeometry::createRenderMeshObj()
 
 void MeshGeometry::setupMesh(const Mesh_SP mesh, IRenderMeshObj_SP& obj)
 {
-	obj->mesh_ = mesh;
+	obj->mode_= mesh->mode_;
+	obj->aIndirectCom_ = mesh->aIndirectCom_;
 	obj->call_ = mesh->call_;
 	obj->type_ = mesh->type_;
 	if (obj->type_ == 0) obj->type_ = GL_UNSIGNED_SHORT;
