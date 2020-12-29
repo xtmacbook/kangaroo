@@ -39,14 +39,21 @@ public:
 class  HUDGeoemtry :public MeshGeometryX<Vertex_PT>
 {
 public:
-	HUDGeoemtry(float xoffset, int yoffset,int width,int height,bool update=false);
+	virtual void drawGeoemtry(const DrawInfo&);
+
+	HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update=false);
+
++private:
+	float xoffset_, yoffset_;
+	float width_, height_, texCoordz_;
+
 };
 
 
 LIBENIGHT_EXPORT IRenderNode_SP getLine(const V3f& s, const V3f& e, const V3f& color, bool);
 LIBENIGHT_EXPORT IRenderNode_SP getPoints(const V3f& s, const V3f& color, bool);
 LIBENIGHT_EXPORT IRenderNode_SP getRay(const V3f& s, const V3f& end, const V3f& color, bool);
-LIBENIGHT_EXPORT IRenderNode_SP getHud(float xoffset, int yoffset, int width, int height, bool);
+LIBENIGHT_EXPORT IRenderNode_SP getHud(float xoffset, float yoffset, float width, float height,float texCoordZ, bool);
 
 
 #endif  
