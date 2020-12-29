@@ -82,10 +82,10 @@ LIBENIGHT_EXPORT IRenderNode_SP getRay(const V3f& s, const V3f& e, const V3f& co
 	return rn;
 }
 
-IRenderNode_SP getHud(float xoffset, int yoffset, int width, int height, bool update)
+RenderNode_SP getHud(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update)
 {
 	RenderNode_SP rn = new RenderNode;
-	HUDGeoemtry* mg = new HUDGeoemtry(xoffset, yoffset, width,height,update);
+	HUDGeoemtry* mg = new HUDGeoemtry(xoffset, yoffset, width,height,texCoordZ,update);
 	mg->initGeometry();
 	if (rn) rn->setGeometry(mg);
 	return rn;
@@ -156,8 +156,21 @@ void DPointsMeshGeoemtry::popPoint()
 
 }
 
+void HUDGeoemtry::drawGeoemtry(const DrawInfo&info)
+{
+	Shader* hudShader = info.draw_shader_;
 
-HUDGeoemtry::HUDGeoemtry(float xoffset, int yoffset, int width, int height, bool update/*=false*/):MeshGeometryX<Vertex_PT>(update)
+	hudShader->setFloat(hudShader->getVariable("sizeY"), height_);
+	hudShader->setFloat(hudShader->getVariable("offsetX"), xoffset_);
+	hudShader->setFloat(hudShader->getVariable("offsetY"), yoffset_);
+	hudShader->setFloat(hudShader->getVariable("sizeX"), width_);
+	hudShader->setFloat(hudShader->getVariable("stackZ"), texCoordz_);
+
+	MeshGeometryX<Vertex_PT>::drawGeoemtry(info);
+}
+
+HUDGeoemtry::HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update/*=false*/):MeshGeometryX<Vertex_PT>(update),xoffset_(xoffset),
+	yoffset_(yoffset),width_(width),height_(height),texCoordz_(texCoordZ)
 {
 	MeshX<Vertex_PT>*  ms = new MeshX<Vertex_PT>;
 	ms->rmode() = GL_POINTS;
