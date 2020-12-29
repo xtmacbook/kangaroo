@@ -82,7 +82,7 @@ LIBENIGHT_EXPORT IRenderNode_SP getRay(const V3f& s, const V3f& e, const V3f& co
 	return rn;
 }
 
-RenderNode_SP getHud(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update)
+LIBENIGHT_EXPORT IRenderNode_SP getHud(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update)
 {
 	RenderNode_SP rn = new RenderNode;
 	HUDGeoemtry* mg = new HUDGeoemtry(xoffset, yoffset, width,height,texCoordZ,update);
@@ -169,7 +169,8 @@ void HUDGeoemtry::drawGeoemtry(const DrawInfo&info)
 	MeshGeometryX<Vertex_PT>::drawGeoemtry(info);
 }
 
-HUDGeoemtry::HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update/*=false*/):MeshGeometryX<Vertex_PT>(update),xoffset_(xoffset),
+HUDGeoemtry::HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update/*=false*/)
+	:MeshGeometryX<Vertex_PT>(update),xoffset_(xoffset),
 	yoffset_(yoffset),width_(width),height_(height),texCoordz_(texCoordZ)
 {
 	MeshX<Vertex_PT>*  ms = new MeshX<Vertex_PT>;

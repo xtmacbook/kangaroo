@@ -43,7 +43,7 @@ public:
 
 	HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update=false);
 
-+private:
+private:
 	float xoffset_, yoffset_;
 	float width_, height_, texCoordz_;
 

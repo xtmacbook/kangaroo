@@ -237,11 +237,11 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 		if (eyePos.x <= 0)
 			posHorizontal = atanf(-(eyePos.x / eyePos.z)) / (PI * 2);
 		else
-			posHorizontal = 1.0f - atanf(eyePos.x / eyePos.z) / (PI * 2);
+			posHorizontal = 1.0f - atanf(-eyePos.x / eyePos.z) / (PI * 2);
 	}
 	else
 	{
-		posHorizontal = 0.5f - atanf((eyePos.x / eyePos.z)) / (PI * 2);
+		posHorizontal = 0.5f + atanf((eyePos.x / eyePos.z)) / (PI * 2);
 	}
 
 	posVertical = 0.5f - atanf(eyePos.y / length) / PI;
@@ -612,7 +612,7 @@ bool ClipMappingScene::initShader(const SceneInitInfo&info)
 
 bool ClipMappingScene::update()
 {
-	//updatestackTexture(getCamera()->getPosition());
+	updatestackTexture(getCamera()->getPosition());
 	return true;
 }
 
