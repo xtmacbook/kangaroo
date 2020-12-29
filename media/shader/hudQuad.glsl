@@ -17,18 +17,17 @@ layout (triangle_strip, max_vertices = 4) out;
 out vec3 texCoords;
 
 uniform float sizeY;
+uniform float sizeX;
 uniform float offsetX;
 uniform float offsetY;
-uniform float g_ScreenAspectRatio;
+uniform float stackZ;
 
 void main()
 {
 	
 	gl_Position.z = 0.5;
 	gl_Position.w = 1.0;
-	texCoords.z = gl_PrimitiveIDIn;
-
-	float sizeX = sizeY * 1.2 / g_ScreenAspectRatio;
+ 	texCoords.z = stackZ;
 	
 	gl_Position.x = offsetX;
 	gl_Position.y = offsetY;
