@@ -39,6 +39,35 @@ GLint g_maxUnits = 0;
 
 //#define  QUAD_TEST_STACK_TEXTURE
 
+
+
+/*
+	explain why add 0.5 :
+
+	-----------W-------------
+	|						|
+__w_|___			A		|	
+|	|	|					H
+|a	|	h					|
+|___|___|					|	
+o	|						|
+	O------------------------
+
+	A is the origin image ,and a is the stack clip origin.
+	IF is T(x,y) is the texcoord of A,and t(x,y) is the texCoord of the a,and the O(x,y) is the origin coord of the A,and o(x,y) is the origin coord of the a.
+
+	the tx = (Tx * W - ox) / w = Tx * W / w - ox / w;
+		ty = (Ty * H - oy) / h = Ty * H / h - oy / h;
+
+		es:
+			if W = 16384 , H = 8192,w = 2048 ,h = 2048 and the center of a is (0.0,0.5) ,
+			then tx = Tx * 16384 / 2048 - (-1024) / 2048 = Tx * 8 + 0.5 
+				 ty = Ty * 8192 / 2048 - (H / 2 - h / 2) / h = Ty * 4  - H / 2h + 0.5 = Ty* 4 + 0.5
+	
+	 this example H/h is int
+
+*/
+
 const V3f LIGHTPOS{ 10.0,0.0,10.0 };
 
 char g_SrcMediaPath[SOURCE_FILES_NUM][MAX_PATH] = { "Clipmaps//Mars16k.jpg",
@@ -193,7 +222,7 @@ private:
 
 	float hudOffsetx_ = -0.94;
 	float hudOffsety_ = 0.8;
-	float hudSizeY_ = 0.4;
+	float hudSizeY_ = 0.8;
 
 	Shader_SP	hudShader_;
 };
@@ -226,25 +255,41 @@ void ClipMappingScene::updateMipPosition(int &position, int offset)
 	}
 }
 
+bool updateTexture = false;
+
+int updateNum = 0;
+
+bool first = true;
+
 void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 {
+	if (!updateTexture)
+	{
+		first = true;
+		return;
+	}
+
+	if (updateNum > 0) return;
+
+	updateNum++;
+
 	float length = sqrtf(eyePos.x * eyePos.x + eyePos.z * eyePos.z);
 	float posHorizontal;
 	float posVertical;
 
 	if (eyePos.z >= 0)
 	{
-		if (eyePos.x <= 0)
-			posHorizontal = atanf(-(eyePos.x / eyePos.z)) / (PI * 2);
+		if (eyePos.x >= 0)
+			posHorizontal = atanf((eyePos.x / eyePos.z)) / (PI * 2);
 		else
-			posHorizontal = 1.0f - atanf(-eyePos.x / eyePos.z) / (PI * 2);
+			posHorizontal = 1.0f + atanf(eyePos.x / eyePos.z) / (PI * 2);
 	}
 	else
 	{
 		posHorizontal = 0.5f + atanf((eyePos.x / eyePos.z)) / (PI * 2);
 	}
 
-	posVertical = 0.5f - atanf(eyePos.y / length) / PI;
+	posVertical = 0.5f + atanf(eyePos.y / length) / PI;
 
 	V2f updateBorder;
 	// Calculate border sizes to be updated
@@ -263,10 +308,17 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 
 	updateBorder.y = posVertical - g_StackPosition.y;
 
+	 
 
 	int updateBorderSize[2];
 	updateBorderSize[0] = int(updateBorder.x * g_SourceImageWidth);
 	updateBorderSize[1] = int(updateBorder.y * g_SourceImageHeight);
+
+	if(abs(updateBorderSize[0]) > g_UpdateRegionSize || abs(updateBorderSize[1]) > g_UpdateRegionSize)
+		printf("updateBorder.x: %f, updateBorder.y: %f ................\n", updateBorder.x, updateBorder.y);
+
+	updateBorderSize[0] = 65;
+	updateBorderSize[1] = 0;
 
 	int srcBlock[2];
 	int dstBlock[2];
@@ -282,7 +334,9 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 
 	if (updateBorderSize[0] > g_UpdateRegionSize)
 	{
-		for (int i = 0; i < g_StackDepth; ++i)
+		printf("move 0.....................\n");
+
+		for (int i = 0; i < 1; ++i)
 		{
 			tileBlockSize = g_UpdateRegionSize / (unsigned)pow(2.0, i);
 
@@ -313,6 +367,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			else if (mipCornerRD[1] > g_ppSourceImageMipsSize[i][1])
 				mipCornerRD[1] = g_ppSourceImageMipsSize[i][1];
 
+			printf("the mipCorner is: left top is (%d,%d) and right buttom is (%d,%d) \n",mipCornerLU[0],mipCornerLU[1],mipCornerRD[0],mipCornerRD[1]);
+
 			subResourceBox.min_.x = g_ppUpdatePositions[i][0];
 			subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
 			subResourceBox.min_.y = g_ppUpdatePositions[i][1] + correction;
@@ -327,6 +383,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 				dstBlock[0] = subResourceBox.min_.x;
 				dstBlock[1] = g_ClipmapStackSize -  subResourceBox.max_.y;
 
+				printf("add block (%d,%d) to (%d,%d)\n", srcBlock[0], srcBlock[1],dstBlock[0],dstBlock[1]);
+
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
 				subResourceBox.min_.y += tileBlockSize;
@@ -340,12 +398,15 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 		}
 
 		g_StackPosition.x += (float)g_UpdateRegionSize / g_SourceImageWidth;
+		printf("end ....................\n");
 	}
 
 	// Update square region when we move "Image space Left"
 	if (updateBorderSize[0] < -g_UpdateRegionSize)
 	{
-		for (int i = 0; i < g_StackDepth; ++i)
+		printf("move 1.....................\n");
+
+		for (int i = 0; i < 1; ++i)
 		{
 			tileBlockSize = g_UpdateRegionSize / (unsigned)pow(2.0, i);
 
@@ -376,6 +437,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
 			subResourceBox.min_.y = g_ppUpdatePositions[i][1] + correction;
 
+			printf("the mipCorner is: left top is (%d,%d) and right buttom is (%d,%d) \n", mipCornerLU[0], mipCornerLU[1], mipCornerRD[0], mipCornerRD[1]);
+
 			for (int j = mipCornerLU[1]; j < mipCornerRD[1]; j += tileBlockSize)
 			{
 				subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
@@ -385,6 +448,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 
 				dstBlock[0] = subResourceBox.min_.x;
 				dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
+
+				printf("add block (%d,%d) to (%d,%d)\n", srcBlock[0], srcBlock[1], dstBlock[0], dstBlock[1]);
 
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -398,6 +463,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 		}
 
 		g_StackPosition.x -= (float)g_UpdateRegionSize / g_SourceImageWidth;
+		printf("end ....................\n");
+
 	}
 
 	if (g_StackPosition.x < 0.0f)
@@ -408,7 +475,9 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 	// Update square region when we move "Image space Down"
 	if (updateBorderSize[1] > g_UpdateRegionSize)
 	{
-		for (int i = 0; i < g_StackDepth; ++i)
+		printf("move 2.....................\n");
+
+		for (int i = 0; i < 1; ++i)
 		{
 			correction = 0;
 
@@ -436,6 +505,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			else if (mipCornerRD[1] > g_ppSourceImageMipsSize[i][1])
 				mipCornerRD[1] = g_ppSourceImageMipsSize[i][1];
 
+			printf("the mipCorner is: left top is (%d,%d) and right buttom is (%d,%d) \n", mipCornerLU[0], mipCornerLU[1], mipCornerRD[0], mipCornerRD[1]);
+
 			subResourceBox.min_.y = g_ppUpdatePositions[i][1];
 			subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
 			subResourceBox.min_.x = g_ppUpdatePositions[i][0];
@@ -456,6 +527,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 				dstBlock[0] = subResourceBox.min_.x;
 				dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
 
+				printf("add block (%d,%d) to (%d,%d)\n", srcBlock[0], srcBlock[1], dstBlock[0], dstBlock[1]);
+
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
 				subResourceBox.min_.x += tileBlockSize;
@@ -474,7 +547,9 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 	// Update square region when we move "Image space Up"
 	if (updateBorderSize[1] < -g_UpdateRegionSize)
 	{
-		for (int i = 0; i < g_StackDepth; ++i)
+		printf("move 3.....................\n");
+
+		for (int i = 0; i < 1; ++i)
 		{
 			correction = 0;
 
@@ -505,6 +580,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
 			subResourceBox.min_.x = g_ppUpdatePositions[i][0];
 
+			printf("the mipCorner is: left top is (%d,%d) and right buttom is (%d,%d) \n", mipCornerLU[0], mipCornerLU[1], mipCornerRD[0], mipCornerRD[1]);
+
 			while (subResourceBox.min_.x > UINT(g_ClipmapStackSize - tileBlockSize))
 				subResourceBox.min_.x -= g_ClipmapStackSize;
 
@@ -521,6 +598,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 				dstBlock[0] = subResourceBox.min_.x;
 				dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
 
+				printf("add block (%d,%d) to (%d,%d)\n", srcBlock[0], srcBlock[1], dstBlock[0], dstBlock[1]);
+
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
 				subResourceBox.min_.x += tileBlockSize;
@@ -533,6 +612,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 		}
 
 		g_StackPosition.y -= (float)g_UpdateRegionSize / g_SourceImageHeight;
+		printf("end ....................\n");
+
 	}
 
 	if (g_StackPosition.y < 0.0f)
@@ -546,7 +627,7 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 {
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &g_maxUnits);
 
-	addRenderNode(getHud(hudOffsetx_, hudOffsety_, 0.3, hudSizeY_, 0.0,false));
+	addRenderNode(getHud(hudOffsetx_, hudOffsety_, 0.8, hudSizeY_, 0.0,false));
 	addRenderNode(getHud(hudOffsetx_, hudOffsety_ - 0.5, 0.3, hudSizeY_,1.0, false));
 	addRenderNode(getHud(hudOffsetx_, hudOffsety_ - 1.0, 0.3, hudSizeY_, 2.0, false));
 
@@ -626,7 +707,7 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 	{
 		if (key == GLU_KEY_SPACE)
 		{
-			getCamera()->positionCamera(0.0, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+			updateTexture = !updateTexture;
 		}
 		if (key == GLU_KEY_UP)
 		{
@@ -637,6 +718,10 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 		{
 			g_test--;
 			printf("test is: %f\n", g_test);
+		}
+		if (key == GLU_KEY_F8)
+		{
+			getCamera()->positionCamera(0.4, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 		}
 	}
 }
@@ -774,7 +859,6 @@ void ClipMappingScene::calculateClipmapParameters()
 
 void ClipMappingScene::initStackTexture()
 {
-	printf("initStackTexture...\n");
 	int mipCornerLU[2];
 	int mipCornerRD[2];
 	int tileBlockSize = 0;
@@ -792,7 +876,6 @@ void ClipMappingScene::initStackTexture()
 
 	for (int i = 0; i < g_StackDepth; ++i)
 	{
-		printf("initStackTexture in level :%d...\n",i);
 
 		mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] - g_ClipmapStackSize* 0.5f);
 		mipCornerLU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] - g_ClipmapStackSize* 0.5f);
@@ -940,8 +1023,8 @@ void ClipMappingScene::render(PassInfo&info)
 	g_pStackTexture->bind();
 	samplerStackLinear_->bindTexture(0);
 	getRenderNode(0)->render(hudShader_, info);
-	getRenderNode(1)->render(hudShader_, info);
-	getRenderNode(2)->render(hudShader_, info);
+	//getRenderNode(1)->render(hudShader_, info);
+	//getRenderNode(2)->render(hudShader_, info);
 
 	Shader* curShader;
 
