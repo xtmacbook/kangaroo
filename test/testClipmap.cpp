@@ -263,13 +263,13 @@ bool first = true;
 
 void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 {
-	if (!updateTexture)
+	if (first)
 	{
-		first = true;
+		first = false;
 		return;
 	}
 
-	if (updateNum > 0) return;
+	if (updateNum > 1) return;
 
 	updateNum++;
 
@@ -308,7 +308,6 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 
 	updateBorder.y = posVertical - g_StackPosition.y;
 
-	 
 
 	int updateBorderSize[2];
 	updateBorderSize[0] = int(updateBorder.x * g_SourceImageWidth);
@@ -393,7 +392,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 					subResourceBox.min_.y = 0;
 			}
 
-			clipmapManager_->update( i,g_pStackTexture);
+			clipmapManager_->update( i,g_pStackTexture, updateTexture);
 			updateMipPosition(g_ppUpdatePositions[i][0], tileBlockSize);
 		}
 
@@ -1075,7 +1074,7 @@ int main()
 
 	WindowConfig wc;
 	DeviceConfig dc;
-	wc.shouldCreateSharedContext_ = true;
+	wc.shouldCreateSharedContext_ = false;
 	wc.title_ = "texture ClipMappings terrain";
 	wc.width_ = 1024;
 	wc.height_ = 906;
