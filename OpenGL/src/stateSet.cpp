@@ -20,9 +20,14 @@ void SampleObject::sampleParameteri(unsigned int pname, unsigned int val)
 	glSamplerParameteri(sampler_state_, pname, val);
 }
 
-void SampleObject::bindTexture(unsigned int texture)
+void SampleObject::bindTexture(unsigned int texture)const
 {
 	glBindSampler(texture, sampler_state_);
+}
+
+void SampleObject::unBindTexture(unsigned int texture) const
+{
+	glBindSampler(texture, 0);
 }
 
 bool SampleObject::initGl()
