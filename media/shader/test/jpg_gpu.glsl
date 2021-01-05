@@ -310,7 +310,7 @@ void main()
     color.x = Y + 1.402 * ( Cr - 128.0 );
     color.y = Y - 0.34414 * ( Cb - 128.0 ) - 0.71414 * ( Cr - 128.0 );
     color.z = Y + 1.772 * ( Cb - 128.0 );
-    color.w = 1.0;//texture( TextureHeight, texCoords).r;
+    color.w = texture( TextureHeight, texCoords).r;
         
     color.xyzw *= ( 1.0 / 256.0 );
 }
