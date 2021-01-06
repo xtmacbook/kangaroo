@@ -95,6 +95,8 @@ bool GLApplication::initialize(const WindowConfig* wc, const DeviceConfig* dc)
 	TimeManager::instance().initTime();
 
 	glViewport(0, 0, width_, hight_);
+	
+
 	openglInit();
 
 	KEY_M_CALLBACK(70, base::NewPermanentCallback(this, &GLApplication::showFrameRate, true)); //left

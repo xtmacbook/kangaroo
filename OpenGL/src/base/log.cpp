@@ -29,7 +29,6 @@ int Log::printOglError(char *file, int line)
 	GLenum glErr;
 	int    retCode = 0;
 
-	#ifdef _DEBUG
 	glErr = glGetError();
 	while (glErr != GL_NO_ERROR)
 	{
@@ -40,7 +39,6 @@ int Log::printOglError(char *file, int line)
 		retCode = 1;
 		glErr = glGetError();
 	}
-#endif
 	return retCode;
 }
 void Log::printMessage(const char*message,...)

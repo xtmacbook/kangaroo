@@ -375,7 +375,7 @@ void MeshGeometryX<T>::drawGeoemtry(const DrawInfo&di)
 	preRender();
 
 	Shader * shader = di.draw_shader_;
-	GLint loc = shader->getVariable("model");
+	GLint loc = shader->getVariable("model",false);
 	Matrixf transform = di.matrix_ * getModelMatrix();
 
 	for (int i = 0; i < mesh_obj_.size(); i++)

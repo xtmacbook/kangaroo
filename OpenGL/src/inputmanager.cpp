@@ -57,7 +57,7 @@ void InputManager::setWindow(GWindow * w)
 
 void InputManager::setWindow(int w, int h)
 {
-	glViewport(0, 0, w, h);
+	if(window_ != NULL) glViewport(0, 0, w, h);
 	if(camera_) camera_->setWindowSize(static_cast<float>(w), static_cast<float>(h));
 }
 
