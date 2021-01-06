@@ -26,6 +26,7 @@ void Jpeg_Data::QuadGemetry::draw()const
 {
 	glBindVertexArray(vao_);
 	glDrawArrays(GL_POINTS, 0, 1);
+	glBindVertexArray(0);
 }
 
 
@@ -201,7 +202,7 @@ int GPU_Data::intitialize(int width, int height, unsigned char *pQuantTable)
 	targetFrameBuffer_->bindObj(true, false);
 	targetFrameBuffer_->colorTextureAttachments(pTextureTarget);
 	targetFrameBuffer_->bindObj(false, false);
-	
+
 
 	return  1;
 }
@@ -215,7 +216,7 @@ Jpeg_Data::Jpeg_Data(const char*file)
 {
 	loadFile(file);
 }
- 
+
 Jpeg_Data::Jpeg_Data()
 {
 
@@ -412,11 +413,11 @@ bool Jpeg_Data::initTechnique()
 Shader* Jpeg_Data::getTechnique(const char*code)
 {
 	if (!strcmp(code, "base")) return shaders_[0];
-	else if (!strcmp(code,"IDCT_Rows")) return shaders_[1];
+	else if (!strcmp(code, "IDCT_Rows")) return shaders_[1];
 	else if (!strcmp(code, "Unpack_Rows")) return shaders_[2];
-	else if (!strcmp(code,"IDCT_Columns")) return shaders_[3];
-	else if (!strcmp(code,"Unpack_Columns")) return shaders_[4];
-	else if (!strcmp(code,"IDCT_RenderToBuffer")) return shaders_[5];
+	else if (!strcmp(code, "IDCT_Columns")) return shaders_[3];
+	else if (!strcmp(code, "Unpack_Columns")) return shaders_[4];
+	else if (!strcmp(code, "IDCT_RenderToBuffer")) return shaders_[5];
 	else return nullptr;
 }
 
@@ -436,23 +437,50 @@ int Jpeg_Data::allocateTextures(int width, int height)
 		enAssert(textureData[0].intitialize(width, height, quantTables[0]));
 		enAssert(textureData[1].intitialize(width / 2, height / 2, quantTables[1]));
 		enAssert(textureData[2].intitialize(width / 2, height / 2, quantTables[2]));
-
 		return 1;
 	}
 
 	return 0;
 }
 
-#define  UPDATETEXTURE(tid, bid, dataoffset)  glTextureSubImage2D(textureData[tid].pTextureDCT->getTexture(),0, box[bid].min_.x, \
-						box[bid].min_.y, \
-						box[bid].max_.x - box[bid].min_.x, \
-						box[bid].max_.y - box[bid].min_.y, \
+#define  UPDATETEXTURE(tid, bid, dataoffset)  glTextureSubImage2D(textureData[tid].pTextureDCT->getTexture(),0, (GLint)box[bid].min_.x, \
+						(GLint )box[bid].min_.y, \
+						(GLsizei )(box[bid].max_.x - box[bid].min_.x), \
+						(GLsizei )(box[bid].max_.y - box[bid].min_.y), \
 						imageFormat, type,pFileData + offset + dataoffset ); \
 						CHECK_GL_ERROR;
 
 
+struct Point
+{
+	uint32 x;
+	uint32 y;
+};
+
+struct Box
+{
+	Box() {}
+	Box(const Box&other)
+	{
+		min_ = other.min_;
+		max_ = other.max_;
+	}
+	Point min_;
+	Point max_;
+};
+
+struct UpdateRegin
+{
+	uint32 offset_;
+	Box  region_;
+};
+
 void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners)
 {
+	std::vector<UpdateRegin> updateRegions0;
+	std::vector<UpdateRegin> updateRegions1;
+	std::vector<UpdateRegin> updateRegions2;
+
 	int MCU_SIZE = 8;
 	int MCU_BLOCK_SIZE = 64;
 
@@ -472,10 +500,7 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 
 	if (componentsNum == 1)
 	{
-		base::AABB box;
-		box.min_.z = 0;
-		box.max_.z = 1;
-
+		Box box;
 		for (int i = 0; i < blocksNum; i++)
 		{
 			MCU_ROW = pSrcCorners[i * 2 + 1] / MCU_SIZE;
@@ -491,16 +516,10 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 
 				for (int k = MCU_COLUMN; k < MCU_COLUMN + MCU_NUM_X; k++)
 				{
-					int offset = MCU_BLOCK_SIZE * (j * MCU_per_row + k);
-					//pd3dDevice->UpdateSubresource(textureData[0].pTextureDCT, 0, &box, pFileData + offset, 8, 0);
-					glTextureSubImage2D(textureData[0].pTextureDCT->getTexture(), 0, box.min_.x,
-						box.min_.y,
-						box.max_.x - box.min_.x,
-						box.max_.y - box.min_.y,
-						imageFormat, type, pFileData + offset);
+					uint32 offset = MCU_BLOCK_SIZE * (j * MCU_per_row + k);
+					updateRegions0.push_back(UpdateRegin{ 0 + offset,box });
 					box.min_.x += 8;
 					box.max_.x += 8;
-					CHECK_GL_ERROR;
 				}
 
 				box.min_.y += 8;
@@ -510,15 +529,8 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 	}
 	else if (componentsNum == 3)
 	{
-		base::AABB box[2];
-		box[0].min_.z = 0;
-		box[0].max_.z = 1;
-
-		box[1].min_.z = 0;
-		box[1].max_.z = 1;
-
-		int corner[2];
-
+		Box box[2];
+		uint32 corner[2];
 		for (int i = 0; i < blocksNum; i++)
 		{
 			MCU_ROW = pSrcCorners[i * 2 + 1] / MCU_SIZE;
@@ -538,7 +550,7 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 
 				for (int k = MCU_COLUMN; k < MCU_COLUMN + MCU_NUM_X; k++)
 				{
-					int offset = MCU_BLOCK_SIZE * (j * MCU_per_row + k);
+					uint32 offset = MCU_BLOCK_SIZE * (j * MCU_per_row + k);
 
 					box[0].min_.y = corner[1];
 					box[0].max_.y = corner[1] + 8;
@@ -546,33 +558,32 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 					box[0].min_.x = corner[0];
 					box[0].max_.x = corner[0] + 8;
 
-					UPDATETEXTURE(0, 0, 0)
-						//pd3dDevice->UpdateSubresource(textureData[0].pTextureDCT, 0, &box[0], pFileData + offset + 0, 8, 0);
+					updateRegions0.push_back(UpdateRegin{ 0 + offset,box[0] });
+					//UPDATETEXTURE(0, 0, 0)
 
 					box[0].min_.x += 8;
 					box[0].max_.x += 8;
-					UPDATETEXTURE(0, 0, 64)
-
-						//pd3dDevice->UpdateSubresource(textureData[0].pTextureDCT, 0, &box[0], pFileData + offset + 64, 8, 0);
+					//UPDATETEXTURE(0, 0, 64)
+					updateRegions0.push_back(UpdateRegin{ 64 + offset,box[0] });
 
 					box[0].min_.y += 8;
 					box[0].max_.y += 8;
-
 					box[0].min_.x = corner[0];
 					box[0].max_.x = corner[0] + 8;
-
-					UPDATETEXTURE(0, 0, 128)
-						//pd3dDevice->UpdateSubresource(textureData[0].pTextureDCT, 0, &box[0], pFileData + offset + 128, 8, 0);
+					//UPDATETEXTURE(0, 0, 128)
+					updateRegions0.push_back(UpdateRegin{ 128 + offset,box[0] });
 
 					box[0].min_.x += 8;
 					box[0].max_.x += 8;
-					UPDATETEXTURE(0, 0, 192)
-						//pd3dDevice->UpdateSubresource(textureData[0].pTextureDCT, 0, &box[0], pFileData + offset + 192, 8, 0);
-					UPDATETEXTURE(1, 1, 256)
-					UPDATETEXTURE(2, 1, 320)
+					//UPDATETEXTURE(0, 0, 192)
+					updateRegions0.push_back(UpdateRegin{ 192 + offset,box[0] });
 
-						//pd3dDevice->UpdateSubresource(textureData[1].pTextureDCT, 0, &box[1], pFileData + offset + 256, 8, 0);
-						//	pd3dDevice->UpdateSubresource(textureData[2].pTextureDCT, 0, &box[1], pFileData + offset + 320, 8, 0);
+					//UPDATETEXTURE(1, 1, 256)
+					updateRegions1.push_back(UpdateRegin{ 256 + offset,box[1] });
+
+					//UPDATETEXTURE(2, 1, 320)
+					updateRegions2.push_back(UpdateRegin{ 320 + offset,box[1] });
+
 					updatesNum++;
 
 					box[1].min_.x += 8;
@@ -586,9 +597,40 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 
 				corner[1] += 16;
 			}
+
 		}
 	}
 
+	if (!updateRegions0.empty())
+	{
+		textureData[0].pTextureDCT->bind();
+		for (int i = 0; i < updateRegions0.size(); i++)
+		{
+			const Box&box = updateRegions0[i].region_;
+			glTexSubImage2D(textureData[0].pTextureDCT->target(), 0, box.min_.x, box.min_.y, box.max_.x - box.min_.x, box.max_.y - box.min_.y, imageFormat, type, pFileData + updateRegions0[i].offset_);
+		}
+		textureData[0].pTextureDCT->unBind();
+	}
+	if (!updateRegions1.empty())
+	{
+		textureData[1].pTextureDCT->bind();
+		for (int i = 0; i < updateRegions1.size(); i++)
+		{
+			const Box&box = updateRegions1[i].region_;
+			glTexSubImage2D(textureData[1].pTextureDCT->target(), 0, box.min_.x, box.min_.y, box.max_.x - box.min_.x, box.max_.y - box.min_.y, imageFormat, type, pFileData + updateRegions1[i].offset_);
+		}
+		textureData[1].pTextureDCT->unBind();
+	}
+	if (!updateRegions2.empty())
+	{
+		textureData[2].pTextureDCT->bind();
+		for (int i = 0; i < updateRegions2.size(); i++)
+		{
+			const Box&box = updateRegions2[i].region_;
+			glTexSubImage2D(textureData[2].pTextureDCT->target(), 0, box.min_.x, box.min_.y, box.max_.x - box.min_.x, box.max_.y - box.min_.y, imageFormat, type, pFileData + updateRegions2[i].offset_);
+		}
+		textureData[2].pTextureDCT->unBind();
+	}
 }
 
 void Jpeg_Data::uncompressTextureData()
@@ -611,7 +653,7 @@ void Jpeg_Data::uncompressTextureData()
 		glViewport(0, 0, textureData[i].pTexture1Row->width(), textureData[i].pTexture1Row->heigh());
 		quadGemetry_.draw();
 		CHECK_GL_ERROR;
-		
+
 		//pass1
 		shader = getTechnique("Unpack_Rows");
 		shader->turnOn();
@@ -652,4 +694,3 @@ void Jpeg_Data::uncompressTextureData()
 		CHECK_GL_ERROR;
 	}
 }
- 

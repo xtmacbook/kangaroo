@@ -46,10 +46,17 @@ GLint g_maxUnits = 0;
 
 	-----------W-------------
 	|						|
+<<<<<<< HEAD
 __w_|___			A		|
 |	|	|					H
 |a	|	h					|
 |___|___|					|
+=======
+__w_|___			A		|	
+|	|	|					H
+|a	|	h					|
+|___|___|					|	
+>>>>>>> d2d8afd95259495eb4c7fa5611f174e8e3987d66
 o	|						|
 	O------------------------
 
@@ -61,9 +68,15 @@ o	|						|
 
 		es:
 			if W = 16384 , H = 8192,w = 2048 ,h = 2048 and the center of a is (0.0,0.5) ,
+<<<<<<< HEAD
 			then tx = Tx * 16384 / 2048 - (-1024) / 2048 = Tx * 8 + 0.5
 				 ty = Ty * 8192 / 2048 - (H / 2 - h / 2) / h = Ty * 4  - H / 2h + 0.5 = Ty* 4 + 0.5
 
+=======
+			then tx = Tx * 16384 / 2048 - (-1024) / 2048 = Tx * 8 + 0.5 
+				 ty = Ty * 8192 / 2048 - (H / 2 - h / 2) / h = Ty * 4  - H / 2h + 0.5 = Ty* 4 + 0.5
+	
+>>>>>>> d2d8afd95259495eb4c7fa5611f174e8e3987d66
 	 this example H/h is int
 
 */
@@ -255,23 +268,10 @@ void ClipMappingScene::updateMipPosition(int& position, int offset)
 	}
 }
 
-bool updateTexture = false;
 
-int updateNum = 0;
-
-bool first = true;
 
 void ClipMappingScene::updatestackTexture(const V3f& eyePos)
 {
-	if (first)
-	{
-		first = false;
-		return;
-	}
-
-	if (updateNum > 1) return;
-
-	updateNum++;
 
 	float length = sqrtf(eyePos.x * eyePos.x + eyePos.z * eyePos.z);
 	float posHorizontal;
@@ -647,7 +647,7 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 	int blocksPerLayer = g_SourceImageWidth / g_UpdateRegionSize;
 
 	clipmapManager_ = new Clipmap_Manager;
-	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath, nullptr/*g_SrcMediaPathHM*/);
+	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath,g_SrcMediaPathHM);
 	clipmapManager_->allocateBlocks(blocksPerLayer);
 	clipmapManager_->allocateTextures(g_ClipmapStackSize, g_UpdateRegionSize);
 	createClipmapTextures();
@@ -706,7 +706,6 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 	{
 		if (key == GLU_KEY_SPACE)
 		{
-			updateTexture = !updateTexture;
 		}
 		if (key == GLU_KEY_UP)
 		{
@@ -758,7 +757,7 @@ void ClipMappingScene::createClipmapTextures()
 	g_pStackTexture->target_ = GL_TEXTURE_2D_ARRAY;
 	g_pStackTexture->internalformat_ = GL_RGBA8;
 	g_pStackTexture->format_ = GL_RGBA;
-	g_pStackTexture->type_ = GL_HALF_FLOAT;;
+	g_pStackTexture->type_ = GL_HALF_FLOAT;
 	g_pStackTexture->width_ = g_ClipmapStackSize;
 	g_pStackTexture->height_ = g_ClipmapStackSize;
 	g_pStackTexture->depth_ = g_StackDepth; //array size;
@@ -1022,8 +1021,10 @@ void ClipMappingScene::render(PassInfo& info)
 	g_pStackTexture->bind();
 	samplerStackLinear_->bindTexture(0);
 	getRenderNode(0)->render(hudShader_, info);
-	//getRenderNode(1)->render(hudShader_, info);
-	//getRenderNode(2)->render(hudShader_, info);
+	getRenderNode(1)->render(hudShader_, info);
+	getRenderNode(2)->render(hudShader_, info);
+	samplerStackLinear_->unBindTexture(0);
+	g_pStackTexture->unBind();
 
 	Shader* curShader;
 
@@ -1057,6 +1058,9 @@ void ClipMappingScene::render(PassInfo& info)
 	}
 	sphere_.draw();
 	curShader->turnOff();
+	
+	samplerStackLinear_->unBindTexture(0);
+	samplerLinear_->unBindTexture(1);
 
 	CHECK_GL_ERROR;
 }

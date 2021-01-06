@@ -15,7 +15,9 @@ public:
 
 	void sampleParameteri(unsigned int pname, unsigned int val);
 
-	void bindTexture(unsigned int texture);
+	void bindTexture(unsigned int texture)const;
+
+	void unBindTexture(unsigned int texture)const;
 
 private:
 	bool initGl();

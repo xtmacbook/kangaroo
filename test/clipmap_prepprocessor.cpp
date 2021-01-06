@@ -108,6 +108,13 @@ void Clipmap_Manager::update(int level, base::SmartPointer<Texture> stackTexture
 		// Process diffuse texture
 		pimgData[level].updateTextureData( blocksNum, blockSize >> level, pUpdateBlocks[level].getSrcBlocksPointer());
 		pimgData[level].uncompressTextureData();
+
+		if (pimgDataHM)
+		{
+			pimgDataHM[level].updateTextureData(blocksNum, blockSize >> level, pUpdateBlocks[level].getSrcBlocksPointer());
+			pimgDataHM[level].uncompressTextureData();
+		}
+		
 		pUpdateBlocks[level].reset();
 
 		ppFrameBuffers[level]->bindObj(true, true);
@@ -121,6 +128,12 @@ void Clipmap_Manager::update(int level, base::SmartPointer<Texture> stackTexture
 		pimgData[level].getFinalTarget(1)->bind();
 		glActiveTexture(GL_TEXTURE2);
 		pimgData[level].getFinalTarget(2)->bind();
+		if (pimgDataHM)
+		{
+			glActiveTexture(GL_TEXTURE3);
+			pimgDataHM[level].getFinalTarget(0)->bind();
+		}
+
 		Jpeg_Data::getQuad()->draw();
 		ppFrameBuffers[level]->bindObj(false, true);
 
@@ -177,8 +190,8 @@ int Clipmap_Manager::allocateTextures(int stackSize, int border)
 		if(pimgDataHM)enAssert((pimgDataHM[i].allocateTextures(stackSize, border)));
 
 		ppBakedTextures[i] = new Texture;
-		ppBakedTextures[i]->width_ = stackSize;
-		ppBakedTextures[i]->height_ = border;
+		ppBakedTextures[i]->width_ = stackSize; //2048
+		ppBakedTextures[i]->height_ = border;//64
 		ppBakedTextures[i]->internalformat_ = GL_RGBA8;
 		ppBakedTextures[i]->format_ = GL_RGBA;
 		ppBakedTextures[i]->type_ = GL_HALF_FLOAT;
