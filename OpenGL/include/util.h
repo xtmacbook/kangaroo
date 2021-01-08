@@ -35,13 +35,11 @@
 
 
 #define DRAW_ARRAYS							0 //gldrawarrays glmultidrawarrays
-#define DRAW_ARRAYS_INDIRECT				1 //glMultiDrawArraysIndirect 
-#define DRAW_ARRAYS_INSTANC					2 //glDrawArraysInstancedBaseInstance
-#define DRAW_ELEMENTS	    				3 //gldrawelement glmultidrawelement
-#define DRAW_ELEMENTS_BASE_VERTEX			4 //glMultiDrawElementsBaseVertex  glDrawElementBaseVertex
-#define DRAW_ELEMENT_INSTANCE_BASE_VERTEX	5 // //glDrawElementsInstancedBaseVertex
-#define DRAW_ELEMENT_INSTANCE_BASE_INSTANCE	6  //glDrawElementsInstancedBaseInstance
-#define DRAW_ELEMENT_INDIRECT			    7  //glMultiDrawElementsIndirect 
+#define DRAW_ELEMENTS	    				1 //gldrawelement glmultidrawelement
+#define DRAW_ARRAY_INSTANC					2 //glDrawArraysInstancedBaseInstance
+#define DRAW_ELEMENT_INSTANC				3 //glDrawArraysInstancedBaseInstance
+#define DRAW_ARRAYS_INDIRECT				4 //glMultiDrawArraysIndirect 
+#define DRAW_ELEMENTS_INDIRECT				5 //glMultiDrawArraysIndirect 
 
 #define  PI 3.14159265358979323846264338327950288
 #define  PI_2  1.57079632679485
@@ -54,3 +52,4 @@
 
 #define	SAFTE_DELETE(x) if(x) {delete x;x = nullptr;};
 #define	SAFTE_DELETE_ARRAY(x) if(x) {delete[] x;x = nullptr;};
+#define BUFFER_OFFSET(offset) (static_cast<char*>(0) + (offset))
