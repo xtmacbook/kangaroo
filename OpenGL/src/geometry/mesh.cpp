@@ -2,7 +2,7 @@
 #include "log.h"
 #include <algorithm>
 
-Mesh::Mesh()
+Mesh::Mesh(VERTEX_TYPE vertextype):vertex_type_(vertextype)
 {
 
 }
@@ -23,54 +23,91 @@ void IMesh::setBox(const AABB&box)
 
 void Mesh::computeBox()
 {
-	std::vector<std::vector<Vertex> > ::const_iterator iter = vertices_.cbegin();
-	for (; iter != vertices_.cend(); iter++)
+	for (int j = 0; j < vcount_; j++)
 	{
-		const std::vector<Vertex>& v = *iter;
-		
-		for_each(v.cbegin(), v.cend(), [&](const Vertex&vv) {
-			box_.expandBy(matrix_ * V4f(vv.Position, 1.0));
-		});
+		Vertex_P * p = (Vertex_P*)getVertex(j);
+		box_.expandBy( V4f(p->position_, 1.0));
 	}
 }
 
-void Mesh::addVertex(int index,const Vertex&v)
+void Mesh::addVertex(const Vertex_P* vertex)
 {
-	if (index >= vertices_.size()) vertices_.push_back(std::vector<Vertex>());
-	vertices_[index].push_back(v);
+	int esize = getVertexElementSize(vertex_type_);
+	memcpy(current_, vertex, esize);
+	current_ += esize;
 }
 
-void Mesh::addVertex(const Vertex&v)
+
+void Mesh::addIndices(uint16 indice)
 {
-	addVertex(0, v);
+	indices_.push_back(indice);
 }
 
-void Mesh::addIndices(const uint16 i)
+void Mesh::createMesh(int vcount)
 {
-	addIndices(0,i);
+	vertices_ = (uint8*)createMeshV(vcount);
+	current_ = vertices_;
+	vcount_ = vcount;
 }
 
-void Mesh::addIndices(int index, const uint16 i)
+
+void* Mesh::createMeshV(int vcount)
 {
-	if (index >= indices_.size()) indices_.push_back(std::vector<uint16>());
-	indices_[index].push_back(i);
+	int vertexSize = getVertexElementSize(vertex_type_);
+	return new uint8[vcount * vertexSize];
 }
+
 
 void Mesh::clear()
 {
-	vertices_.clear();
-	indices_.clear();
+	uint8* vd = (uint8*)vertices_;
+	delete[] vd;
 	box_.init();
 	//fvf_ = FVF_NONE;
 }
 
 
-TMesh::TMesh()
+unsigned int Mesh::vSize()const
 {
-
+	return vcount_;
 }
 
-TMesh::TMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices)
-{
 
+unsigned int Mesh::iSize()const
+{
+	return indices_.size();
+}
+
+int Mesh::getVertexElementSize(VERTEX_TYPE vertex_type) 
+{
+	switch (vertex_type)
+	{
+	case VERTEX_POINTS:
+		return sizeof(Vertex_P);
+	case VERTEX_POINTS_TEXTURE:
+		return sizeof(Vertex_PT);
+	case VERTEX_POINTS_COLOR:
+		return sizeof(Vertex_PC);
+	case VERTEX_POINTS_NORMAL:
+		return sizeof(Vertex_PN);
+	case VERTEX_POINTS_TBN:
+		return sizeof(Vertex_PTBN);
+	case VERTEX_POINTS_NORMAL_TEXTURE:
+		return sizeof(Vertex_PNT);
+	case VERTEX_POINTS_NORMAL_TEXTURE_TBN:
+		return sizeof(Vertex_PNTTBN);
+	default:
+		PRINT_ERROR("error getVertexElementSize for the vertex type !\n ");
+		return 0;
+	
+	}
+}
+
+ 
+uint8* Mesh::getVertex(int i) const
+{
+	int vertexSize = getVertexElementSize(vertex_type_);
+	uint8 * p8 = (uint8*)vertices_;
+	p8 += i * vertexSize;
+	return p8;
 }
