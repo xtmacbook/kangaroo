@@ -13,8 +13,8 @@ namespace IO
 {
 	struct LModelInfo
 	{
-		std::vector<Mesh_SP > meshs_;
 		std::vector<Texture_Sp> textures_;
+		std::map<unsigned int, std::vector<Mesh_SP> > mapMeshs;
 	};
 
 	struct ImageOption
@@ -32,7 +32,9 @@ namespace IO
 		};
 		static bool loadNode(const char*file, LModelInfo&, ModelLoadType = ML_ASSIMP);
 		static base::SmartPointer<base::Image> loadImage(const char*file, const ImageOption&option = {true});
+
 	};
+
 };
 
 #endif
