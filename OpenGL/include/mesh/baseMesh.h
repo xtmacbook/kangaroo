@@ -11,49 +11,57 @@
 #include "common.h"
 #include "shader.h"
 #include "renderNode.h"
-#include "IGeometry.h"
+#include "geometry.h"
 
 #include <map>
 
 class LIBENIGHT_EXPORT DLineMeshGeoemtry :public MeshGeometry
 {
 public:
-	DLineMeshGeoemtry(const V3f& s, const V3f& e, const V3f& color, bool update = false);
-
-	virtual void updateGeometry();
-	void pushPoint(const V3f&);
-	void popPoint();
+	DLineMeshGeoemtry(const V3f& s, const V3f& e, const V3f& color, IRenderMeshObj_SP);
 };
 
 class LIBENIGHT_EXPORT DPointsMeshGeoemtry :public MeshGeometry
 {
 public:
-	DPointsMeshGeoemtry(const V3f& s, const V3f& color, bool update = false);
-
-	virtual void updateGeometry();
-	void pushPoint(const V3f&);
-	void popPoint();
+	DPointsMeshGeoemtry(const V3f& s, const V3f& color, IRenderMeshObj_SP);
 };
 
 
-class  HUDGeoemtry :public MeshGeometryX<Vertex_PT>
+class  HUDGeoemtry :public MeshGeometry
 {
 public:
 	virtual void drawGeoemtry(const DrawInfo&);
 
-	HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, bool update=false);
+	HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, IRenderMeshObj_SP);
 
 private:
 	float xoffset_, yoffset_;
 	float width_, height_, texCoordz_;
-
 };
 
+class SphereGeoemtry : public MeshGeometry
+{
+public:
+	typedef Vertex_P Vertex;
+	virtual void drawGeoemtry(const DrawInfo&);
 
-LIBENIGHT_EXPORT IRenderNode_SP getLine(const V3f& s, const V3f& e, const V3f& color, bool);
-LIBENIGHT_EXPORT IRenderNode_SP getPoints(const V3f& s, const V3f& color, bool);
-LIBENIGHT_EXPORT IRenderNode_SP getRay(const V3f& s, const V3f& end, const V3f& color, bool);
-LIBENIGHT_EXPORT IRenderNode_SP getHud(float xoffset, float yoffset, float width, float height,float texCoordZ, bool);
+	SphereGeoemtry(V3f pos,float scale, IRenderMeshObj_SP);
+};
+
+class QuadGeometry :public MeshGeometry
+{
+public:
+	QuadGeometry(const V3f& centerPos, float scale,IRenderMeshObj_SP);
+};
+
+LIBENIGHT_EXPORT IRenderNode_SP getLineRenderNode(const V3f& s, const V3f& e, const V3f& color, bool);
+LIBENIGHT_EXPORT IRenderNode_SP getPointsRenderNode(const V3f& s, const V3f& color, bool);
+LIBENIGHT_EXPORT IRenderNode_SP getRayRenderNode(const V3f& s, const V3f& end, const V3f& color, bool);
+LIBENIGHT_EXPORT IRenderNode_SP getHudRenderNode(float xoffset, float yoffset, float width, float height, float texCoordZ, bool);
+LIBENIGHT_EXPORT IRenderNode_SP getQuadRenderNode(const V3f& center = V3f(0.0,0.0,0.0),float scale = 1.0, bool u = false);
+LIBENIGHT_EXPORT IRenderNode_SP getSphereRenderNode(const V3f& center,float scale, bool);
+
 
 
 #endif  
