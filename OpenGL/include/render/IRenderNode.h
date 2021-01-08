@@ -15,10 +15,6 @@ struct LIBENIGHT_EXPORT IRenderNode :public BaseObject
 	virtual void			update(const CameraBase*) = 0;
 	virtual AABB			getBox()const = 0;
 	virtual Matrixf			getModelMatix()const = 0;
-
-	virtual	void	        	bindVAO() = 0;
-	virtual void			unBindVAO() = 0;
-
 };
 
 typedef SmartPointer<IRenderNode> IRenderNode_SP;
