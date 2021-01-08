@@ -1,14 +1,14 @@
 #ifndef _DYNAMIC_MESH_H_
 #define _DYNAMIC_MESH_H_
 
-#include "IGeometry.h"
+#include "geometry.h"
 #include "flashBuffer.h"
-//Ä¿Ç°Ö»ÊÊÓ¦Ò»¸ömesh
 class LIBENIGHT_EXPORT DynamicMeshGeoemtry :public MeshGeometry
 {
 public:
-	DynamicMeshGeoemtry(int flag, unsigned verticesSize, unsigned indiceSize);
-	~DynamicMeshGeoemtry();
+	DynamicMeshGeoemtry(int flag, unsigned verticesSize, unsigned indiceSize, IRenderMeshObj_SP);
+	virtual ~DynamicMeshGeoemtry();
+
 	virtual void postRender();
 	virtual void initGeometry();
 	virtual void updateGeometry(const CameraBase* camera);
@@ -18,9 +18,9 @@ public:
 	void     cpu2GpuTime(uint64*, uint64*);
 	void     swapQueryTime();
 
-
+	typedef Vertex_PT  Vertex;
 protected:
-	virtual void setupMesh(const Mesh_SP mesh, IRenderMeshObj_SP& obj);
+	virtual void setupMesh();
 protected:
 
 	FlashBuffer<Vertex>*			vertexBuffer_ = NULL;
