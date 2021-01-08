@@ -11,40 +11,121 @@ using namespace base;
  
 struct LIBENIGHT_EXPORT IRenderMeshObj :public base::BaseObject
 {
-	~IRenderMeshObj();
 
-	unsigned int vao_ = 0;
+	IRenderMeshObj();
+
+	virtual ~IRenderMeshObj();
+		
+	void bind();
+	void unBind();
+
 	unsigned int pos_vbo_ = 0;
 	unsigned int indices_vbo_ = 0;
 	unsigned int indirect_vbo_ = 0;
-	unsigned int instance_vertex_array_vbo_ = 0;
 
 	virtual void preRender(Shader*);
 	virtual void postRender(Shader*);
 
-	virtual void draw();
+	virtual void draw() = 0;
 
-	void						clear();
+	void			call(short);
+	inline short	call()const {return call_;}
+	void			model(unsigned int);
 
-	unsigned int				drawcount_; //mult draw 
-	unsigned int				instanceCount_;
-
+protected:
 	short						call_ = DRAW_ARRAYS;
-	unsigned int				type_;//element indices
+	unsigned int				mode_ = 0;
 
-	void **						indices_ = NULL; //mult indices for glmult
+private:
+	unsigned int vao_ = 0;
+};
 
-	int*						first_ = NULL;
-	int*						count_ = NULL;
+//for only one not for mult
+//glDrawArraysInstancedBaseInstance
+//glDrawElementsInstancedBaseVertex
+//glDrawElementsInstancedBaseInstance
+//glDrawElementsInstancedBaseVertexBaseInstance
+struct LIBENIGHT_EXPORT InstanceRenderMeshObj :public IRenderMeshObj
+{
+	int 						basevertex_ = 0; //base vertex
+	unsigned int				baseInstance_ = 0;
+	unsigned int				instanceCount_ = 1;
+};
 
-	int *						basevertex_ = NULL; //base vertex
-	unsigned int				baseInstance_;
+struct LIBENIGHT_EXPORT IndirectRenderMeshObj :public IRenderMeshObj
+{
+	int							stride_ = 0; //for indirect
+	unsigned int				drawcount_ = 1;
+};
 
-	int							 stride_ = 0; //for indirect
+struct LIBENIGHT_EXPORT MultRenderMeshObj :public IRenderMeshObj
+{
+	virtual ~MultRenderMeshObj();
 
-		unsigned int				mode_ = 0;
+	unsigned int				drawcount_ = 1; //mult draw 
+	int*						count_ = nullptr;
+};
 
-	DrawArraysIndirectCommand*						aIndirectCom_ = NULL;
+/*
+gldrawarrays
+glmultidrawarrays
+*/
+struct LIBENIGHT_EXPORT ArraysRenderMeshObj :public MultRenderMeshObj
+{
+	typedef MultRenderMeshObj Base;
+
+	virtual ~ArraysRenderMeshObj();
+	int *						first_ = nullptr; //
+	virtual void draw();
+};
+
+/*
+gldrawelement
+glmultidrawelement
+
+glMultiDrawElementsBaseVertex
+glDrawElementsBaseVertex
+*/
+struct LIBENIGHT_EXPORT ElementsRenderMeshObj :public MultRenderMeshObj
+{
+
+	typedef MultRenderMeshObj Base;
+
+	virtual ~ElementsRenderMeshObj();
+
+	void **						indices_ = nullptr;
+	unsigned int				type_;
+	int *						basevertex_ = nullptr;
+	virtual void draw();
+};
+
+
+struct LIBENIGHT_EXPORT ArrayInstanceRendermeshObj :public InstanceRenderMeshObj
+{
+	int 						first_ = 0;
+	int							count_ = 0;
+	virtual void				draw();
+};
+
+
+struct LIBENIGHT_EXPORT ElementInstanceRendermeshObj :public InstanceRenderMeshObj
+{
+	void*						indices_;
+	int							count_ = 0;
+	unsigned int				type_;
+	virtual void				draw();
+};
+
+//glMultiDrawArraysIndirect 
+struct LIBENIGHT_EXPORT ArrayIndirectRenderMeshObj :public IndirectRenderMeshObj
+{
+	virtual void				draw();
+};
+//glMultiDrawElementsIndirect 
+struct LIBENIGHT_EXPORT ElementIndirectRenderMeshObj :public IndirectRenderMeshObj
+{
+	virtual void				draw();
+	unsigned int				type_;
 };
 
 struct LIBENIGHT_EXPORT RenderMeshObj :public IRenderMeshObj
