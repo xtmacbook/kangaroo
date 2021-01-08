@@ -3,7 +3,7 @@
 
 #include "IRenderNode.h"
 #include "BaseObject.h"
-#include "IGeometry.h"
+#include "geometry.h"
 #include "texture.h"
 
 using namespace base;
@@ -17,18 +17,16 @@ public:
 	virtual AABB				getBox()const;
 	virtual Matrixf				getModelMatix()const;
 
-	void					setGeometry(CommonGeometry_Sp);
+	void						setGeometry(CommonGeometry_Sp);
 	CommonGeometry_Sp			getGeometry();
 
-	virtual	void				bindVAO() ;
-	virtual void				unBindVAO() ;
-	
 	void					    loadTextures();
-	static	IRenderNode_SP			loadFromFile(const char*file);
+	//static	IRenderNode_SP		loadFromFile(const char*file);
 
 	CommonGeometry_Sp			geometry_;
 
 	std::vector<Texture_Sp>		textures_;
+
 };
 typedef SmartPointer<RenderNode> RenderNode_SP;
 
