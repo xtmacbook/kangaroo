@@ -242,6 +242,11 @@ bool Camera::isAABBVisible_E(const AABB&)const
     return  true;
 }
 
+void Camera::setDollyScale(float s)
+{
+	dolly_scale_ = s;
+}
+
 void Camera::mouse_move_tumble(const V2f&pt)
 {
 
@@ -397,7 +402,7 @@ void Camera::mouse_move_plan(const V2f&pt)
 void Camera::mouse_move_dolly(const V2f&pt)
 {
 	float z_delta = 1.0 * ((pt.y - mouse_start_.y) / _screen_height * (_far_z - _near_z));
-    z_delta *= 1.0;
+    z_delta *= dolly_scale_;
 
 	if (behavior_ & ZOOM)
 	{

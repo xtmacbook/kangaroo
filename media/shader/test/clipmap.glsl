@@ -109,7 +109,7 @@ void main()
             
      
     float diffuse = clamp( lightVectorTangent.z,0.0,1.0 );
-    diffuse = max( diffuse, 0.05 );
+    diffuse = max( diffuse, 0.5 );
     
     vec4 color0 = texture(PyramidTexture, texCoord );
     

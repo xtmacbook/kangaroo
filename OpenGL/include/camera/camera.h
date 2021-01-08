@@ -74,6 +74,8 @@ public:
 	virtual void				mouse_scroll(double xoffset,double yoffset);
 
     bool						isAABBVisible_E(const AABB&)const;
+
+	void						setDollyScale(float s);
 protected:
 	virtual void				mouse_move_tumble(const V2f&pt);
 	virtual void				mouse_move_plan(const V2f&pt);
@@ -102,6 +104,7 @@ protected:
 	
 	Matrixf						obj_local_;
 
+	float						dolly_scale_ = 1.0;
 };
 
 #endif

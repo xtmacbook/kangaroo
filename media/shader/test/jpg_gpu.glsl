@@ -283,7 +283,7 @@ void main()
     
     float c = dot( values1, indexMask1 ) + dot( values2, indexMask2 );
     
-		float d = clamp( c  * 0.125 + 128.0, 0.0, 256.0 );
+	float d = clamp( c  * 0.125 + 128.0, 0.0, 256.0 );
 		
     color = d;
 }
@@ -302,7 +302,7 @@ uniform sampler2D TextureHeight;
 
 void main()
 {
-	  float Y = texture( TextureY,texCoords).r;
+	float Y = texture( TextureY,texCoords).r;
     float Cb = texture( TextureCb, texCoords ).r;
     float Cr = texture( TextureCr, texCoords ).r;
         
