@@ -28,10 +28,10 @@ void BaseScene::initUniformVal(Shader*shader)
 	if (location != -1)
 		shader->setMatrix4(location, 1, GL_FALSE, math::value_ptr(camera_->getViewMatrix()));
 
-	//
-	//   location = shader->GetVariable("lightPos");
-	//   if(location != -1 && !_lights.empty())
-	//       shader->SetFloat3(location,_lights[0].getPosition().x,_lights[0].getPosition().y,_lights[0].getPosition().z);
+
+	/*location = shader->getVariable("lightPos",false);
+	if (location != -1 && !lights_.empty())
+		shader->SetFloat3(location, _lights[0].getPosition().x, _lights[0].getPosition().y, _lights[0].getPosition().z);*/
 	//   
 	//   location = shader->GetVariable("viewPos");
 	//   if(location != -1)

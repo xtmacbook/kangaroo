@@ -10,12 +10,14 @@
 #include "windowManager.h"
 #include "log.h"
 #include "helpF.h"
+#include <baseMesh.h>
 #include <Inputmanager.h>
 #include <callback.h>
 #include <text.h>
 #include "gls.h"
 #include "dynamicMesh.h"
 #include "glinter.h"
+#include "engineLoad.h"
 
 typedef struct {
 	int elements_count;
@@ -52,84 +54,133 @@ protected:
 	virtual bool					initThisDemo(const SceneInitInfo&);
 	virtual bool					update();
 	virtual void					render(PassInfo&);
+	virtual bool					initShader(const SceneInitInfo&);
+
+	virtual bool					initTexture(const SceneInitInfo&);
 
 public:
 	bool							brute_ = false;
 };
 
+Texture * texture;
+
+base::SmartPointer< FlashBuffer<uint8>  > texture_datas_;
+
+bool TestScene::initShader(const SceneInitInfo&)
+{
+	Shader * shader = new Shader;
+	//因为obj模型原因此处使用normal作为color
+	char vertShder[] = "#version 330 core \n"
+		"layout(location = 0) in vec2 position;"
+		"layout(location = 1) in vec2 v_tex;"
+
+		"out vec2 tex_;"
+		"uniform mat4 model;"
+		"uniform mat4 view;"
+		"uniform mat4 projection;"
+
+		"void main()"
+		"{"
+		"	gl_Position = projection * view * model * vec4(position,1.0, 1.0f);"
+		"	tex_ = v_tex;"
+		"}";
+
+	char fragShader[] = "#version 330 core \n"
+		"in vec2 tex_;"
+		"uniform sampler2D diffTexture; "
+		"out vec4 color;"
+		"void main()"
+		"{"
+		"color = texture(diffTexture,tex_);"
+		"}";
+
+	shader->loadShaderSouce(vertShder, fragShader, NULL);
+	shaders_.push_back(shader);
+
+	shader->turnOn();
+	shader->setInt(shader->getVariable("diffTexture"),0);
+
+	return true;
+}
+
+ bool					TestScene::initTexture(const SceneInitInfo&)
+{
+	 texture = new Texture("D:/temp/terrain/0/0/0.png");
+	 texture->target_ = GL_TEXTURE_2D;
+
+	 if (texture->loadData())
+	 {
+		 texture->createObj();
+		 texture->bind();
+		 texture->mirrorRepeat();
+		 texture->filterLinear();
+		 if (!texture->context(NULL))
+		 {
+		 }
+		 CHECK_GL_ERROR;
+	 }
+
+	 return true;
+}
+
+IRenderNode_SP quad;
+ 
+ base::SmartPointer<base::Image> imgs[4];
+
 bool TestScene::initSceneModels(const SceneInitInfo&)
 {
-	Base::SmartPointer<DynamicMeshGeoemtry> mg = new DynamicMeshGeoemtry(1, 1248 * 1248, 1248 * 1248);
-	mg->RFVF() |= FVF_XYZ;
-	mg->RFVF() |= FVF_NORMAL;
-	mg->initGeometry();
-
-	Mesh_SP mesh = new Mesh;
-	mesh->rmode() = GL_TRIANGLE_FAN;
-	mesh->RFVF() |= FVF_XYZ;
-	mesh->RFVF() |= FVF_NORMAL;
-	mesh->call_ = DRAW_ARRAYS;
-	mg->addMesh(mesh);
-
-	RenderNode_SP rn = new RenderNode;
-	if (rn) rn->setGeometry(mg);
-	addRenderNode(rn);
-
+	quad = getQuadRenderNode();
 	return true;
 }
 
 bool TestScene::initThisDemo(const SceneInitInfo&)
 {
+	int oneTextureSize = 128 * 128 * 3 ;
+	texture_datas_ = new FlashBuffer<uint8>(oneTextureSize * 4);
+
+	texture_datas_->setTarget(GL_PIXEL_UNPACK_BUFFER);
+	texture_datas_->create_buffers(FlashBuffer<uint8>::ModeUnsynchronized, false);
+
+	imgs[0] = IO::EngineLoad::loadImage("D:/temp/terrain/0/0/1.png");
+	imgs[1] = IO::EngineLoad::loadImage("D:/temp/terrain/0/0/2.png");
+	imgs[2] = IO::EngineLoad::loadImage("D:/temp/terrain/0/0/3.png");
+	imgs[3] = IO::EngineLoad::loadImage("D:/temp/terrain/0/0/4.png");
+
 	return true;
 }
 
+int index = 0;
 bool TestScene::update()
 {
+	if (++index > 3) index = 0;
 
-	CommonGeometry_Sp geo = ((RenderNode*)getRenderNode(0).addr())->getGeometry();
-	DynamicMeshGeoemtry* dGeo = (DynamicMeshGeoemtry*)(geo.addr());
+	texture_datas_->mapBuffer();
+	uint8 * buffer = texture_datas_->getBufferPtr();
+	memcpy(buffer, imgs[index]->pixels(), 128 * 128 * 3 );
+	texture_datas_->flush_data();
 
-	Mesh_SP mesh = dGeo->meshs_[0];
 
-	mesh->clear();
+	// bind the texture and PBO
+	texture->bind();
+	texture_datas_->bind();
 
-	for (int i = 0; i < 1000; i++)
-	{
-		Vertex v;
-		v.Position = V3f(200.0, 0.0, 0.0);
-		v.Normal = V3f(1.0, 0.0, 0.0);
-		mesh->addVertex(i,v);
-
-		v.Position = V3f(200.0, 100.0, 0.0);
-		v.Normal = V3f(1.0, 0.0, 0.0);
-		mesh->addVertex(i, v);
-
-		v.Position = V3f(300.0, 100.0, 0.0);
-		v.Normal = V3f(1.0, 0.0, 0.0);
-		mesh->addVertex(i, v);
-
-		v.Position = V3f(300.0, 0.0, 0.0);
-		v.Normal = V3f(1.0, 0.0, 0.0);
-		mesh->addVertex(i,v);
-	}
-
-	Scene::update();
-	{
-		CommonGeometry_Sp geo = ((RenderNode*)getRenderNode(0).addr())->getGeometry();
-		DynamicMeshGeoemtry* dGeo = (DynamicMeshGeoemtry*)(geo.addr());
-		uint64 vt, it;
-		dGeo->cpu2GpuTime(&vt, &it);
-		if (vt != 0) printScreen(std::string("CPU->GPU: " + std::to_string(vt)), 20, g_app->heigh() - 70, g_app->width(), g_app->heigh());
-		if (it != 0) printScreen(std::string("CPU->GPU: " + std::to_string(it)), 20, g_app->heigh() - 90, g_app->width(), g_app->heigh());
-		dGeo->swapQueryTime();
-	}
-
+	// copy pixels from PBO to texture object
+	// Use offset instead of ponter.
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 128, 128, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	texture->unBind();
+	texture_datas_->unbind();
 	return true;
 }
 
 void TestScene::render(PassInfo&info)
 {
-	Scene::render(info);
+	shaders_[0]->turnOn();
+	initUniformVal(shaders_[0]);
+	glActiveTexture(GL_TEXTURE0);
+	texture->bind();
+	quad->render(shaders_[0], info);
+
+	shaders_[0]->turnOff();
 }
 
 int main()

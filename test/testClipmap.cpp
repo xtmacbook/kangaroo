@@ -216,7 +216,7 @@ private:
 	int** g_ppUpdatePositions;                           // Defines positions for each clipmap layer where new data should be placed
 
 
-	SphereGeoemtry		sphere_;
+	IRenderNode_SP		sphere_;
 
 	Clipmap_Manager* clipmapManager_;
 
@@ -575,9 +575,15 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 {
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &g_maxUnits);
 
+<<<<<<< HEAD
 	addRenderNode(getHud(hudOffsetx_, hudOffsety_, 0.3, hudSizeY_, 0.0, false));
 	addRenderNode(getHud(hudOffsetx_, hudOffsety_ - 0.5, 0.3, hudSizeY_, 1.0, false));
 	addRenderNode(getHud(hudOffsetx_, hudOffsety_ - 1.0, 0.3, hudSizeY_, 2.0, false));
+=======
+	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_, 0.3, hudSizeY_, 0.0,false));
+	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_ - 0.5, 0.3, hudSizeY_,1.0, false));
+	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_ - 1.0, 0.3, hudSizeY_, 2.0, false));
+>>>>>>> fb971c1b4ff8f58d0ed2ce8bf3d973596f1ac63a
 
 	hudShader_ = createHudShader();
 
@@ -602,7 +608,7 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 	createClipmapTextures();
 	initStackTexture();
 
-	sphere_.setUpGeoemtry();
+	sphere_ = getSphereRenderNode(V3f(0.0,0.0,0.0),1.0,false);
 
 	CHECK_GL_ERROR;
 
@@ -1005,7 +1011,7 @@ void ClipMappingScene::render(PassInfo& info)
 	{
 		curShader->setFloat(curShader->getVariable("test_"), g_test);
 	}
-	sphere_.draw();
+	sphere_->render(curShader,info);
 	curShader->turnOff();
 
 	samplerStackLinear_->unBindTexture(0);

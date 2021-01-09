@@ -14,7 +14,7 @@
 #include <png.h>
 #include "shader.h"
 #include "framebuffers.h"
-#include "IGeometry.h"
+#include "geometry.h"
 
 namespace scene
 {
@@ -64,7 +64,7 @@ namespace scene
 
 		void QuadLocal::initGeometry()
 		{
-			bindVAO();
+			//bindVAO();
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
@@ -90,7 +90,7 @@ namespace scene
 				di.draw_shader_->setMatrix4(location, 1, GL_FALSE, math::value_ptr(transform));
 			}
 
-			if (di.needBind_) glBindVertexArray(vao_);
+			//if (di.needBind_) glBindVertexArray(vao_);
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindVertexArray(0);
 		}

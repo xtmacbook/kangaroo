@@ -1,4 +1,4 @@
-#include "IGeometry.h"
+#include "geometry.h"
 #include "IRenderNode.h"
 #include "shader.h"
 #ifndef _axes_h_
@@ -7,7 +7,7 @@
 class AexsGeometry :public MeshGeometry
 {
 public:
-	AexsGeometry();
+	AexsGeometry(IRenderMeshObj_SP);
 	virtual void initGeometry();
 };
 

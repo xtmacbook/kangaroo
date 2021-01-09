@@ -112,16 +112,11 @@ public:
 
 	}
 
-	virtual IRenderMeshObj_SP createRenderMeshObj();
 	virtual void setupMesh(const Mesh_SP mesh, IRenderMeshObj_SP& obj);
 
 	RenderNode_SP rn_;
 };
 
-IRenderMeshObj_SP LocalMeshGeometry::createRenderMeshObj()
-{
-	return new LocalRenderMeshObj(rn_);
-}
 
 void LocalMeshGeometry::setupMesh(const Mesh_SP mesh, IRenderMeshObj_SP& obj)
 {
@@ -199,6 +194,19 @@ bool PNTTessScene::initSceneModels(const SceneInitInfo&)
 	std::string modelPath = get_model_BasePath() + "spider/spider.obj";
 	if (IO::EngineLoad::loadNode(modelPath.c_str(), data))
 	{
+		if (!data.mapMeshs.empty())
+		{
+			base::SmartPointer<AexsGeometry> mg = new AexsGeometry(rsp);
+			rsp->model(data.mapMeshs.begin()->first);
+			for each (Mesh_SP mesh in data.mapMeshs.begin()->second)
+			{
+				mg->addMesh(mesh);
+			}
+			mg->initGeometry();
+			if (axesNode)
+				((RenderNode*)axesNode.addr())->setGeometry(mg);
+		}
+
 		if (!data.meshs_.empty())
 		{
 			RenderNode_SP rn = new RenderNode;

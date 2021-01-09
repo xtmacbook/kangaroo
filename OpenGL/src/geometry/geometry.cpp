@@ -1,5 +1,5 @@
 
-#include "IGeometry.h"
+#include "geometry.h"
 #include "resource.h"
 #include "meshLoad.h"
 #include "log.h"
@@ -7,89 +7,11 @@
 #include "helpF.h"
 #include "gls.h"
 #include "mesh.h"
-
-static GLfloat vertices[] = {
-	// Back face
--0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // Bottom-left
-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-right
-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,  // top-right
--0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,  // bottom-left
--0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,// top-left
-	// Front face
--0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom-left
-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,  // bottom-right
-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,  // top-right
-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // top-right
--0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,  // top-left
--0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // bottom-left
-	// Left face
--0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
--0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-left
--0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom-left
--0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-left
--0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-right
--0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
-	// Right face
-0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-left
-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom-right
-0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top-right
-0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,  // bottom-right
-0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,  // top-left
-0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom-left
-	// Bottom face
--0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, // top-left
-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,// bottom-left
-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
--0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom-right
--0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-	// Top face
--0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,// top-left
-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // top-right
-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
--0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,// top-left
--0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f // bottom-left
-};
-static GLfloat planeVertices[] = {
-	// Positions            // Normals           // Texture Coords
-25.0f, -0.5f,  25.0f,  0.0f,  1.0f,  0.0f,  25.0f, 0.0f,
--25.0f, -0.5f, -25.0f,  0.0f,  1.0f,  0.0f,  0.0f,  25.0f,
--25.0f, -0.5f,  25.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-
-25.0f, -0.5f,  25.0f,  0.0f,  1.0f,  0.0f,  25.0f, 0.0f,
-25.0f, -0.5f, -25.0f,  0.0f,  1.0f,  0.0f,  25.0f, 25.0f,
--25.0f, -0.5f, -25.0f,  0.0f,  1.0f,  0.0f,  0.0f,  25.0f
-};
-static GLfloat quadVertices[] = {
-	// positions   // texCoords
--1.0f,  1.0f,  0.0f, 1.0f,
--1.0f, -1.0f,  0.0f, 0.0f,
-1.0f, -1.0f,  1.0f, 0.0f,
-
--1.0f,  1.0f,  0.0f, 1.0f,
-1.0f, -1.0f,  1.0f, 0.0f,
-1.0f,  1.0f,  1.0f, 1.0f
-};
-
 CommonGeometry::CommonGeometry(bool update /*= false*/):beupdte_(update)
 {
 	box_.init();
 	modelMatrix_ = Matrixf(1.0);
-	glGenVertexArrays(1, &vao_);
 }
-
-void CommonGeometry::bindVAO()
-{
-	glBindVertexArray(vao_);
-}
-
-void CommonGeometry::unBindVAO()
-{
-	glBindVertexArray(0);
-}
-
 
 void CommonGeometry::updateGeometry(const CameraBase* camera)
 {
@@ -98,7 +20,6 @@ void CommonGeometry::updateGeometry(const CameraBase* camera)
 
 CommonGeometry::~CommonGeometry()
 {
-	glDeleteVertexArrays(1, &vao_);
 }
 
 const base::BoundingBox& CommonGeometry::boundingBox() const
@@ -116,409 +37,182 @@ math::Matrixf CommonGeometry::getModelMatrix()const
 	return modelMatrix_;
 }
 
-
 void CommonGeometry::updateModelMatix(const Matrixf&m)
 {
 	modelMatrix_ = m;
 }
 
-Cub::Cub(bool update):CommonGeometry(update)
-{
-	glGenBuffers(1, &vbo_);
-}
-
-Cub::~Cub()
-{
-	glDeleteBuffers(1, &vbo_);
-}
-
-void Cub::updateGeometry()
-{
-	
-}
-
-void Cub::initGeometry()
-{
-	bindVAO();
-	// Fill buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// Link vertex attributes
-	glBindVertexArray(vao_);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	box_.init();
-	int num = sizeof(vertices) / sizeof(vertices[0]);
-	for (int i = 0; i < num; i += 8)
-	{
-		int j = i;
-		box_.expandBy(vertices[j],vertices[j + 1],vertices[j + 2]);
-	}
-}
-
-void Cub::computeBoundingBox(void*data)
-{
-	
-	 
-}
-
-void Cub::drawGeoemtry(const DrawInfo&di)
-{
-	GLint  location = di.draw_shader_->getVariable("model");
-	if (location != -1)
-	{
-		Matrixf transform = di.matrix_* getModelMatrix();
-		di.draw_shader_->setMatrix4(location, 1, GL_FALSE, math::value_ptr(transform));
-	}
-	if (di.needBind_) glBindVertexArray(vao_);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
-}
-
-Quad::Quad(bool update) :CommonGeometry(update)
-{
-	glGenBuffers(1, &vbo_);
-}
-
-Quad::~Quad()
-{
-	glDeleteBuffers(1, &vbo_);
-}
-
-
-void Quad::updateGeometry()
-{
-
-}
-
-void Quad::initGeometry()
-{
-	bindVAO();
-
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
-
-	glBindVertexArray(0);
-}
-
-void Quad::computeBoundingBox(void*)
-{
-
-}
-
-void Quad::drawGeoemtry(const DrawInfo&di)
-{
-	GLint  location = di.draw_shader_->getVariable("model");
-	if (location != -1)
-	{
-		Matrixf transform = di.matrix_* getModelMatrix();
-		di.draw_shader_->setMatrix4(location, 1, GL_FALSE, math::value_ptr(transform));
-	}
-
-	if (di.needBind_) glBindVertexArray(vao_);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindVertexArray(0);
-}
-
-ObjGeometry::ObjGeometry(const char*file) :CommonGeometry(false),
-file_(file)
-{
-
-}
-
-ObjGeometry::~ObjGeometry()
-{
-	glDeleteBuffers(3, vbo_);
-}
-
-
-void ObjGeometry::updateGeometry()
-{
-
-}
-
-void ObjGeometry::initGeometry()
-{
-	std::vector < math::V3f >  out_vertices;
-	std::vector < math::V2f >  out_uvs;
-	std::vector < math::V3f >  out_normals;
-
-	bool result = IO::NodeFile::loadOBJ(file_.c_str(), out_vertices,
-		out_uvs, out_normals);
-	if (result)
-	{
-		vertices_size_ = out_vertices.size();
-		bindVAO();
-		glGenBuffers(3, vbo_);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_[0]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(math::V3f) * out_vertices.size(), &out_vertices[0], GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_[1]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(math::V2f) * out_uvs.size(), &out_uvs[0], GL_STATIC_DRAW);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_[2]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(math::V3f) * out_normals.size(), &out_normals[0], GL_STATIC_DRAW);
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-		glBindVertexArray(0);
-
-		computeBoundingBox(&out_vertices[0]);
-	}
-}
-
-
-void ObjGeometry::drawGeoemtry(const DrawInfo&di)
-{
-	GLint  location = di.draw_shader_->getVariable("model");
-	if (location != -1)
-	{
-		Matrixf transform = di.matrix_* getModelMatrix();
-		di.draw_shader_->setMatrix4(location, 1, GL_FALSE, math::value_ptr(transform));
-	}
-	if(di.needBind_) glBindVertexArray(vao_);
-	glDrawArrays(GL_TRIANGLES, 0, vertices_size_);
-	glBindVertexArray(0);
-}
-
-
-void ObjGeometry::computeBoundingBox(void *data)
-{
-	box_.init();
-	math::V3f * vertices = (math::V3f*)(data);
-	if (vertices)
-	{
-		for (int i = 0; i < vertices_size_; i++)
-		{
-			box_.expandBy(vertices[i]);
-		}
-	}
-}
-
-MeshGeometry::MeshGeometry(bool update) :CommonGeometry(update)
+MeshGeometry::MeshGeometry(IRenderMeshObj_SP obj, VERTEX_TYPE vt) 
+	:CommonGeometry(false),mesh_obj_(obj), vertex_type_(vt)
 {
 
 }
 
 MeshGeometry::~MeshGeometry()
 {
-	for (int i = 0; i < meshs_.size(); i++)
-	{
-		if (meshs_[i])
-		{
-			delete meshs_[i].addr();
-			meshs_[i] = NULL;
-		}
-	}
-
-	for (int i = 0; i < mesh_obj_.size(); i++)
-	{
-		if (mesh_obj_[i])
-		{
-			delete mesh_obj_[i].addr();
-			mesh_obj_[i] = NULL;
-		}
-	}
-}
-
-
-void MeshGeometry::preRender()
-{
-
-}
-
-
-void MeshGeometry::postRender()
-{
-
-}
-
-
-void MeshGeometry::updateGeometry(const CameraBase* camera)
-{
-	if (!beupdte_) return;
 }
 
 void MeshGeometry::initGeometry()
 {
-	std::vector<Mesh_SP>::const_iterator iter = meshs_.cbegin();
-
-	for (; iter != meshs_.cend(); iter++)
-	{
-		IRenderMeshObj_SP irmsp = createRenderMeshObj();
-		setupMesh(*iter, irmsp);
-		mesh_obj_.push_back(irmsp);
-	}
+	setupMesh();
 	computeBoundingBox(NULL);
 }
 
 void MeshGeometry::drawGeoemtry(const DrawInfo&di)
 {
 	/**
-	 *  because the meshGeometry have many mesh object,and the getModelMatrix() is the matrix for meshGeometry
-	    but each of mesh object have a matrix
-	 */
-	preRender();
-
+	*  because the meshGeometry have many mesh object,and the getModelMatrix() is the matrix for meshGeometry
+	but each of mesh object have a matrix
+	*/
 	Shader * shader = di.draw_shader_;
-	GLint loc = shader->getVariable("model",false);
+	GLint loc = shader->getVariable("model", false);
 	Matrixf transform = di.matrix_ * getModelMatrix();
-
-	for (int i = 0; i < mesh_obj_.size(); i++)
-		drawMesh(loc, transform,shader,meshs_[i], mesh_obj_[i]);
-	
-	postRender();
+	drawMesh(loc, transform, shader);
 }
 
 
 void MeshGeometry::computeBoundingBox(void *)
 {
-	std::vector<base::SmartPointer<Mesh> >::const_iterator iter = meshs_.cbegin();
-	for (; iter != meshs_.cend(); iter++)
+	std::vector<Mesh_SP>::iterator iter = meshs_.begin();
+	for (; iter != meshs_.end(); iter++)
 	{
+		(*iter)->computeBox();
 		box_.expandBy((*iter)->getBOX());
 	}
 }
-
 
 void MeshGeometry::addMesh(Mesh_SP mesh)
 {
 	meshs_.push_back(mesh);
 }
 
-void MeshGeometry::clear()
+void MeshGeometry::setupMesh()
 {
+	mesh_obj_->bind();
 
-}
+	uint16 call = mesh_obj_->call();
 
-IRenderMeshObj_SP MeshGeometry::createRenderMeshObj()
-{
-	return new RenderMeshObj;
-}
-
-
-void MeshGeometry::setupMesh(const Mesh_SP mesh, IRenderMeshObj_SP& obj)
-{
-	obj->mode_= mesh->mode_;
-	obj->aIndirectCom_ = mesh->aIndirectCom_;
-	obj->call_ = mesh->call_;
-	obj->type_ = mesh->type_;
-	if (obj->type_ == 0) obj->type_ = GL_UNSIGNED_SHORT;
-
-	glGenVertexArrays(1, &obj->vao_);
-	glBindVertexArray(obj->vao_);
-
-	Vertex * vertexData = NULL;
-	if (DRAW_ARRAYS == mesh->call_)
+	if (DRAW_ARRAYS == call)
 	{
-		int vertexSize = 0;
-		const std::vector<std::vector<Vertex> >& vs = mesh->vertices_;
-		int multVertexSize = vs.size();
-		
-		obj->first_ = new int[multVertexSize]; //delete
-		obj->count_ = new int[multVertexSize]; //delete
-		obj->drawcount_ = multVertexSize;
+		MultRenderMeshObj* multRenderObj = (MultRenderMeshObj*)mesh_obj_.addr();
+		assert(multRenderObj);
 
-		for (int i = 0; i < multVertexSize; i++)
+		ArraysRenderMeshObj * obj = (ArraysRenderMeshObj*)multRenderObj;
+		assert(obj);
+
+		int vertexSize = 0;
+		int meshNum = meshs_.size();
+
+		obj->first_ = new int[meshNum]; //delete
+		obj->count_ = new int[meshNum]; //delete
+		obj->drawcount_ = meshNum;
+
+		for (int i = 0; i < meshNum; i++)
 		{
 			obj->first_[i] = vertexSize;
-			vertexSize += obj->count_[i] = vs[i].size();
+			vertexSize += obj->count_[i] = meshs_[i]->vSize();
 		}
 
-		vertexData = new Vertex[vertexSize];  //delete
-		Vertex* temp = vertexData;
-		for (int i = 0; i < multVertexSize; i++)
+		int vesize = Mesh::getVertexElementSize(vertex_type_);
+		uint8 * vertexData =  new uint8 [vesize* vertexSize];  //delete
+		uint8* temp = vertexData;
+		for (int i = 0; i < meshNum; i++)
 		{
-			std::copy(vs[i].cbegin(), vs[i].cend(), temp);
-			temp += vs[i].size();
+			Mesh_SP mesh = meshs_[i];
+			memcpy(temp, mesh->cVertex(), mesh->vSize() * vesize);
+			temp += mesh->vSize() * vesize;
 		}
-		
-		glGenBuffers(1, &obj->pos_vbo_);
-		glBindBuffer(GL_ARRAY_BUFFER, obj->pos_vbo_);
-		glBufferData(GL_ARRAY_BUFFER, vertexSize * sizeof(Vertex), vertexData, GL_STATIC_DRAW);
-
-		setupVertexAttribute(mesh->CFVF());
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	}
-	else if (DRAW_ARRAYS_INDIRECT == mesh->call_) 
-	{
-
-	}
-	else if (DRAW_ARRAYS_INSTANC == mesh->call_) 
-	{
-
-	}
-	else if (DRAW_ELEMENTS == mesh->call_) 
-	{
-		//vertex data
-		const std::vector<std::vector<Vertex> >& vs = mesh->vertices_;
-		int multVertexSize = vs.size();
-		assert(multVertexSize == 1);
-
-		//indices
-		int multIds = mesh->indices_.size();
-		obj->count_ = new int[multIds];  //delete
-		obj->indices_ = (void**)new uint16 * [multIds];//uint16 type->GL_UNSIGNED_SHORT //delete
-		obj->drawcount_ = multIds;
-
-		for (int i = 0; i < multIds; i++)
-		{
-			obj->count_[i] = mesh->indices_[i].size();
-			obj->indices_[i] = new uint16[obj->count_[i]];
-			const std::vector<uint16>& vi = mesh->indices_[i];
-			std::copy(vi.cbegin(), vi.cend(),(uint16*) (obj->indices_[i]));
-		}
-
-		const std::vector<Vertex>& vertexs = vs[0];
 
 		glGenBuffers(1, &obj->pos_vbo_);
 		glBindBuffer(GL_ARRAY_BUFFER, obj->pos_vbo_);
-		glBufferData(GL_ARRAY_BUFFER, vertexs.size() * sizeof(Vertex), &vertexs[0], GL_STATIC_DRAW);
-		
-		setupVertexAttribute(mesh->CFVF());
+		glBufferData(GL_ARRAY_BUFFER, vertexSize * vesize, (GLvoid*)vertexData, GL_STATIC_DRAW);
+		 
+		setupVertexAttribute();
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		SAFTE_DELETE_ARRAY(vertexData);
+	}
+	else if (DRAW_ELEMENTS == call)
+	{
+		MultRenderMeshObj* multRenderObj = (MultRenderMeshObj*)mesh_obj_.addr();
+		assert(multRenderObj);
+		ElementsRenderMeshObj * obj = dynamic_cast<ElementsRenderMeshObj*>(multRenderObj);
+		assert(obj);
+
+		int vertexNum = 0;
+		int indicesNum = 0;
+		int meshNum = meshs_.size();
 		
-		CHECK_GL_ERROR;
-	}
-	else if (DRAW_ELEMENTS_BASE_VERTEX == mesh->call_) {
+		obj->basevertex_ = new int[meshNum]; //delete
+		obj->count_ = new int[meshNum]; //delete
+		obj->drawcount_ = meshNum;
+		obj->indices_ = (void**)new uint16 *[meshNum];//uint16 type->GL_UNSIGNED_SHORT //delete
+
+		Mesh_SP mesh;
+		for (int i = 0; i < meshNum; i++)
+		{
+			mesh = meshs_[i];
+			indicesNum += mesh->iSize();
+			vertexNum += meshs_[i]->vSize();
+			obj->count_[i] = mesh->iSize();
+			obj->indices_[i] = BUFFER_OFFSET(indicesNum * sizeof(uint16));
+		}
+
+		int vesize = Mesh::getVertexElementSize(vertex_type_);
+		uint8 * vertexData = new uint8[vesize* vertexNum]; 
+		uint16 * indicesData = new uint16[indicesNum];
+		
+		uint8* tempVertexData = vertexData;
+		UINT16 * tempIndiceData = indicesData;
+
+		for (int i = 0; i < meshNum; i++)
+		{
+			Mesh_SP mesh = meshs_[i];
+
+			if(mesh->vSize() > 0) memcpy(tempVertexData, mesh->cVertex(), mesh->vSize() * vesize);
+			memcpy(tempIndiceData, mesh->cIndice(), mesh->iSize() * sizeof(uint16));
+
+			tempVertexData += mesh->vSize() * vesize;
+			tempIndiceData += mesh->iSize();
+
+			obj->basevertex_[i] = (i == 0) ?  0 : (obj->basevertex_[i - 1] + mesh->vSize());
+		}
+ 
+
+		glGenBuffers(1, &obj->indices_vbo_);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->indices_vbo_);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16) * indicesNum, indicesData, GL_STATIC_DRAW);
+
+		glGenBuffers(1, &obj->pos_vbo_);
+		glBindBuffer(GL_ARRAY_BUFFER, obj->pos_vbo_);
+		glBufferData(GL_ARRAY_BUFFER, vertexNum * vesize, vertexData, GL_STATIC_DRAW);
+
+		setupVertexAttribute();
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		SAFTE_DELETE_ARRAY(vertexData);
+		SAFTE_DELETE_ARRAY(indicesData);
 
 	}
-	else if (DRAW_ELEMENT_INSTANCE_BASE_VERTEX == mesh->call_) {
+	else if (DRAW_ARRAY_INSTANC == call)
+	{
 
 	}
-	else if (DRAW_ELEMENT_INSTANCE_BASE_INSTANCE == mesh->call_) {
+	else if (DRAW_ELEMENT_INSTANC == call)
+	{
 
 	}
-	else if (DRAW_ELEMENT_INDIRECT == mesh->call_) {
+	else if (DRAW_ARRAYS_INDIRECT == call)
+	{
 
+	}
+	else if (DRAW_ELEMENTS_INDIRECT == call)
+	{
 		//vertex data
-		const std::vector<std::vector<Vertex> >& vs = mesh->vertices_;
-		int multVertexSize = vs.size();
-		assert(multVertexSize == 1);
 
-		int multIds = mesh->indices_.size();
-		assert(multIds == 1);
-
-		const std::vector<Vertex>& vertexs = vs[0];
+		/*const std::vector<Vertex>& vertexs = vs[0];
 		glGenBuffers(1, &obj->pos_vbo_);
 		glBindBuffer(GL_ARRAY_BUFFER, obj->pos_vbo_);
 		glBufferData(GL_ARRAY_BUFFER, vertexs.size() * sizeof(Vertex), &vertexs[0], GL_STATIC_DRAW);
@@ -533,87 +227,120 @@ void MeshGeometry::setupMesh(const Mesh_SP mesh, IRenderMeshObj_SP& obj)
 		glGenBuffers(1, &obj->indirect_vbo_);
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, obj->indirect_vbo_);
 		obj->drawcount_ = mesh->numIndirect_;
-		glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawElementsIndirectCommand) * obj->drawcount_ , mesh->eIndirectCom_, GL_STATIC_DRAW);
+		glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(DrawElementsIndirectCommand) * obj->drawcount_, mesh->eIndirectCom_, GL_STATIC_DRAW);
 
-		setupOtherBufferAndVA(idx);
-		CHECK_GL_ERROR;
+		setupOtherBufferAndVA(idx);*/
 	}
+	else
+	{
+		PRINT_ERROR("setupMesh error for call type! \n");
+	}
+	
+	mesh_obj_->unBind();
 
-	glBindVertexArray(0);
 
 
-	Mesh * ms = mesh;
+	/*Mesh * ms = mesh;
 	TMesh * tms = dynamic_cast<TMesh*>(ms);
 	if (tms)
 	{
-		RenderMeshObj * rmo = dynamic_cast<RenderMeshObj*>(obj.addr());
+		RenderMeshObj * rmo = dynamic_cast<RenderMeshObj*>(renderObj.addr());
 		rmo->t_indices_ = tms->t_indices_;
 	}
-
+*/
 
 	/*if (mesh->indirectCom_.size())
 	{
-		glGenBuffers(1, &obj->indirect_vbo_);
-		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, obj->indirect_vbo_);
-		glBufferData(GL_DRAW_INDIRECT_BUFFER,( mesh->indirectCom_.size() * sizeof(unsigned int)), &(mesh->indirectCom_[0]), GL_STATIC_DRAW);
+	glGenBuffers(1, &obj->indirect_vbo_);
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, obj->indirect_vbo_);
+	glBufferData(GL_DRAW_INDIRECT_BUFFER,( mesh->indirectCom_.size() * sizeof(unsigned int)), &(mesh->indirectCom_[0]), GL_STATIC_DRAW);
 	}
- */
+	*/
+	CHECK_GL_ERROR;
 
 }
 
 
-void MeshGeometry::drawMesh(int loc, Matrixf transform, Shader *shader,const Mesh_SP mesh, IRenderMeshObj_SP& obj)
+void MeshGeometry::drawMesh(int loc, Matrixf transform, Shader *shader)
 {
 	if (loc != -1)
-	{
-		transform *= mesh->Cmatrix();
 		shader->setMatrix4(loc, 1, GL_FALSE, math::value_ptr(transform));
-	}
-	obj->preRender(shader);
-	glBindVertexArray(obj->vao_);
-	obj->draw();
-	glBindVertexArray(0);
-	obj->postRender(shader);
+	mesh_obj_->preRender(shader);
+	mesh_obj_->bind();
+	mesh_obj_->draw();
+	mesh_obj_->unBind();
+	mesh_obj_->postRender(shader);
 }
 
-int MeshGeometry::setupVertexAttribute(const int fvf)
+int MeshGeometry::setupVertexAttribute()
 {
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	GLuint indx = 1;
-	if (fvf & FVF_NORMAL)
-	{
-		// vertex normals
-		glEnableVertexAttribArray(indx);
-		glVertexAttribPointer(indx, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-		indx += 1;
-	}
-	if (fvf & FVF_TEXT0)
-	{
-		// vertex texture coords
-		glEnableVertexAttribArray(indx);
-		glVertexAttribPointer(indx, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
-		indx += 1;
-	}
-	if (fvf & FVF_TANGENT)
-	{
-		// vertex tangent
-		glEnableVertexAttribArray(indx);
-		glVertexAttribPointer(indx, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-		indx += 1;
-	}
-	if (fvf & FVF_BITANGENT)
-	{
-		// vertex bitangent
-		glEnableVertexAttribArray(indx);
-		glVertexAttribPointer(indx, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
-		indx += 1;
-	}
+	int vesize = Mesh::getVertexElementSize(vertex_type_);
 
-	return indx;
+	int idx = 0;
+	switch (vertex_type_)
+	{
+	case VERTEX_POINTS:
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)0);
+		idx = 1;
+		break;
+	case VERTEX_POINTS_TEXTURE:
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)sizeof(Vertex_P));
+		idx = 2;
+		break;
+	case VERTEX_POINTS_COLOR:
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)sizeof(Vertex_P));
+		idx = 2;
+		break;
+	case VERTEX_POINTS_NORMAL:
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)sizeof(Vertex_P));
+		idx = 2;
+		break;
+	case VERTEX_POINTS_TBN:
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)sizeof(Vertex_P));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)(sizeof(Vertex_P) + 12));
+		idx = 3;
+		break;
+	case VERTEX_POINTS_NORMAL_TEXTURE:
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)sizeof(Vertex_P));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)(sizeof(Vertex_PN)));
+		idx = 3;
+		break;
+	case VERTEX_POINTS_NORMAL_TEXTURE_TBN:
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)sizeof(Vertex_P));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)(sizeof(Vertex_PN)));
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)(sizeof(Vertex_PNT)));
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, vesize, (GLvoid*)(sizeof(Vertex_PNT) + 12));
+		idx = 5;
+		break;
+	default:
+		break;
+	
+	}
+	 
+	return idx;
 }
 
-void MeshGeometry::setupOtherBufferAndVA(int idx)
-{
-
-}

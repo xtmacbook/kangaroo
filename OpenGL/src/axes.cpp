@@ -7,7 +7,8 @@
 #include "log.h"
 #include "gls.h"
 
-AexsGeometry::AexsGeometry():MeshGeometry()
+AexsGeometry::AexsGeometry(IRenderMeshObj_SP rsp) :
+	MeshGeometry(rsp, VERTEX_POINTS_NORMAL)
 {
 
 }
@@ -16,65 +17,61 @@ void AexsGeometry::initGeometry()
 {
 	for (int i = 0; i < meshs_.size(); i++)
 	{
-		Mesh_SP ms = meshs_[i];
-		ms->call_ = DRAW_ELEMENTS;
-		ms->type_ = GL_UNSIGNED_SHORT;
+		Mesh_SP mesh = meshs_[i];
 
-		std::vector<Vertex>& vs = ms->RVertex(0);
-		for (int j = 0; j < vs.size(); j++)
+		for (int j = 0; j < mesh->iSize(); j++)
 		{
-			//因为模型(obj)原因此处修改模型
-			if (i == 0) //x轴
+			Vertex_PN * vs = (Vertex_PN*)mesh->getVertex(j);
+			if (i == 0) //
 			{
-				vs[j].Normal.x = 0.45;
-				vs[j].Normal.y = 0.0;
-				vs[j].Normal.z = 0.0;
+				vs->normal_.x = 0.45;
+				vs->normal_.y = 0.0;
+				vs->normal_.z = 0.0;
 			}
 			else if (i == 1)
 			{
-				vs[j].Normal.x = 0.0;
-				vs[j].Normal.y = 0.45;
-				vs[j].Normal.z = 0.0;
+				vs->normal_.x = 0.0;
+				vs->normal_.y = 0.45;
+				vs->normal_.z = 0.0;
 			}
 			else if (i == 2)
 			{
-				vs[j].Normal.x = 0.0;
-				vs[j].Normal.y = 0.0;
-				vs[j].Normal.z = 0.45;
+				vs->normal_.x = 0.0;
+				vs->normal_.y = 0.0;
+				vs->normal_.z = 0.45;
 			}
 
 			else if (i == 3)
 			{
-				vs[j].Normal.x = 0.9;
-				vs[j].Normal.y = 0.0;
-				vs[j].Normal.z = 0.0;
-				vs[j].Position.x += 1.0;
+				vs->normal_.x = 0.9;
+				vs->normal_.y = 0.0;
+				vs->normal_.z = 0.0;
+				vs->position_.x += 1.0;
 			}
 			else if (i == 4)
 			{
-				vs[j].Normal.x = 0.0;
-				vs[j].Normal.y = 0.9;
-				vs[j].Normal.z = 0.0;
-				vs[j].Position.y += 1.0;
+				vs->normal_.x = 0.0;
+				vs->normal_.y = 0.9;
+				vs->normal_.z = 0.0;
+				vs->position_.y += 1.0;
 			}
 			else if (i == 5)
 			{
-				vs[j].Normal.x = 0.0;
-				vs[j].Normal.y = 0.0;
-				vs[j].Normal.z = 0.9;
-				vs[j].Position.z += 1.0;
+				vs->normal_.x = 0.0;
+				vs->normal_.y = 0.0;
+				vs->normal_.z = 0.9;
+				vs->position_.z += 1.0;
 			}
 			else
-			{ }
+			{
+			}
 		}
 		//此处用normal作为color
-		ms->box().init();
-		ms->computeBox();
-		IRenderMeshObj_SP irmsp = createRenderMeshObj();
-		setupMesh(ms, irmsp);
-		mesh_obj_.push_back(irmsp);
+		mesh->box().init();
+		mesh->computeBox();
 	}
-	computeBoundingBox(NULL);
+
+	setupMesh();
 }
 
 
@@ -82,15 +79,23 @@ IRenderNode_SP  createAxesRenderNode()
 {
 	IO::LModelInfo data;
 	std::string modelPath = get_model_BasePath() + "axes.obj";
- 
+
 	IRenderNode_SP axesNode;
+	SmartPointer<ElementsRenderMeshObj> rsp = new ElementsRenderMeshObj;
+	rsp->call(DRAW_ELEMENTS);
+	rsp->type_ = GL_UNSIGNED_SHORT;
+
 	if (IO::EngineLoad::loadNode(modelPath.c_str(), data))
 	{
-		if (!data.meshs_.empty())
+		if (!data.mapMeshs.empty())
 		{
 			axesNode = new RenderNode;
-			base::SmartPointer<AexsGeometry> mg = new AexsGeometry();
-			mg->meshs_ = data.meshs_;
+			base::SmartPointer<AexsGeometry> mg = new AexsGeometry(rsp);
+			rsp->model(data.mapMeshs.begin()->first); 
+			for each (Mesh_SP mesh in data.mapMeshs.begin()->second)
+			{
+				mg->addMesh(mesh);
+			}
 			mg->initGeometry();
 			if (axesNode)
 				((RenderNode*)axesNode.addr())->setGeometry(mg);
@@ -104,7 +109,7 @@ Shader_SP createAxesRenderNodeShader()
 	//因为obj模型原因此处使用normal作为color
 	char vertShder[] = "#version 330 core \n"
 		"layout(location = 0) in vec3 position;"
-		"layout(location = 1) in vec3 normal;"
+		"layout(location = 1) in vec3 color;"
 
 		"uniform mat4 model;"
 		"uniform mat4 view;"
@@ -114,7 +119,7 @@ Shader_SP createAxesRenderNodeShader()
 		"void main()"
 		"{"
 		"	gl_Position = projection * view * model * vec4(position, 1.0f);"
-		"   vcolor = normal;"
+		"   vcolor = color;"
 		"}";
 
 	char fragShader[] = "#version 330 core \n"
@@ -129,4 +134,4 @@ Shader_SP createAxesRenderNodeShader()
 	axesShader->loadShaderSouce(vertShder, fragShader, NULL);
 	return axesShader;
 }
- 
+

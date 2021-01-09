@@ -27,6 +27,7 @@ namespace base {
 		T* operator->() const { return pT; }
 		T* addr() { return pT; }
 
+		inline bool valid() {return ( pT != 0 ); }
 		SmartPointer<T>& operator=(const SmartPointer<T>& smartP) {
 			return operator=(smartP.pT);
 		}

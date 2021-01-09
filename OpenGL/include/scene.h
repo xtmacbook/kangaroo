@@ -10,7 +10,7 @@
 #define __OpenGL__Scene__
 
 #include "baseScene.h"
-#include "IGeometry.h"
+#include "geometry.h"
 #include "IRenderNode.h"
 #include "shader.h"
 

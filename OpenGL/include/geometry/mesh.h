@@ -14,7 +14,7 @@ using namespace base;
 
 typedef struct
 {
-	unsigned int  count_; 
+	unsigned int  count_;
 	unsigned int  instanceCount_;
 	unsigned int  firstIndex_;
 	unsigned int  baseVertex_;
@@ -28,160 +28,59 @@ typedef  struct {
 	uint  baseInstance_;
 } DrawArraysIndirectCommand;
 
-struct IMesh
+
+class LIBENIGHT_EXPORT IMesh
 {
-	virtual  AABB getBOX()const ;
-	virtual void setBox(const AABB&);
-	inline AABB& box() { return box_; }
-
-	virtual void computeBox() = 0;
-
-	inline int&	RFVF() { return fvf_; }
-	inline int	CFVF()const { return fvf_; }
-
-	inline	const math::Matrixf&		 Cmatrix()const { return matrix_; }
-	inline	math::Matrixf&		 Rmatrix() { return matrix_; }
-
-	inline	const unsigned int mode()const { return mode_; }
-	inline	unsigned int& rmode() { return mode_; }
-
-	math::Matrixf				matrix_ = math::Matrixf(1.0);
-	int							fvf_ = FVF_NONE;
+public:
+	virtual  AABB		getBOX()const;
+	virtual void		setBox(const AABB&);
+	inline AABB&		box() { return box_; }
+	virtual void		computeBox() = 0;
+protected:
 	AABB						box_;
-	unsigned int				mode_;
-	int							type_ = 0;
 };
 
 class LIBENIGHT_EXPORT Mesh :public BaseObject, public IMesh
 {
 public:
 
-	Mesh();
+	Mesh(VERTEX_TYPE vertextype);
+	virtual ~Mesh();
 
-	~Mesh();
+	virtual void		computeBox();
 
-	virtual void computeBox();                                                           
-	
-	void	addVertex(int index, const Vertex&v);
-	void	addVertex(const Vertex&v);
-	void	addIndices(const uint16 i);
-	void	addIndices(int index,const uint16 i);
+	void				addVertex(const Vertex_P*);
+	void				addIndices(uint16);
 
-	inline std::vector<Vertex>& RVertex(const int index) { return vertices_[index]; }
-	inline const std::vector<Vertex>& CVertex(const int index)const { return vertices_[index]; }
+	void				createMesh(int vcount);
 
-	void						clear();
-	inline unsigned int			size()const { return vertices_.size(); }
+	inline uint8*		rVertex() { return vertices_; }
+	inline const uint8* cVertex()const { return vertices_; }
 
-	std::vector<std::vector<Vertex> >				vertices_;
-	std::vector < std::vector<uint16> >				indices_;
-	
-	DrawElementsIndirectCommand*					eIndirectCom_ = NULL;
-	DrawArraysIndirectCommand*						aIndirectCom_ = NULL;
-	short											call_ = DRAW_ARRAYS;
-	uint											numIndirect_ = 0;
-};
-
-template <class VertexX>
-class  MeshX :public BaseObject, public IMesh
-{
-public:
-
-	MeshX();
-	~MeshX();
-	virtual void computeBox();
-	void	addVertex(int index, const VertexX&v);
-	void	addVertex(const VertexX&v);
-	void	addIndices(const uint16 i);
-	void	addIndices(int index, const uint16 i);
-
-	inline std::vector<VertexX>& RVertex(const int index) { return vertices_[index]; }
-	inline const std::vector<VertexX>& CVertex(const int index)const { return vertices_[index]; }
+	inline uint16*		rIndice() { return &indices_[0]; }
+	inline const uint16* cIndice()const { return &indices_[0]; }
 
 	void						clear();
-	inline unsigned int			size()const { return vertices_.size(); }
+	unsigned int				vSize()const;
+	unsigned int				iSize()const;
 
-	std::vector<std::vector<VertexX> >				vertices_;
-	std::vector < std::vector<uint16> >				indices_;
+	static int					getVertexElementSize(VERTEX_TYPE vertex_type);
 
-	DrawElementsIndirectCommand*					eIndirectCom_ = NULL;
-	DrawArraysIndirectCommand*						aIndirectCom_ = NULL;
-	short											call_ = DRAW_ARRAYS;
-	uint											numIndirect_ = 0;
+	uint8* getVertex(int i)const;
+
+private:
+	void* createMeshV(int vcount);
+
+	uint8* vertices_ = nullptr;
+	std::vector<uint16>						indices_;
+
+	int 									vcount_;
+
+	uint8* current_;
+	VERTEX_TYPE								vertex_type_;
 };
 
-template <class VertexX>
-void MeshX<VertexX>::clear()
-{
-	vertices_.clear();
-	indices_.clear();
-	box_.init();
-}
 
-template <class VertexX>
-void MeshX<VertexX>::addIndices(int index, const uint16 i)
-{
-	if (index >= indices_.size()) indices_.push_back(std::vector<uint16>());
-	indices_[index].push_back(i);
-}
-
-template <class VertexX>
-void MeshX<VertexX>::addIndices(const uint16 i)
-{
-	addIndices(0, i);
-}
-
-template <class VertexX>
-void MeshX<VertexX>::addVertex(const VertexX&v)
-{
-	addVertex(0, v);
-}
-
-template <class VertexX>
-void MeshX<VertexX>::addVertex(int index, const VertexX&v)
-{
-	if (index >= vertices_.size()) vertices_.push_back(std::vector<VertexX>());
-	vertices_[index].push_back(v);
-}
-
-template <class VertexX>
-void MeshX<VertexX>::computeBox()
-{
-	std::vector<std::vector<VertexX> > ::const_iterator iter = vertices_.cbegin();
-	for (; iter != vertices_.cend(); iter++)
-	{
-		const std::vector<VertexX>& v = *iter;
-
-		for_each(v.cbegin(), v.cend(), [&](const VertexX&vv) {
-			box_.expandBy(matrix_ * V4f(vv.Position, 1.0));
-		});
-	}
-}
-
-template <class VertexX>
-MeshX<VertexX>::~MeshX()
-{
-
-}
-
-template <class VertexX>
-MeshX<VertexX>::MeshX()
-{
-
-}
-
-
-
-class LIBENIGHT_EXPORT TMesh :public Mesh
-{
-public:
-
-	TMesh();
-	TMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
-	std::vector<unsigned int>			t_indices_; //texture indices
-};
-
-typedef base::SmartPointer<Mesh>	Mesh_SP; 
-typedef base::SmartPointer<TMesh>	TMesh_SP;
+typedef base::SmartPointer<Mesh>	Mesh_SP;
 
 #endif

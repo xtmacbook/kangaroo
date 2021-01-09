@@ -2,7 +2,7 @@
 #include "mesh.h"
 #include "texture.h"
 #include "log.h"
-#include "IGeometry.h"
+#include "geometry.h"
 
 #include <sstream>
 
@@ -35,10 +35,10 @@ void loadMaterialTextures(aiMaterial* mat, aiTextureType type, TEXTURE_TYPE t, M
 			{
 				ts.push_back(new Texture((dir + "/" + str.C_Str()).c_str()));
 				{
-					Mesh* lm = m;
+					/*Mesh* lm = m;
 					TMesh* tm = dynamic_cast<TMesh*>(lm);
 					if (tm)
-						tm->t_indices_.push_back(ts.size() - 1);
+						tm->t_indices_.push_back(ts.size() - 1);*/
 				}
 				ts[ts.size() - 1]->setType(t);
 			}
@@ -46,73 +46,87 @@ void loadMaterialTextures(aiMaterial* mat, aiTextureType type, TEXTURE_TYPE t, M
 	}
 }
 
-void processMesh(aiMesh* mesh, const aiScene* scene, Mesh_SP& m, std::vector<Texture_Sp>& textures, const std::string& dir)
+Mesh_SP processMesh(aiMesh* aimesh, const aiScene* scene, std::vector<Texture_Sp>& textures, const std::string& dir)
 {
-	// data to fill
-	m->rmode() = mesh->mPrimitiveTypes;
 	// Walk through each of the mesh's vertices
-	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+
+	Mesh_SP mesh;
+
+	if (aimesh->mNormals &&
+		aimesh->mTextureCoords[0] &&
+		aimesh->mTangents)
 	{
-		Vertex vertex;
-		V3f point; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
-					// positions
-		m->RFVF() |= FVF_XYZ;
-		point.x = mesh->mVertices[i].x;
-		point.y = mesh->mVertices[i].y;
-		point.z = mesh->mVertices[i].z;
-		vertex.Position = point;
-		// normals
-		if (mesh->mNormals)
+		mesh = new Mesh(VERTEX_POINTS_NORMAL_TEXTURE_TBN);
+		mesh->createMesh(aimesh->mNumVertices);
+		for (unsigned int i = 0; i < aimesh->mNumVertices; i++)
 		{
-			m->RFVF() |= FVF_NORMAL;
-			point.x = mesh->mNormals[i].x;
-			point.y = mesh->mNormals[i].y;
-			point.z = mesh->mNormals[i].z;
-			vertex.Normal = point;
+			Vertex_PNTTBN vertex(
+				V3f(aimesh->mVertices[i].x, aimesh->mVertices[i].y, aimesh->mVertices[i].z),
+				V3f(aimesh->mNormals[i].x, aimesh->mNormals[i].y, aimesh->mNormals[i].z),
+				V2f(aimesh->mTextureCoords[0][i].x, aimesh->mTextureCoords[0][i].y),
+				V3f(aimesh->mTangents[i].x, aimesh->mTangents[i].y, aimesh->mTangents[i].z),
+				V3f(aimesh->mBitangents[i].x, aimesh->mBitangents[i].y, aimesh->mBitangents[i].z)
+			);
+			mesh->addVertex(&vertex);
 		}
-		// texture coordinates
-		if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+	}
+	else if (aimesh->mNormals &&
+		aimesh->mTextureCoords[0])
+	{
+		mesh = new Mesh(VERTEX_POINTS_NORMAL_TEXTURE);
+		mesh->createMesh(aimesh->mNumVertices);
+
+		for (unsigned int i = 0; i < aimesh->mNumVertices; i++)
 		{
-			V2f vec;
-			// a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
-			// use models where a vertex can have multiple texture coordinates so we always take the first set (0).
-			m->RFVF() |= FVF_TEXT0;
-			vec.x = mesh->mTextureCoords[0][i].x;
-			vec.y = mesh->mTextureCoords[0][i].y;
-			vertex.TexCoords = vec;
+			Vertex_PNT vertex(
+				V3f(aimesh->mVertices[i].x, aimesh->mVertices[i].y, aimesh->mVertices[i].z),
+				V3f(aimesh->mNormals[i].x, aimesh->mNormals[i].y, aimesh->mNormals[i].z),
+				V2f(aimesh->mTextureCoords[0][i].x, aimesh->mTextureCoords[0][i].y)
+			);
+			mesh->addVertex(&vertex);
 		}
-		else
-			vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-		if (mesh->mTangents)
+	}
+	else if (aimesh->mTextureCoords[0])
+	{
+		mesh = new Mesh(VERTEX_POINTS_TEXTURE);
+		mesh->createMesh(aimesh->mNumVertices);
+		for (unsigned int i = 0; i < aimesh->mNumVertices; i++)
 		{
-			// tangent
-			m->RFVF() |= FVF_TANGENT;
-			point.x = mesh->mTangents[i].x;
-			point.y = mesh->mTangents[i].y;
-			point.z = mesh->mTangents[i].z;
-			vertex.Tangent = point;
+			Vertex_PT vertex(
+				V3f(aimesh->mVertices[i].x, aimesh->mVertices[i].y, aimesh->mVertices[i].z),
+				V2f(aimesh->mTextureCoords[0][i].x, aimesh->mTextureCoords[0][i].y)
+			);
+			mesh->addVertex(&vertex);
 		}
-		if (mesh->mBitangents)
+	}
+	else if (aimesh->mNormals)
+	{
+		mesh = new Mesh(VERTEX_POINTS_NORMAL);
+		mesh->createMesh(aimesh->mNumVertices);
+
+		for (unsigned int i = 0; i < aimesh->mNumVertices; i++)
 		{
-			// bitangent
-			m->RFVF() |= FVF_BITANGENT;
-			point.x = mesh->mBitangents[i].x;
-			point.y = mesh->mBitangents[i].y;
-			point.z = mesh->mBitangents[i].z;
-			vertex.Bitangent = point;
+			Vertex_PN vertex(
+				V3f(aimesh->mVertices[i].x, aimesh->mVertices[i].y, aimesh->mVertices[i].z),
+				V3f(aimesh->mNormals[i].x, aimesh->mNormals[i].y, aimesh->mNormals[i].z)
+			);
+			mesh->addVertex(&vertex);
 		}
-		m->addVertex(vertex);
+	}
+	else
+	{
+		PRINT_ERROR("load obj and fail to parse the vertex type! \n");
 	}
 	// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
-	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+	for (unsigned int i = 0; i < aimesh->mNumFaces; i++)
 	{
-		aiFace face = mesh->mFaces[i];
+		aiFace face = aimesh->mFaces[i];
 		// retrieve all indices of the face and store them in the indices vector
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
-			m->addIndices(face.mIndices[j]);
+			mesh->addIndices(face.mIndices[j]);
 	}
 	// process materials
-	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+	aiMaterial* material = scene->mMaterials[aimesh->mMaterialIndex];
 	// we assume a convention for sampler names in the shaders. Each diffuse texture should be named
 	// as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
 	// Same applies to other texture as the following list summarizes:
@@ -120,46 +134,46 @@ void processMesh(aiMesh* mesh, const aiScene* scene, Mesh_SP& m, std::vector<Tex
 	// specular: texture_specularN
 	// normal: texture_normalN
 
-	loadMaterialTextures(material, aiTextureType_DIFFUSE, T_DIFFUSE, m, dir, textures);
-	loadMaterialTextures(material, aiTextureType_SPECULAR, T_SPECULAR, m, dir, textures);
-	loadMaterialTextures(material, aiTextureType_HEIGHT, T_NORMAL, m, dir, textures);
-	loadMaterialTextures(material, aiTextureType_AMBIENT, T_HEIGHT, m, dir, textures);
+	loadMaterialTextures(material, aiTextureType_DIFFUSE, T_DIFFUSE, mesh, dir, textures);
+	loadMaterialTextures(material, aiTextureType_SPECULAR, T_SPECULAR, mesh, dir, textures);
+	loadMaterialTextures(material, aiTextureType_HEIGHT, T_NORMAL, mesh, dir, textures);
+	loadMaterialTextures(material, aiTextureType_AMBIENT, T_HEIGHT, mesh, dir, textures);
 
-	m->computeBox();
+	mesh->computeBox();
+
+	return mesh;
 }
 
-
-
-void processNode(aiNode* node, const aiScene* scene, std::vector<Mesh_SP >& meshs, std::vector<Texture_Sp>& textures, const std::string& dir)
+void processNode(aiNode* node, const aiScene* scene, std::vector<Mesh_SP >&meshs,
+	std::vector<unsigned int>&primitive_models, IO::LModelInfo&loadInfo, const std::string& dir)
 {
 	// process each mesh located at the current node
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		// the node object only contains indices to index the actual objects in the scene. 
 		// the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		base::SmartPointer<Mesh> tmp(new TMesh);
-		tmp->call_ = DRAW_ELEMENTS;
-		meshs.push_back(tmp);
-		processMesh(mesh, scene, meshs[meshs.size() - 1], textures, dir);
-
+		aiMesh* aimesh = scene->mMeshes[node->mMeshes[i]];
+		Mesh_SP mesh = processMesh(aimesh, scene, loadInfo.textures_, dir);
+		meshs.push_back(mesh);
+		primitive_models.push_back(aimesh->mPrimitiveTypes);
 	}
 	// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
-		processNode(node->mChildren[i], scene, meshs, textures, dir);
+		processNode(node->mChildren[i], scene, meshs,primitive_models,loadInfo, dir);
 	}
 }
 
 #endif // ENGINE_ASSIMP
 
 
-bool IO::NodeFile::assimpLoadModel(const char* path, LModelInfo& node)
+bool IO::NodeFile::assimpLoadModel(const char* path, LModelInfo& loadInfo)
 {
 #ifdef ENGINE_ASSIMP
 
 	Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs
+		| aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
 	// check for errors
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -171,9 +185,14 @@ bool IO::NodeFile::assimpLoadModel(const char* path, LModelInfo& node)
 	}
 	std::string tp(path);
 	std::string directory = tp.substr(0, tp.find_last_of('/'));
-	// process ASSIMP's root node recursively
 
-	processNode(scene->mRootNode, scene, node.meshs_, node.textures_, directory);
+	std::vector<Mesh_SP > meshs;
+	std::vector<unsigned int>		primitive_models;
+
+	processNode(scene->mRootNode, scene, meshs,primitive_models, loadInfo, directory);
+
+	for (int i = 0; i < primitive_models.size(); i++)
+		loadInfo.mapMeshs[primitive_models[i]].push_back(meshs[i]);
 
 	return true;
 #endif // ENGINE_ASSIMP

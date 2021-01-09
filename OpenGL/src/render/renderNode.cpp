@@ -49,16 +49,6 @@ CommonGeometry_Sp RenderNode::getGeometry()
 	return geometry_;
 }
 
-void RenderNode::bindVAO()
-{
-	if (geometry_) geometry_->bindVAO();
-}
-
-void RenderNode::unBindVAO()
-{
-	if (geometry_) geometry_->unBindVAO();
-}
-
 void RenderNode::loadTextures()
 {
 	std::vector<Texture_Sp>::iterator iter = textures_.begin();

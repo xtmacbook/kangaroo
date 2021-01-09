@@ -13,7 +13,8 @@ set(libengines_base_files
 	${Engine_SOURCE_DIR}/OpenGL/src/base/filter.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/base/debug.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/base/str.cpp 
-	
+	${Engine_SOURCE_DIR}/OpenGL/src/base/vertex.cpp 
+
 	${Engine_SOURCE_DIR}/OpenGL/include/base/image.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/color.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/BaseObject.h
@@ -35,7 +36,7 @@ set(libengines_base_files
 	${Engine_SOURCE_DIR}/OpenGL/include/base/dataQueue.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/debug.h
 	${Engine_SOURCE_DIR}/OpenGL/include/base/str.h
-	
+	${Engine_SOURCE_DIR}/OpenGL/include/base/vertex.h
 )
 
 set(libengines_math_files
@@ -80,7 +81,7 @@ set(libengines_geometry_files
 	${Engine_SOURCE_DIR}/OpenGL/src/geometry/geometry.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/geometry/mesh.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/geometry/dynamicMesh.cpp 
-	${Engine_SOURCE_DIR}/OpenGL/include/geometry/IGeometry.h
+	${Engine_SOURCE_DIR}/OpenGL/include/geometry/geometry.h
 	${Engine_SOURCE_DIR}/OpenGL/include/geometry/mesh.h
 	${Engine_SOURCE_DIR}/OpenGL/include/geometry/dynamicMesh.h
 )
@@ -172,7 +173,7 @@ set(libengines_files
 	${Engine_SOURCE_DIR}/OpenGL/src/window.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/framebuffers.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/stateSet.cpp
-	${Engine_SOURCE_DIR}/OpenGL/src/media/ad.cpp
+	${Engine_SOURCE_DIR}/OpenGL/src/media/ad.cpp	
 )
 
 set(libengines_include
@@ -200,7 +201,6 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/glinter.h
 	${Engine_SOURCE_DIR}/OpenGL/include/win32_platform.h
 	${Engine_SOURCE_DIR}/OpenGL/include/glu.h
-	${Engine_SOURCE_DIR}/OpenGL/include/vertex.h
 	${Engine_SOURCE_DIR}/OpenGL/include/framebuffers.h 
 	${Engine_SOURCE_DIR}/OpenGL/include/common.h
 	${Engine_SOURCE_DIR}/OpenGL/include/util.h

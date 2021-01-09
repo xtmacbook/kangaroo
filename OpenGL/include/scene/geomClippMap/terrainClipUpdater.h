@@ -4,7 +4,7 @@
 #include "decl.h"
 #include "rasterUpdater.h"
 #include "smartPointer.h"
-#include "IGeometry.h"
+#include "geometry.h"
 
 class Texture;
 class Quad;
