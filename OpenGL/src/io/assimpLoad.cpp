@@ -33,13 +33,7 @@ void loadMaterialTextures(aiMaterial* mat, aiTextureType type, TEXTURE_TYPE t, M
 
 			if (!skip)
 			{
-				ts.push_back(new Texture((dir + "/" + str.C_Str()).c_str()));
-				{
-					/*Mesh* lm = m;
-					TMesh* tm = dynamic_cast<TMesh*>(lm);
-					if (tm)
-						tm->t_indices_.push_back(ts.size() - 1);*/
-				}
+				m->setTextureIndices(ts.size() - 1);
 				ts[ts.size() - 1]->setType(t);
 			}
 		}
