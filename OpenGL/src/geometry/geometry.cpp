@@ -22,6 +22,11 @@ CommonGeometry::~CommonGeometry()
 {
 }
 
+void CommonGeometry::preDraw(Shader*)
+{
+
+}
+
 const base::BoundingBox& CommonGeometry::boundingBox() const
 {
 	return box_;
@@ -45,11 +50,20 @@ void CommonGeometry::updateModelMatix(const Matrixf&m)
 MeshGeometry::MeshGeometry(IRenderMeshObj_SP obj, VERTEX_TYPE vt) 
 	:CommonGeometry(false),mesh_obj_(obj), vertex_type_(vt)
 {
-
+	obj->setGeoemtry(this);
 }
 
 MeshGeometry::~MeshGeometry()
 {
+}
+
+void MeshGeometry::preDraw(Shader*shader)
+{
+	std::vector<Mesh_SP>::iterator iter = meshs_.begin();
+	for (; iter != meshs_.end(); iter++)
+	{
+		(*iter)->preDraw(shader);
+	}
 }
 
 void MeshGeometry::initGeometry()
@@ -84,6 +98,26 @@ void MeshGeometry::computeBoundingBox(void *)
 void MeshGeometry::addMesh(Mesh_SP mesh)
 {
 	meshs_.push_back(mesh);
+}
+
+unsigned int MeshGeometry::meshSize() const
+{
+	return meshs_.size();
+}
+
+Mesh_SP MeshGeometry::getMesh(int i) const
+{
+	assert(i < meshs_.size());
+	return meshs_[i];
+}
+
+void MeshGeometry::clearMesh()
+{
+	for each (Mesh_SP mesh in meshs_)
+	{
+		mesh->clear();
+	}
+	meshs_.clear();
 }
 
 void MeshGeometry::setupMesh()
@@ -147,50 +181,62 @@ void MeshGeometry::setupMesh()
 		obj->basevertex_ = new int[meshNum]; //delete
 		obj->count_ = new int[meshNum]; //delete
 		obj->drawcount_ = meshNum;
-		obj->indices_ = (void**)new uint16 *[meshNum];//uint16 type->GL_UNSIGNED_SHORT //delete
+		obj->indices_ = (void**)new int32 *[meshNum];//uint16 type->GL_UNSIGNED_SHORT //delete
 
 		Mesh_SP mesh;
 		for (int i = 0; i < meshNum; i++)
 		{
 			mesh = meshs_[i];
-			indicesNum += mesh->iSize();
 			vertexNum += meshs_[i]->vSize();
 			obj->count_[i] = mesh->iSize();
-			obj->indices_[i] = BUFFER_OFFSET(indicesNum * sizeof(uint16));
+			obj->indices_[i] = BUFFER_OFFSET(indicesNum * sizeof(int32));
+			indicesNum += mesh->iSize();
 		}
 
 		int vesize = Mesh::getVertexElementSize(vertex_type_);
-		uint8 * vertexData = new uint8[vesize* vertexNum]; 
-		uint16 * indicesData = new uint16[indicesNum];
-		
-		uint8* tempVertexData = vertexData;
-		UINT16 * tempIndiceData = indicesData;
+		int32 * indicesData = new int32[indicesNum];
+		int32 * tempIndiceData = indicesData;
 
 		for (int i = 0; i < meshNum; i++)
 		{
 			Mesh_SP mesh = meshs_[i];
 
-			if(mesh->vSize() > 0) memcpy(tempVertexData, mesh->cVertex(), mesh->vSize() * vesize);
-			memcpy(tempIndiceData, mesh->cIndice(), mesh->iSize() * sizeof(uint16));
-
-			tempVertexData += mesh->vSize() * vesize;
+			memcpy(tempIndiceData, mesh->cIndice(), mesh->iSize() * sizeof(int32));
 			tempIndiceData += mesh->iSize();
-
 			obj->basevertex_[i] = (i == 0) ?  0 : (obj->basevertex_[i - 1] + mesh->vSize());
 		}
  
+		uint8 * vertexData = nullptr;
+		if (vertexNum > 0)
+		{
+			vertexData = new uint8[vesize* vertexNum];
+			uint8* tempVertexData = vertexData;
+			for (int i = 0; i < meshNum; i++)
+			{
+				Mesh_SP mesh = meshs_[i];
+
+				if (mesh->vSize() > 0) memcpy(tempVertexData, mesh->cVertex(), mesh->vSize() * vesize);
+				tempVertexData += mesh->vSize() * vesize;
+				obj->basevertex_[i] = (i == 0) ? 0 : (obj->basevertex_[i - 1] + mesh->vSize());
+			}
+		}
 
 		glGenBuffers(1, &obj->indices_vbo_);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj->indices_vbo_);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16) * indicesNum, indicesData, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int32) * indicesNum, indicesData, GL_STATIC_DRAW);
 
-		glGenBuffers(1, &obj->pos_vbo_);
-		glBindBuffer(GL_ARRAY_BUFFER, obj->pos_vbo_);
-		glBufferData(GL_ARRAY_BUFFER, vertexNum * vesize, vertexData, GL_STATIC_DRAW);
-
-		setupVertexAttribute();
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		if (vertexNum > 0)
+		{
+			glGenBuffers(1, &obj->pos_vbo_);
+			glBindBuffer(GL_ARRAY_BUFFER, obj->pos_vbo_);
+			glBufferData(GL_ARRAY_BUFFER, vertexNum * vesize, vertexData, GL_STATIC_DRAW);
+		}
+		if (vertexNum > 0)
+		{
+			setupVertexAttribute();
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		SAFTE_DELETE_ARRAY(vertexData);
 		SAFTE_DELETE_ARRAY(indicesData);
@@ -340,7 +386,6 @@ int MeshGeometry::setupVertexAttribute()
 		break;
 	
 	}
-	 
 	return idx;
 }
 
