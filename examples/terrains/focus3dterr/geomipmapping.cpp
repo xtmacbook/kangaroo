@@ -1,5 +1,5 @@
+#include <dynamicMesh.h>
 #include "geomipmapping.h"
-#include "dynamicMesh.h"
 #include <camera.h>
 
 extern void clearColor();
@@ -51,22 +51,12 @@ bool Cgeomipmapping::init(int patchSize)
 	return true;
 }
 
-MeshGeometry_Sp Cgeomipmapping::initGeometry()
+MeshGeometry_Sp Cgeomipmapping::initGeometry(IRenderMeshObj_SP rsp)
 {
-	base::SmartPointer<DynamicMeshGeoemtry> mg = new DynamicMeshGeoemtry(2,1248 * 1248,1248 * 1248);
-	mg->RFVF() |= FVF_XYZ;
-	mg->RFVF() |= FVF_NORMAL; //for calor
-	mg->RFVF() |= FVF_TEXT0;
+	rsp->model(GL_TRIANGLE_FAN);
+	base::SmartPointer<DynamicMeshGeoemtry> mg = new DynamicMeshGeoemtry(2,1248 * 1248,1248 * 1248,rsp);
 	mg->initGeometry();
-
-	Mesh_SP mesh = new Mesh;
-	mesh->rmode() = GL_TRIANGLE_FAN;
-	mesh->RFVF() |= FVF_XYZ;
-	mg->RFVF() |= FVF_NORMAL; //for calor
-	mesh->RFVF() |= FVF_TEXT0;
-	mesh->call_ = DRAW_ARRAYS;
-	mg->addMesh(mesh);
-
+	mg->addMesh(new Mesh(VERTEX_POINTS_NORMAL_TEXTURE));
 	return mg;
 }
  
@@ -82,10 +72,9 @@ void Cgeomipmapping::updateGeometry(CameraBase*camera, CommonGeometry_Sp geo)
 
 
 	DynamicMeshGeoemtry* dGeo = (DynamicMeshGeoemtry*)(geo.addr());
-	Mesh_SP mesh = dGeo->meshs_[0];
-	mesh->clear();
-	int x, z;
+	dGeo->clearMesh();
 
+	int x, z;
 
 	for (z = 0; z < m_iNumPatchesPerSide; z++)
 	{
@@ -96,11 +85,13 @@ void Cgeomipmapping::updateGeometry(CameraBase*camera, CommonGeometry_Sp geo)
 			V3f color =  getPatchColor(iLOD);
 			if (m_pPatches[getPatchNumber(x, z)].m_bVisible)
 			{
-				updatePatch(x, z,mesh, color);
+				updatePatch(x, z,dGeo, color);
 				m_iPatchesPerFrame++;
 			}
 		}
 	}
+
+	dGeo->setupMesh();
 }
 
 void Cgeomipmapping::render()
@@ -174,7 +165,7 @@ void Cgeomipmapping::updatePatchLod(const CameraBase*camera,bool bCullPatches)
 	}
 }
 
-void Cgeomipmapping::updatePatch(int PX, int PZ, Mesh_SP mesh,V3f color)
+void Cgeomipmapping::updatePatch(int PX, int PZ, DMeshGeometry_Sp dGeo,V3f color)
 {
 	Sgeomm_neighbor patchNeighbor;
 	Sgeomm_neighbor fanNeighbor;
@@ -260,8 +251,10 @@ void Cgeomipmapping::updatePatch(int PX, int PZ, Mesh_SP mesh,V3f color)
 				fanNeighbor.m_bUp = true;
 
 			//render the triangle fan
+			Mesh_SP mesh = new Mesh(VERTEX_POINTS_NORMAL_TEXTURE);
 			updateFan((PX*m_iPatchSize) + x, (PZ*m_iPatchSize) + z,
 				fSize, fanNeighbor,mesh,color);
+			dGeo->addMesh(mesh);
 		}
 	}
 }
@@ -280,90 +273,97 @@ void Cgeomipmapping::updateFan(float cX, float cZ, float fSize, Sgeomm_neighbor 
 	fMidX = ((fTexLeft + fTexRight) / 2);
 	fMidZ = ((fTexBottom + fTexTop) / 2);
 
-	unsigned int current_vertexNum = mesh->size();
+	std::vector<Vertex_PNT> Points;
 	float x, z;
-	Vertex v;
+	Vertex_PNT v;
 
 	x = cX; z = cZ;
-	v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-	v.Normal = color;
-	v.TexCoords = V2f(fMidX, fMidZ);
-	mesh->addVertex(current_vertexNum,v);
+	v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+	v.normal_ = color;
+	v.texCoords_ = V2f(fMidX, fMidZ);
+	Points.push_back(v);
 
 	//render the LOWER-LEFT vertex
 	x = cX - fHalfSize; z = cZ - fHalfSize;
-	v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-	v.Normal = color;
-	v.TexCoords = V2f(fTexLeft, fTexBottom);
-	mesh->addVertex(current_vertexNum,v);
+	v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+	v.normal_ = color;
+	v.texCoords_ = V2f(fTexLeft, fTexBottom);
+	Points.push_back(v);
+
 
 	//only render the next vertex if the left patch is NOT of a lower LOD
 	if (neighbor.m_bLeft)
 	{
 		x = cX - fHalfSize; z = cZ;
-		v.Normal = color;
-		v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-		v.TexCoords = V2f(fTexLeft, fMidZ);
-		mesh->addVertex(current_vertexNum,v);
+		v.normal_ = color;
+		v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+		v.texCoords_ = V2f(fTexLeft, fMidZ);
+		Points.push_back(v);
 	}
 
 	//render the UPPER-LEFT vertex
 	x = cX - fHalfSize; z = cZ + fHalfSize;
-	v.Normal = color;
-	v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-	v.TexCoords = V2f(fTexLeft, fTexTop);
-	mesh->addVertex(current_vertexNum,v);
+	v.normal_ = color;
+	v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+	v.texCoords_ = V2f(fTexLeft, fTexTop);
+	Points.push_back(v);
 
 	//only render the next vertex if the upper patch is NOT of a lower LOD
 	if (neighbor.m_bUp)
 	{
 		x = cX; z = cZ + fHalfSize;
-		v.Normal = color;
-		v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-		v.TexCoords = V2f(fMidX, fTexTop);
-		mesh->addVertex(current_vertexNum,v);
+		v.normal_ = color;
+		v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+		v.texCoords_ = V2f(fMidX, fTexTop);
+		Points.push_back(v);
 	}
 
 	//render the UPPER-RIGHT vertex
 	x = cX + fHalfSize; z = cZ + fHalfSize;
-	v.Normal = color;
-	v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-	v.TexCoords = V2f(fTexRight, fTexTop);
-	mesh->addVertex(current_vertexNum,v);
+	v.normal_ = color;
+	v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+	v.texCoords_ = V2f(fTexRight, fTexTop);
+	Points.push_back(v);
 
 	//only render the next vertex if the right patch is NOT of a lower LOD
 	if (neighbor.m_bRight)
 	{
 		//render the MID-RIGHT vertex
 		x = cX + fHalfSize; z = cZ ;
-		v.Normal = color;
-		v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-		v.TexCoords = V2f(fTexRight, fMidZ);
-		mesh->addVertex(current_vertexNum,v);
+		v.normal_ = color;
+		v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+		v.texCoords_ = V2f(fTexRight, fMidZ);
+		Points.push_back(v);
 	}
 
 	//render the LOWER-RIGHT vertex
 	x = cX + fHalfSize; z = cZ - fHalfSize;
-	v.Normal = color;
-	v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-	v.TexCoords = V2f(fTexRight, fTexBottom);
-	mesh->addVertex(current_vertexNum,v);
+	v.normal_ = color;
+	v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+	v.texCoords_ = V2f(fTexRight, fTexBottom);
+	Points.push_back(v);
 
 	//only render the next vertex if the bottom patch is NOT of a lower LOD
 	if (neighbor.m_bDown)
 	{
 		//render the LOWER-MID vertex
 		x = cX; z = cZ - fHalfSize;
-		v.Normal = color;
-		v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-		v.TexCoords = V2f(fMidX, fTexBottom);
-		mesh->addVertex(current_vertexNum,v);
+		v.normal_ = color;
+		v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+		v.texCoords_ = V2f(fMidX, fTexBottom);
+		Points.push_back(v);
 	}
 
 	//render the LOWER-LEFT vertex
 	x = cX - fHalfSize; z = cZ - fHalfSize;
-	v.Normal = color;
-	v.Position = V3f(x, getScaledHeightAtPoint(x, z), z);
-	v.TexCoords = V2f(fTexLeft, fTexBottom);
-	mesh->addVertex(current_vertexNum,v);
+	v.normal_ = color;
+	v.position_ = V3f(x, getScaledHeightAtPoint(x, z), z);
+	v.texCoords_ = V2f(fTexLeft, fTexBottom);
+	Points.push_back(v);
+
+	mesh->createMesh(Points.size());
+	for each (Vertex_PNT p in Points)
+	{
+		mesh->addVertex(&p);
+	}
 }
