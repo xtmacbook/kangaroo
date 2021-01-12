@@ -67,3 +67,14 @@ void RenderNode::loadTextures()
 	}
 }
 
+void RenderNode::textures(std::vector<Texture_Sp>&ts)
+{
+	textures_ = ts;
+}
+
+Texture_Sp RenderNode::textures(int i) const
+{
+	assert(i < textures_.size());
+	return textures_[i];
+}
+
