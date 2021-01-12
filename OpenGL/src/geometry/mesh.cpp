@@ -38,7 +38,7 @@ void Mesh::addVertex(const Vertex_P* vertex)
 }
 
 
-void Mesh::addIndices(uint16 indice)
+void Mesh::addIndices(int32 indice)
 {
 	indices_.push_back(indice);
 }
@@ -61,7 +61,11 @@ void Mesh::clear()
 	uint8* vd = (uint8*)vertices_;
 	delete[] vd;
 	box_.init();
-	//fvf_ = FVF_NONE;
+	indices_.clear();
+	vcount_ = 0;
+	current_ = nullptr;
+
+	t_indices_ = -1; //texture indices
 }
 
 
@@ -108,4 +112,19 @@ uint8* Mesh::getVertex(int i) const
 	uint8* p8 = (uint8*)vertices_;
 	p8 += i * vertexSize;
 	return p8;
+}
+
+void Mesh::setTextureIndices(int i)
+{
+	t_indices_ = i;
+}
+
+int Mesh::textureIndic() const
+{
+	return t_indices_;
+}
+
+void Mesh::preDraw(Shader*shader)
+{
+
 }
