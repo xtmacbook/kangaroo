@@ -1,4 +1,5 @@
 #include "brute_force.h"
+#include <dynamicMesh.h>
 #include "geomipmapping.h"
 
 #include "scene.h"
@@ -15,7 +16,6 @@
 #include <callback.h>
 #include <text.h>
 #include <gls.h>
-#include <dynamicMesh.h>
 #include <glinter.h>
 //from Foucs 3d terrain book
 class TerrainScene :public Scene
@@ -34,6 +34,7 @@ public:
 	Cbrute_force_terrain			bruteForce_terrain_;
 	Cgeomipmapping					geoMapping_terrain_;
 
+	MeshGeometry_Sp					meshGeometry_ = nullptr;
 	bool							brute_ = false;
 };
 
@@ -47,27 +48,29 @@ bool TerrainScene::initSceneModels(const SceneInitInfo&)
 	if (brute_)
 	{
 		bruteForce_terrain_.initHightMap();
-		MeshGeometry_Sp meshGeometry = bruteForce_terrain_.initGeometry();
+		IRenderMeshObj_SP  renderMesh = new ArraysRenderMeshObj;
+		meshGeometry_ = bruteForce_terrain_.initGeometry(renderMesh);
 		if (renderNodeNum() == 0)
 		{
 			RenderNode_SP rn = new RenderNode;
-			if (rn) rn->setGeometry(meshGeometry);
+			if (rn) rn->setGeometry(meshGeometry_);
 			addRenderNode(rn);
 		}
 		else
 		{
-			((RenderNode*)getRenderNode(0).addr())->setGeometry(meshGeometry);
+			((RenderNode*)getRenderNode(0).addr())->setGeometry(meshGeometry_);
 		}
 
 		bruteForce_terrain_.initTexture();
 	}
 	else
 	{
+		IRenderMeshObj_SP  renderMesh = new ArraysRenderMeshObj;
 		geoMapping_terrain_.initHightMap();
 		geoMapping_terrain_.initTexture();
-		MeshGeometry_Sp meshGeometry = geoMapping_terrain_.initGeometry();
+		meshGeometry_ = geoMapping_terrain_.initGeometry(renderMesh);
 		RenderNode_SP rn = new RenderNode;
-		if (rn) rn->setGeometry(meshGeometry);
+		if (rn) rn->setGeometry(meshGeometry_);
 		addRenderNode(rn);
 		bool result = geoMapping_terrain_.init(17);
 		return result;
@@ -162,12 +165,7 @@ bool TerrainScene::update()
 {
 	if (!brute_)
 	{
-		CHECK_GL_ERROR;
-		CommonGeometry_Sp geo = ((RenderNode*)getRenderNode(0).addr())->getGeometry();
-		DynamicMeshGeoemtry* dGeo = (DynamicMeshGeoemtry*)(geo.addr());
-		Mesh_SP mesh = dGeo->meshs_[0];
-		mesh->clear();
-		geoMapping_terrain_.updateGeometry(getCamera(), geo);
+		geoMapping_terrain_.updateGeometry(getCamera(), meshGeometry_);
 	}
 
 	Scene::update();
