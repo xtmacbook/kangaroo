@@ -36,6 +36,7 @@ public:
 	CommonGeometry(bool update = false);
 	virtual ~CommonGeometry();
 
+	virtual	void preDraw(Shader*);
 	virtual void updateGeometry(const CameraBase* camera);
 	virtual void initGeometry() = 0;
 	virtual void drawGeoemtry(const DrawInfo&) = 0;
@@ -57,14 +58,17 @@ public:
 	MeshGeometry(IRenderMeshObj_SP, VERTEX_TYPE);
 	virtual ~MeshGeometry();
 
+	virtual	void preDraw(Shader*);
 	virtual void initGeometry();
 	virtual void drawGeoemtry(const DrawInfo&);
 	virtual void computeBoundingBox(void*);
+	virtual void clearMesh();
+	virtual void setupMesh();
 
 	void		 addMesh(Mesh_SP);
-
+	unsigned int meshSize()const;
+	Mesh_SP		 getMesh(int i)const;
 protected:
-	virtual void setupMesh();
 	virtual void drawMesh(int, Matrixf, Shader*);
 	virtual int  setupVertexAttribute();
 
