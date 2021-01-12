@@ -17,7 +17,7 @@
 #include "geometry.h"
 #include <glinter.h>
 #include <glQuery.h>
-
+#include <comShader.h>
 /**
  * test opengl Draw Api:
 	glDrawElements								 (GLenum mode, GLsizei count, GLenum type, const void*indices)
@@ -152,9 +152,13 @@ protected:
 	virtual void					render(PassInfo&);
 	virtual bool					initShader(const SceneInitInfo&);
 public:
-	Shader * shader ;
 
+	Shader * shader ;
+	Shader_SP  sphereShader;
 };
+
+#define  SPHERE_MERIDIAN_SLICES_NUM 128
+#define  SPHERE_PARALLEL_SLICES_NUM 128
 
 bool DrawScene::initSceneModels(const SceneInitInfo&)
 {
@@ -180,23 +184,26 @@ bool DrawScene::initSceneModels(const SceneInitInfo&)
 	quadNode->setGeometry(mg);
 	addRenderNode(quadNode);
 
-	IRenderNode_SP	sphere_ = getSphereRenderNode(V3f(0.0, 0.0, 0.0), 1.0, false);
+	IRenderNode_SP		sphere_ = getSphereRenderNode(V3f(0.0, 0.0, 0.0), 1.0, false);
 	addRenderNode(sphere_);
 
 	return true;
 }
 
+
 void DrawScene::render(PassInfo&info)
 {
 	shader->turnOn();
-
 	initUniformVal(shader);
-
 	getRenderNode(0)->render(shader, info);
-	//getRenderNode(1)->render(shader, info);
-
 	shader->turnOff();
 
+	sphereShader->turnOn();
+	initUniformVal(sphereShader);
+	getRenderNode(1)->render(sphereShader, info);
+	sphereShader->turnOff();
+
+	 
 	CHECK_GL_ERROR;
 }
 
@@ -218,6 +225,7 @@ bool DrawScene::initShader(const SceneInitInfo&)
 		"	gl_Position = projection * view * model * vec4(position, 1.0f);"
 		"}";
 
+
 	char fragShader[] = "#version 330 core \n"
 		"out vec4 color;"
 		"void main()"
@@ -226,7 +234,13 @@ bool DrawScene::initShader(const SceneInitInfo&)
 		"}";
 
 	shader->loadShaderSouce(vertShder, fragShader, NULL);
-	
+
+	sphereShader = createSphereShader();
+
+	sphereShader->addShader(Shader::FRAGMENT, fragShader, false);
+	sphereShader->linkProgram();
+	sphereShader->checkProgram();
+	CHECK_GL_ERROR;
 	return true;
 }
 
@@ -238,6 +252,7 @@ int main()
 	g_scene = scene;
 
 	Camera *pCamera = new Camera();
+	pCamera->setDollyScale(0.08f);
 	scene->setMasterCamera(pCamera);
 	WindowManager *pWindowManager = new WindowManager();
 
