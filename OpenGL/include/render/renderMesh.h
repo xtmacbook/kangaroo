@@ -9,6 +9,7 @@ class Shader;
 
 using namespace base;
  
+class CommonGeometry;
 struct LIBENIGHT_EXPORT IRenderMeshObj :public base::BaseObject
 {
 
@@ -31,6 +32,7 @@ struct LIBENIGHT_EXPORT IRenderMeshObj :public base::BaseObject
 	void			call(short);
 	inline short	call()const {return call_;}
 	void			model(unsigned int);
+	void			setGeoemtry(CommonGeometry* g);
 
 protected:
 	short						call_ = DRAW_ARRAYS;
@@ -38,6 +40,7 @@ protected:
 
 private:
 	unsigned int vao_ = 0;
+	CommonGeometry*		geometry_ = nullptr;
 };
 
 //for only one not for mult
