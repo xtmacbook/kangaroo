@@ -4,5 +4,5 @@
 #include "shader.h"
 
 LIBENIGHT_EXPORT Shader_SP createHudShader();
-
+LIBENIGHT_EXPORT Shader_SP createSphereShader();
 #endif
