@@ -1,7 +1,7 @@
 
 #ifndef _terrain_h_
 #define  _terrain_h_
-#include <IGeometry.h>
+#include <geometry.h>
 #include <texture.h>
 
 #define TRN_NUM_TILES 5
@@ -40,7 +40,7 @@ public:
 	Cterrain();
 	virtual ~Cterrain();
 
-	virtual MeshGeometry_Sp initGeometry() = 0;
+	virtual MeshGeometry_Sp initGeometry(IRenderMeshObj_SP) = 0;
 	virtual void		    initHightMap();
 	virtual void		    initTexture();
 
