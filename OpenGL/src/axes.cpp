@@ -83,7 +83,7 @@ IRenderNode_SP  createAxesRenderNode()
 	IRenderNode_SP axesNode;
 	SmartPointer<ElementsRenderMeshObj> rsp = new ElementsRenderMeshObj;
 	rsp->call(DRAW_ELEMENTS);
-	rsp->type_ = GL_UNSIGNED_SHORT;
+	rsp->type_ = GL_UNSIGNED_INT;
 
 	if (IO::EngineLoad::loadNode(modelPath.c_str(), data))
 	{
