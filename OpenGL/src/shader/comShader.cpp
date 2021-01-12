@@ -15,3 +15,10 @@ Shader_SP createHudShader()
 
 	return hudShader;
 }
+
+LIBENIGHT_EXPORT Shader_SP createSphereShader()
+{
+	Shader_SP sphere = new Shader;
+	sphere->addShader(Shader::VERTEX, "common/sphere.vert",true);
+	return sphere;
+}
