@@ -12,15 +12,16 @@ public:
 	virtual void postRender();
 	virtual void initGeometry();
 	virtual void updateGeometry(const CameraBase* camera);
-	void		 clearMesh();
+	virtual void clearMesh();
+	virtual void setupMesh();
+
 	inline int& RFVF() { return FVF_; }
 
 	void     cpu2GpuTime(uint64*, uint64*);
 	void     swapQueryTime();
 
-	typedef Vertex_PT  Vertex;
-protected:
-	virtual void setupMesh();
+	typedef Vertex_PNT  Vertex;
+
 protected:
 
 	FlashBuffer<Vertex>* vertexBuffer_ = NULL;
@@ -32,7 +33,6 @@ protected:
 	int							buffer_mode_;
 	unsigned					vertices_buffer_pool_size_;
 	unsigned					indices_buffer_pool_size_;
-	unsigned					vertices_size_ = 0;
 
 	unsigned					current_v_index_ = 0;
 	unsigned					current_i_index_ = 0;
