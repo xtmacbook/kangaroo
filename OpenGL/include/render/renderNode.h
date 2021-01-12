@@ -21,12 +21,13 @@ public:
 	CommonGeometry_Sp			getGeometry();
 
 	void					    loadTextures();
+	void						textures(std::vector<Texture_Sp>&);
+	Texture_Sp					textures(int i)const;
 	//static	IRenderNode_SP		loadFromFile(const char*file);
 
+protected:
 	CommonGeometry_Sp			geometry_;
-
 	std::vector<Texture_Sp>		textures_;
-
 };
 typedef SmartPointer<RenderNode> RenderNode_SP;
 
