@@ -332,3 +332,4 @@ CubGeometry::CubGeometry(const V3f& centerPos, float scale, IRenderMeshObj_SP rs
 	}
 	addMesh(mesh);
 }
+ 

@@ -40,18 +40,25 @@ private:
 	float width_, height_, texCoordz_;
 };
 
+class CubGeometry :public MeshGeometry
+{
+public:
+	CubGeometry(const V3f& centerPos, float scale, IRenderMeshObj_SP rsp);
+};
+
 class SphereGeoemtry : public MeshGeometry
 {
 public:
 	typedef Vertex_P Vertex;
-	virtual void drawGeoemtry(const DrawInfo&);
 
+	virtual void computeBoundingBox(void*);
 	SphereGeoemtry(V3f pos, float scale, IRenderMeshObj_SP);
 
 	static Shader_SP	getShader();
 private:
 	static Shader_SP  sphereShader_;
-
+	V3f pos_;
+	float scale_;
 };
 
 class QuadGeometry :public MeshGeometry
