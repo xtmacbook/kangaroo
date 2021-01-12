@@ -32,7 +32,7 @@ class Cgeomipmapping :public Cterrain
 public:
 
 	bool					init(int patchSize);
-	virtual MeshGeometry_Sp initGeometry();
+	virtual MeshGeometry_Sp initGeometry(IRenderMeshObj_SP rsp);
 	void					updateGeometry(CameraBase*, CommonGeometry_Sp);
 	virtual void			render() ;
 
@@ -43,7 +43,7 @@ public:
 
 private:
 	void					updatePatchLod(const CameraBase*,bool bCullPatches);
-	void					updatePatch(int x, int z, Mesh_SP, V3f color);
+	void					updatePatch(int x, int z, DMeshGeometry_Sp, V3f color);
 	void					updateFan(float cX, float cZ, float fSize, Sgeomm_neighbor neighbor, Mesh_SP, V3f color);
 private:
 	Sgeomm_patch* m_pPatches;
