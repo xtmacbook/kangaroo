@@ -5,7 +5,7 @@
 
 DynamicMeshGeoemtry::DynamicMeshGeoemtry(int flag, unsigned verticesSize, unsigned indiceSize,
 	IRenderMeshObj_SP robj) :
-	MeshGeometry(robj, VERTEX_POINTS_TEXTURE),
+	MeshGeometry(robj, VERTEX_POINTS_NORMAL_TEXTURE),
 	buffer_mode_(flag),
 	vertices_buffer_pool_size_(verticesSize),
 	indices_buffer_pool_size_(indiceSize)
@@ -77,7 +77,10 @@ void DynamicMeshGeoemtry::updateGeometry(const CameraBase* camera)
 
 void DynamicMeshGeoemtry::clearMesh()
 {
-	meshs_.clear();
+	MeshGeometry::clearMesh();
+
+	current_v_index_ = 0;
+	current_i_index_ = 0;
 }
 
 void DynamicMeshGeoemtry::cpu2GpuTime(uint64* vt, uint64* it)
