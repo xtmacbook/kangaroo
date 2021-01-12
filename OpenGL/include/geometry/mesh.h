@@ -12,6 +12,7 @@
 using namespace math;
 using namespace base;
 
+class Shader;
 typedef struct
 {
 	unsigned int  count_;
@@ -50,34 +51,40 @@ public:
 	virtual void		computeBox();
 
 	void				addVertex(const Vertex_P*);
-	void				addIndices(uint16);
+	void				addIndices(int32);
 
 	void				createMesh(int vcount);
 
 	inline uint8*		rVertex() { return vertices_; }
 	inline const uint8* cVertex()const { return vertices_; }
 
-	inline uint16*		rIndice() { return &indices_[0]; }
-	inline const uint16* cIndice()const { return &indices_[0]; }
+	inline int32*		rIndice() { return &indices_[0]; }
+	inline const int32* cIndice()const { return &indices_[0]; }
 
 	void						clear();
 	unsigned int				vSize()const;
 	unsigned int				iSize()const;
-
 	static int					getVertexElementSize(VERTEX_TYPE vertex_type);
 
-	uint8* getVertex(int i)const;
+	uint8*						getVertex(int i)const;
+	void						setTextureIndices(int);
+
+	int							textureIndic()const;
+
+	virtual	void				preDraw(Shader*);
 
 private:
 	void* createMeshV(int vcount);
 
 	uint8* vertices_ = nullptr;
-	std::vector<uint16>						indices_;
+	std::vector<int32>						indices_;
 
-	int 									vcount_;
+	int 									vcount_ = 0;
 
-	uint8* current_;
+	uint8*									current_ = nullptr;
 	VERTEX_TYPE								vertex_type_;
+
+	int										t_indices_ = -1; //texture indices
 };
 
 
