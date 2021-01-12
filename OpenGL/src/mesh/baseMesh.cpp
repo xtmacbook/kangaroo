@@ -26,6 +26,50 @@ static GLfloat quadVertices[] = {
 	1.0f,  1.0f, 0.0, 1.0f, 1.0f
 };
 
+static GLfloat cubVertices[] = {
+	// Back face
+	-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Bottom-left
+	0.5f, 0.5f, -0.5f,  -1.0f, 1.0f, 1.0f,  0.0f, 0.0f,  // top-right
+	0.5f, -0.5f, -0.5f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, // bottom-right
+	0.5f, 0.5f, -0.5f,  -1.0f, 1.0f, 1.0f,  0.0f, 0.0f,   // top-right
+	-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,  // bottom-left
+	-0.5f, 0.5f, -0.5f,  -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, // top-left
+													  // Front face
+	-0.5f, -0.5f, 0.5f,1.0f, 0.0f, 0.0f,0.0f, 0.0f,  // bottom-left
+	0.5f, -0.5f, 0.5f, 1.0f, 1.0f, 0.0f,0.0f, 0.0f,    // bottom-right
+	0.5f, 0.5f, 0.5f,  1.0f, 1.0f, 1.0f,0.0f, 0.0f,     // top-right
+	0.5f, 0.5f, 0.5f,  1.0f, 1.0f, 1.0f,0.0f, 0.0f,    // top-right
+	-0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f,0.0f, 0.0f,    // top-left
+	-0.5f, -0.5f, 0.5f,1.0f, 0.0f, 0.0f,0.0f, 0.0f,   // bottom-left
+																										 // Left face
+	 -0.5f, 0.5f, 0.5f,  0.0f, 1.0f, 0.0f,-1.0f, 0.0f,    // top-right
+	 -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 1.0f,-1.0f, 0.0f,   // top-left
+	 -0.5f, -0.5f, -0.5f,0.0f, 0.0f, 1.0f, -1.0f, 0.0f,   // bottom-left
+	 -0.5f, -0.5f, -0.5f,0.0f, 0.0f, 1.0f, -1.0f, 0.0f,  // bottom-left
+	 -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f,-1.0f, 0.0f,    // bottom-right
+	 -0.5f, 0.5f, 0.5f,  0.0f, 1.0f, 0.0f,-1.0f, 0.0f,    // top-right
+																																						   // Right face
+	   0.5f, 0.5f, 0.5f,  0.0f, 1.0f, 0.0f,1.0f, 0.0f,    // top-left
+	   0.5f, -0.5f, -0.5f,0.0f, 0.0f, 1.0f,1.0f, 0.0f,  // bottom-right
+	   0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 1.0f,1.0f, 0.0f,   // top-right
+	   0.5f, -0.5f, -0.5f,0.0f, 0.0f, 1.0f,1.0f, 0.0f,   // bottom-right
+	   0.5f, 0.5f, 0.5f,  0.0f, 1.0f, 0.0f,1.0f, 0.0f,     // top-left
+	   0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 0.0f,1.0f, 0.0f,   // bottom-left
+		// Bottom face
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,0.0f, -1.0f, // top-right
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,0.0f, -1.0f,  // top-left
+		0.5f, -0.5f, 0.5f,   0.0f, 1.0f, 0.0f,0.0f, -1.0f,  // bottom-left
+		0.5f, -0.5f, 0.5f,   0.0f, 1.0f, 0.0f,0.0f, -1.0f,   // bottom-left
+		-0.5f, -0.5f, 0.5f,  0.0f, 0.0f, 0.0f,0.0f, -1.0f,  // bottom-right
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, 1.0f,0.0f, -1.0f, // top-right
+		// Top face
+		-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,// top-left
+		0.5f, 0.5f, 0.5f,   0.0f, 1.0f, 0.0f, 0.0f, 1.0f,   // bottom-right
+		0.5f, 0.5f, -0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 1.0f,  // top-right
+		0.5f, 0.5f, 0.5f,   0.0f, 1.0f, 0.0f, 0.0f, 1.0f,   // bottom-right
+		-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,// top-left
+																																							-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f // bottom-left
+};
 Mesh_SP createArrow(const V3f& color)
 {
 	Vertex_PN origin;
@@ -95,7 +139,7 @@ LIBENIGHT_EXPORT IRenderNode_SP getRayRenderNode(const V3f& s, const V3f& e, con
 	mg->initGeometry();
 
 	RenderNode_SP rn = new RenderNode;
-	
+
 	if (rn) rn->setGeometry(mg);
 	return rn;
 }
@@ -104,7 +148,7 @@ IRenderNode_SP getHudRenderNode(float xoffset, float yoffset, float width, float
 {
 	RenderNode_SP rn = new RenderNode;
 	IRenderMeshObj_SP meshObj = new ArraysRenderMeshObj;
-	SmartPointer<HUDGeoemtry> mg = new HUDGeoemtry(xoffset, yoffset, width,height,texCoordZ, meshObj);
+	SmartPointer<HUDGeoemtry> mg = new HUDGeoemtry(xoffset, yoffset, width, height, texCoordZ, meshObj);
 	mg->initGeometry();
 	if (rn) rn->setGeometry(mg);
 	return rn;
@@ -116,7 +160,7 @@ LIBENIGHT_EXPORT IRenderNode_SP getQuadRenderNode(const V3f& center, float scale
 	RenderNode_SP rn = new RenderNode;
 	IRenderMeshObj_SP meshObj = new ArraysRenderMeshObj;
 	meshObj->model(GL_TRIANGLES);
-	SmartPointer<QuadGeometry> mg = new QuadGeometry(center,scale,meshObj);
+	SmartPointer<QuadGeometry> mg = new QuadGeometry(center, scale, meshObj);
 	mg->initGeometry();
 	if (rn) rn->setGeometry(mg);
 	return rn;
@@ -131,6 +175,18 @@ LIBENIGHT_EXPORT IRenderNode_SP getSphereRenderNode(const V3f& center, float sca
 	meshObj->model(GL_TRIANGLES);
 	meshObj->type_ = GL_UNSIGNED_INT;
 	SmartPointer<SphereGeoemtry> mg = new SphereGeoemtry(center, scale, meshObj);
+	mg->initGeometry();
+	if (rn) rn->setGeometry(mg);
+	return rn;
+}
+
+
+LIBENIGHT_EXPORT IRenderNode_SP getCubRenderNode(const V3f& center, float scale, bool)
+{
+	RenderNode_SP rn = new RenderNode;
+	IRenderMeshObj_SP meshObj = new ArraysRenderMeshObj;
+	meshObj->model(GL_TRIANGLES);
+	SmartPointer<CubGeometry> mg = new CubGeometry(center, scale, meshObj);
 	mg->initGeometry();
 	if (rn) rn->setGeometry(mg);
 	return rn;
@@ -172,14 +228,15 @@ void HUDGeoemtry::drawGeoemtry(const DrawInfo&info)
 	hudShader->setFloat(hudShader->getVariable("offsetX"), xoffset_);
 	hudShader->setFloat(hudShader->getVariable("offsetY"), yoffset_);
 	hudShader->setFloat(hudShader->getVariable("sizeX"), width_);
-	hudShader->setFloat(hudShader->getVariable("stackZ"), texCoordz_);
+	if (hudShader->getVariable("stackZ"))
+		hudShader->setFloat(hudShader->getVariable("stackZ"), texCoordz_);
 
 	MeshGeometry::drawGeoemtry(info);
 }
 
-HUDGeoemtry::HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, IRenderMeshObj_SP rsp):
-	MeshGeometry(rsp, VERTEX_POINTS_TEXTURE),xoffset_(xoffset),
-	yoffset_(yoffset),width_(width),height_(height),texCoordz_(texCoordZ)
+HUDGeoemtry::HUDGeoemtry(float xoffset, float yoffset, float width, float height, float texCoordZ, IRenderMeshObj_SP rsp) :
+	MeshGeometry(rsp, VERTEX_POINTS_TEXTURE), xoffset_(xoffset),
+	yoffset_(yoffset), width_(width), height_(height), texCoordz_(texCoordZ)
 {
 	Mesh_SP  ms = new Mesh(VERTEX_POINTS_TEXTURE);
 	Vertex_PT point;
@@ -188,12 +245,15 @@ HUDGeoemtry::HUDGeoemtry(float xoffset, float yoffset, float width, float height
 	addMesh(ms);
 }
 
-void SphereGeoemtry::drawGeoemtry(const DrawInfo&)
+void SphereGeoemtry::computeBoundingBox(void *)
 {
+	V3f min(-1, -1, -1);
+	V3f max(1, 1, 1);
 
+	box_ = BoundingBox(min * scale_ + pos_, max * scale_ + pos_);
 }
 
-SphereGeoemtry::SphereGeoemtry(V3f pos,float scale, IRenderMeshObj_SP rsp):MeshGeometry(rsp, VERTEX_POINTS)
+SphereGeoemtry::SphereGeoemtry(V3f pos, float scale, IRenderMeshObj_SP rsp) :MeshGeometry(rsp, VERTEX_POINTS),pos_(pos),scale_(scale)
 {
 	int IndexNumber = SPHERE_MERIDIAN_SLICES_NUM * SPHERE_PARALLEL_SLICES_NUM * 6;
 
@@ -226,31 +286,12 @@ SphereGeoemtry::SphereGeoemtry(V3f pos,float scale, IRenderMeshObj_SP rsp):MeshG
 	}
 
 	Mesh_SP  ms = new Mesh(VERTEX_POINTS);
-	ms->createMesh(1);
-	Vertex point;
-	for(int i = 0;i < IndexNumber;i++)
+	for (int i = 0; i < IndexNumber; i++)
 		ms->addIndices(pIndices[i]);
 	addMesh(ms);
-	
+
 	SAFTE_DELETE_ARRAY(pIndices);
 }
-
-Shader_SP SphereGeoemtry::getShader()
-{
-	if (!sphereShader_.valid())
-	{
-		sphereShader_ = new Shader;
-		std::string code = Shader::loadMultShaderInOneFile("common/sphere.glsl");
-		sphereShader_->getShaderFromMultCode(Shader::VERTEX, "sphere", code);
-		sphereShader_->getShaderFromMultCode(Shader::FRAGMENT, "sphere", code);
-		sphereShader_->linkProgram();
-		sphereShader_->checkProgram();
-	}
-
-	return sphereShader_;
-}
-
-Shader_SP SphereGeoemtry::sphereShader_;
 
 QuadGeometry::QuadGeometry(const V3f& centerPos, float scale, IRenderMeshObj_SP rsp)
 	:MeshGeometry(rsp, VERTEX_POINTS_TEXTURE)
@@ -267,6 +308,26 @@ QuadGeometry::QuadGeometry(const V3f& centerPos, float scale, IRenderMeshObj_SP 
 		Vertex_PT vertex;
 		vertex.position_ = V3f(quadVertices[i * 5 + 0], quadVertices[i * 5 + 1], quadVertices[i * 5 + 2]) * scale + centerPos;
 		vertex.texCoords_ = V2f(quadVertices[i * 5 + 3], quadVertices[i * 5 + 4]);
+		mesh->addVertex(&vertex);
+	}
+	addMesh(mesh);
+}
+
+CubGeometry::CubGeometry(const V3f& centerPos, float scale, IRenderMeshObj_SP rsp) :MeshGeometry(rsp, VERTEX_POINTS_NORMAL_TEXTURE)
+{
+	SmartPointer<ArraysRenderMeshObj> armeshObj = new ArraysRenderMeshObj;
+	armeshObj->model(GL_TRIANGLES);
+	armeshObj->call(DRAW_ARRAYS);
+
+	Mesh_SP mesh = new Mesh(VERTEX_POINTS_NORMAL_TEXTURE);
+	mesh->createMesh(36);
+
+	for (int i = 0; i < 36; i++)
+	{
+		Vertex_PNT vertex;
+		vertex.position_ = V3f(cubVertices[i * 8 + 0], cubVertices[i * 8 + 1], cubVertices[i * 8 + 2]) * scale + centerPos;
+		vertex.normal_ = V3f(cubVertices[i * 8 + 3], cubVertices[i * 8 + 4], cubVertices[i * 8 + 5]) ;
+		vertex.texCoords_ = V2f(cubVertices[i * 8 + 6], cubVertices[i * 8 + 7]);
 		mesh->addVertex(&vertex);
 	}
 	addMesh(mesh);
