@@ -2,7 +2,7 @@
 #include "renderMesh.h"
 #include "gls.h"
 #include "log.h"
-
+#include "geometry.h"
 //gldrawArray:
 /*
 	1.glDrawArraysInstanced(	GLenum mode,GLint first,GLsizei count,GLsizei instancecount);
@@ -46,16 +46,18 @@ IRenderMeshObj::~IRenderMeshObj()
 void IRenderMeshObj::bind()
 {
 	glBindVertexArray(vao_);
+	if (indices_vbo_) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_vbo_);
 }
 
 void IRenderMeshObj::unBind()
 {
 	glBindVertexArray(0);
+	if (indices_vbo_) glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void IRenderMeshObj::preRender(Shader*)
+void IRenderMeshObj::preRender(Shader*shader)
 {
-
+	if (geometry_) geometry_->preDraw(shader);
 }
 
 void IRenderMeshObj::postRender(Shader*)
@@ -74,6 +76,11 @@ void IRenderMeshObj::model(unsigned int m)
 	mode_ = m;
 }
 
+
+void IRenderMeshObj::setGeoemtry(CommonGeometry* g)
+{
+	geometry_ = g;
+}
 
 ArraysRenderMeshObj::~ArraysRenderMeshObj()
 {
