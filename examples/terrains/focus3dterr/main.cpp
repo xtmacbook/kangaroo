@@ -16,7 +16,6 @@
 #include <callback.h>
 #include <text.h>
 #include <gls.h>
-#include <glinter.h>
 //from Foucs 3d terrain book
 class TerrainScene :public Scene
 {
@@ -192,18 +191,12 @@ int main()
 	Camera *pCamera = new Camera();
 	scene->setMasterCamera(pCamera);
 	WindowManager *pWindowManager = new WindowManager();
+	pWindowManager->initialize();
 	GLApplication application(scene);
 	application.setWindowManager(pWindowManager);
 
-	WindowConfig wc;
-	DeviceConfig dc;
-	wc.title_ = "3d terrain Test";
-	wc.width_ = 1024;
-	wc.height_ = 960;
-	wc.pos_x_ = 50;
-	wc.pos_y_ = 50;
-
-	application.initialize(&wc, &dc);
+	const char * title = "3d terrain Test";
+	application.initialize(1024, 960, title);
 	application.initScene();
 	pCamera->setClipPlane(0.1f, 5000.0f);
 	application.start();
