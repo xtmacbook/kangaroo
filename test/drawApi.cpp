@@ -15,9 +15,11 @@
 #include "gls.h"
 #include "dynamicMesh.h"
 #include "geometry.h"
-#include <glinter.h>
 #include <glQuery.h>
 #include <comShader.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_opengl3.h>
+#include <imgui/imgui_impl.h>
 /**
  * test opengl Draw Api:
 	glDrawElements								 (GLenum mode, GLsizei count, GLenum type, const void*indices)
@@ -150,6 +152,7 @@ class DrawScene :public Scene
 protected:
 	virtual bool					initSceneModels(const SceneInitInfo&);
 	virtual void					render(PassInfo&);
+	virtual void					guiRender(PassInfo&);
 	virtual bool					initShader(const SceneInitInfo&);
 public:
 
@@ -189,7 +192,7 @@ bool DrawScene::initSceneModels(const SceneInitInfo&)
 
 	return true;
 }
-
+WindowManager *pWindowManager;
 
 void DrawScene::render(PassInfo&info)
 {
@@ -202,9 +205,14 @@ void DrawScene::render(PassInfo&info)
 	initUniformVal(sphereShader);
 	getRenderNode(1)->render(sphereShader, info);
 	sphereShader->turnOff();
+	
+}
 
-	 
-	CHECK_GL_ERROR;
+
+void DrawScene::guiRender(PassInfo&)
+{
+	bool showDemo = true;
+	ImGui::ShowDemoWindow(&showDemo);
 }
 
 bool DrawScene::initShader(const SceneInitInfo&)
@@ -248,26 +256,20 @@ bool DrawScene::initShader(const SceneInitInfo&)
 
 int main()
 {
+	const char * title = "Draw Api Test";
+
 	DrawScene * scene = new DrawScene;
 	g_scene = scene;
 
 	Camera *pCamera = new Camera();
 	pCamera->setDollyScale(0.08f);
 	scene->setMasterCamera(pCamera);
-	WindowManager *pWindowManager = new WindowManager();
-
+	pWindowManager = new WindowManager();
+	pWindowManager->initialize();
+	//hint
 	GLApplication application(scene);
 	application.setWindowManager(pWindowManager);
-
-	WindowConfig wc;
-	DeviceConfig dc;
-	wc.title_ = "Draw Api Test";
-	wc.width_ = 1024;
-	wc.height_ = 960;
-	wc.pos_x_ = 50;
-	wc.pos_y_ = 50;
-
-	application.initialize(&wc, &dc);
+	application.initialize(1920,968,title,true);
 	application.initScene();
 	pCamera->setClipPlane(0.1f, 500.0f);
 	application.start();
