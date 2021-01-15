@@ -13,13 +13,11 @@
 #include "common.h"
 #include <stdio.h>
 #include <string>
+#include "glu.h"
 
-class  GWindow;
 class  GLApplication;
 class  InputManager;
 class  Camera;
-struct DeviceConfig;
-struct WindowConfig;
 
 class LIBENIGHT_EXPORT WindowManager : public base::BaseObject
 {
@@ -29,19 +27,24 @@ public:
 
 	~WindowManager();
 
-	bool					 initialize(const DeviceConfig*, const WindowConfig* wc);
+	bool					 initialize();
+	bool					 createWindow(int width, int height, const char *title);
+	bool					 initGui();
+	bool					 destoryGui();
+	void					 guiFrameBegin();
+	void					 guiFrameRender();
 	void					 loop();
 	void					 swapTheBuffers();
 	bool					 processInput(bool continueGame);
 	virtual void			 destroy();
-	GWindow* getWindow();
-	InputManager* getInputManager();
+	GLUwindow*				 getWindow();
+	InputManager*			 getInputManager();
 	bool					 shouldeClose()const;
 private:
 	InputManager* inputManager_;
 protected:
 
-	GWindow* window_;
+	GLUwindow* window_;
 	Camera* camera_;
 };
 
