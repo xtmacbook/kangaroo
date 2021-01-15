@@ -11,39 +11,49 @@
 #include "inputmanager.h"
 #include "camera.h"
 #include "sys.h"
-#include "log.h"
-#include "text.h"
 #include "ad.h"
-#include "gls.h"
 #include "gli.h"
-#include "window_w32.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl.h"
+#include "imgui/imgui_impl_opengl3.h"
 
-extern void  mouse_button_callback(GWindow* window, int button, int action, int mods);
-extern void  mouse_scroll_callback(GWindow* window, double xoffse, double yoffse);
-extern void  mouse_curse_pos_callback(GWindow* window, double xpos, double ypos);
-extern void  windowSize(GWindow* window, int width, int height);
-extern void  key_callback(GWindow* window, int, int, int, int);
+extern void  mouse_button_callback(GLUwindow* window, int button, int action, int mods);
+extern void mouse_curse_pos_callback(GLUwindow *window, double xpos, double ypos);
+extern void  mouse_scroll_callback(GLUwindow *window, double xoffse, double yoffse);
+extern void  key_callback(GLUwindow*window, int key, int st, int action, int mods);
+extern void windowSize_callback(GLUwindow*window, int width, int height);
 
-extern GWindow * g_main_window;
+
 WindowManager::WindowManager() :inputManager_(nullptr),
 window_(nullptr)
 {
 }
+
 
 WindowManager::~WindowManager()
 {
 	destroy();
 }
 
-bool WindowManager::initialize(const DeviceConfig* dc, const WindowConfig* wc)
+bool WindowManager::initialize()
 {
 	if (!gluInitWindow()) return false;
 
-	window_ = gluCreateWindow(dc, wc);
+	return true;
+}
 
-	g_main_window = window_;
 
+bool WindowManager::createWindow(int width, int height, const char *title)
+{
+	window_ = gluCreateWindow(width, height, title);
 	if (!window_) return false;
+
+	gluSetKeyCallback(window_, key_callback);
+	gluSetMouseButtonCallback(window_, mouse_button_callback);
+	gluSetCursorPosCallback(window_, mouse_curse_pos_callback);
+	gluSetScrollCallback(window_, mouse_scroll_callback);
+	gluSetWindowSizeCallback(window_, windowSize_callback);
+	//g_main_window = window_;
 
 	gluMakeCurrentContext(window_);
 
@@ -53,14 +63,56 @@ bool WindowManager::initialize(const DeviceConfig* dc, const WindowConfig* wc)
 
 	GL_X::testOpenGl();
 
-	if (dc->glContext_.debug_context_)
-		if (GL_X::isSupportExtension("GL_ARB_debug_output"))
-			GL_X::init_opengl_dbg_win(dc->glContext_.debug_sync_);
+	/*if (dc->glContext_.debug_context_)
+	if (GL_X::isSupportExtension("GL_ARB_debug_output"))
+	GL_X::init_opengl_dbg_win(dc->glContext_.debug_sync_);*/
 
 	inputManager_ = InputManager::instance();
 	inputManager_->setWindow(window_);
 
 	return true;
+}
+
+
+bool WindowManager::initGui()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+	const char* glsl_version = "#version 130";
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window_, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
+
+	return true;
+}
+
+bool WindowManager::destoryGui()
+{
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+	return true;
+}
+
+
+void WindowManager::guiFrameBegin()
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+}
+
+void WindowManager::guiFrameRender()
+{
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void WindowManager::loop()
@@ -77,14 +129,14 @@ void WindowManager::destroy()
 	}
 }
 
-GWindow* WindowManager::getWindow()
+GLUwindow* WindowManager::getWindow()
 {
 	return window_;
 }
 
 bool WindowManager::shouldeClose()const
 {
-	if (window_) return window_->shouldClose_;
+	if (window_) return gluWindowShouldClose(window_);
 	return true;
 }
 
@@ -103,10 +155,3 @@ void WindowManager::swapTheBuffers()
 	if (window_) gluSwapBuffer(window_);
 }
 
-Version_Config::Version_Config()
-{
-	glMaxJor_ = 3;
-	glMinJor_ = 3;
-	glforward_compat_ = GL_TRUE;
-	glProfile_ = OPENGL_CORE_PROFILE;
-}
