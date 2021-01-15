@@ -7,7 +7,7 @@
 #include <windowManager.h>
 #include <log.h>
 #include <Inputmanager.h>
-#include <glinter.h>
+#include <glu.h>
 #include <resource.h>
 #include "geoMipmapping.h"
 #include "../skydom.h"
@@ -156,19 +156,13 @@ int main()
 	pCamera->setClipPlane(1.0f, 5000.0f);
 	scene->setMasterCamera(pCamera);
 	WindowManager *pWindowManager = new WindowManager();
+	pWindowManager->initialize();
 	GLApplication application(scene);
 	g_app = &application;
 	application.setWindowManager(pWindowManager);
 
-	WindowConfig wc;
-	DeviceConfig dc;
-	wc.title_ = "3d terrain Test";
-	wc.width_ = 1024;
-	wc.height_ = 906;
-	wc.pos_x_ = 50;
-	wc.pos_y_ = 50;
-
-	application.initialize(&wc, &dc);
+	const char * title = "3d terrain Test";
+	application.initialize(1024, 960, title);
 	
 	glDisable(GL_CULL_FACE);
 
