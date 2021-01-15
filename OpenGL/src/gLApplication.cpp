@@ -15,9 +15,9 @@
 #include "media/ad.h"
 #include "Inputmanager.h"
 #include "gls.h"
-#include "glinter.h"
 #include "windowManager.h"
 #include "debug.h"
+#include "glu.h"
 
 void GLApplication::openglInit(void)
 {
@@ -75,27 +75,26 @@ void GLApplication::activated(const bool state)
 
 }
 
-bool GLApplication::initialize(const WindowConfig* wc, const DeviceConfig* dc)
+bool GLApplication::initialize(int width, int height, const char *title, bool gui)
 {
-	width_ = wc->width_;
-	hight_ = wc->height_;
+	gui_ = gui;
+	width_ = width;
+	hight_ = height;
+
+	enAssert(windowManager_);
+
+	windowManager_->createWindow(1024, 960, title);
+
+	if (gui)
+		windowManager_->initGui();
 
 #ifdef FMOD_HAVE
 	initAudo();
 #endif
-	// Make sure the window manager is initialized prior to calling this and creates the OpenGL context
-
-	if (!windowManager_ || !windowManager_->initialize(dc, wc))
-	{
-		enDebug("GLApplication initialize error!\n");
-		
-		return false;
-	}
 
 	TimeManager::instance().initTime();
 
 	glViewport(0, 0, width_, hight_);
-	
 
 	openglInit();
 
@@ -145,6 +144,12 @@ void GLApplication::render()
 		PassInfo info;
 		scene_->preRender(info);
 		scene_->render(info);
+		if (gui_)
+		{
+			windowManager_->guiFrameBegin();
+			scene_->guiRender(info);
+			windowManager_->guiFrameRender();
+		}
 	}
 }
 
@@ -204,6 +209,8 @@ void GLApplication::showFrameRate(bool show)
 
 void GLApplication::destroy()
 {
+	if (gui_) windowManager_->destoryGui();
+
 	if (windowManager_)
 	{
 		delete windowManager_;
@@ -212,17 +219,6 @@ void GLApplication::destroy()
 	delete scene_;
 	scene_ = NULL;
 	Log::instance()->destroy();
-}
-
-GLApplication::GLApplication(bool isFullScreen) :
-	windowManager_(nullptr),
-	isFullScreen_(isFullScreen),
-	scene_(nullptr),
-	width_(1200),
-	hight_(900),
-	useImgui_(false),
-	frameRateToConsole_(false)
-{
 }
 
 GLApplication::GLApplication(Scene* scene, bool isFullScreen /*= false*/) :
@@ -234,18 +230,6 @@ GLApplication::GLApplication(Scene* scene, bool isFullScreen /*= false*/) :
 	useImgui_(false),
 	frameRateToConsole_(false)
 {
-}
-
-GLApplication::GLApplication(unsigned int w, unsigned int h) :
-	windowManager_(nullptr),
-	isFullScreen_(false),
-	scene_(nullptr),
-	width_(w),
-	hight_(h),
-	useImgui_(false),
-	frameRateToConsole_(false)
-{
-
 }
 
 GLApplication::GLApplication(Scene* scene, unsigned int w, unsigned int h) :
