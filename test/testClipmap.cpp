@@ -7,7 +7,6 @@
 #include <windowManager.h>
 #include <log.h>
 #include <Inputmanager.h>
-#include <glinter.h>
 #include <resource.h>
 #include <camera.h>
 
@@ -16,13 +15,12 @@
 #include "clipmap_prepprocessor.h"
 #include <comShader.h>
 
-#include <util.h>
 #include <engineLoad.h>
 #include <baseMesh.h>
 #include <stateSet.h>
-
+#include <glu.h>
 #include <vector>
-
+#include <imgui/imgui.h>
 
 #define FILE_BLOCK_SIZE 512
 
@@ -131,6 +129,7 @@ protected:
 
 public:
 	virtual void					render(PassInfo&);
+	virtual void					guiRender(PassInfo&);
 
 	base::SmartPointer<Texture>			g_pPyramidTexture;
 	base::SmartPointer<Texture>			g_pPyramidTextureHM;
@@ -589,6 +588,8 @@ bool ClipMappingScene::update()
 
 float g_test = 0.0f;
 
+V3f viewpos{ 0.0, 0.0, 2.5 };
+V3f viewdir{ 0.0, 0.0, -2.5 };
 void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, float deltaTime)
 {
 	Scene::processKeyboard(key, st, action, mods, deltaTime);
@@ -610,7 +611,15 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 		}
 		if (key == GLU_KEY_F8)
 		{
-			getCamera()->positionCamera(0.4, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+			V3f focus = viewpos + viewdir;
+			getCamera()->positionCamera(viewpos.x, viewpos.y, viewpos.z, focus.x, focus.y, focus.z, 0.0, 1.0, 0.0);
+
+		}
+		if (key == GLU_KEY_F2)
+		{
+			V3f cp = getCamera()->getPosition();
+			V3f view = getCamera()->getViewDir();
+			printf("camera pos is :%f ,%f, %f,%f ,%f, %f \n",cp.x,cp.y,cp.z,view.x,view.y,view.z );
 		}
 	}
 }
@@ -957,6 +966,18 @@ void ClipMappingScene::render(PassInfo&info)
 	CHECK_GL_ERROR;
 }
 
+void ClipMappingScene::guiRender(PassInfo&)
+{
+	ImGui::Begin("Setting!");                          // Create a window called "Hello, world!" and append into it.
+	ImGui::Text("set camera pos and view");               // Display some text (you can use a format strings too)
+
+	
+	ImGui::InputFloat3("eye pos", &viewpos[0]);
+	ImGui::InputFloat3("view dir", &viewdir[0]);
+
+	ImGui::End();
+}
+
 int main()
 {
 	ClipMappingScene* scene = new ClipMappingScene;
@@ -965,19 +986,13 @@ int main()
 	pCamera->setClipPlane(1.0f, 5000.0f);
 	scene->setMasterCamera(pCamera);
 	WindowManager* pWindowManager = new WindowManager();
+	pWindowManager->initialize();
 	GLApplication application(scene);
 	application.setWindowManager(pWindowManager);
 
-	WindowConfig wc;
-	DeviceConfig dc;
-	wc.shouldCreateSharedContext_ = false;
-	wc.title_ = "texture ClipMappings terrain";
-	wc.width_ = 1024;
-	wc.height_ = 906;
-	wc.pos_x_ = 50;
-	wc.pos_y_ = 50;
+	const char * title = "texture ClipMappings terrain";
+	application.initialize(1024, 960, title,true);
 
-	application.initialize(&wc, &dc);
 	application.initScene();
 	pCamera->positionCamera(0.0, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
