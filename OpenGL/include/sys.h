@@ -131,6 +131,7 @@
 #endif
 
 #if defined POSH_COMPILER_MSVC
+#define  OEMRESOURCE
 #include <windows.h>
 #endif
 
