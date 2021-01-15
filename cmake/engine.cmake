@@ -1,5 +1,4 @@
 
-
 set (engineName "kangaroo")
 
 set(libengines_base_files
@@ -155,7 +154,6 @@ set(libengines_files
 	${Engine_SOURCE_DIR}/OpenGL/src/freetypeText.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/gLApplication.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/windowManager.cpp
-	${Engine_SOURCE_DIR}/OpenGL/src/window_w32.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/gLQuery.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/inputmanager.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/scene.cpp
@@ -168,9 +166,6 @@ set(libengines_files
 	${Engine_SOURCE_DIR}/OpenGL/src/axes.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/common.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/gli.cpp 
-	${Engine_SOURCE_DIR}/OpenGL/src/wgl_context.cpp 
-	${Engine_SOURCE_DIR}/OpenGL/src/win32_platform.cpp 
-	${Engine_SOURCE_DIR}/OpenGL/src/window.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/framebuffers.cpp 
 	${Engine_SOURCE_DIR}/OpenGL/src/stateSet.cpp
 	${Engine_SOURCE_DIR}/OpenGL/src/media/ad.cpp	
@@ -182,7 +177,6 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/flashBuffer.h
 	${Engine_SOURCE_DIR}/OpenGL/include/gLApplication.h
 	${Engine_SOURCE_DIR}/OpenGL/include/windowManager.h
-	${Engine_SOURCE_DIR}/OpenGL/include/window_w32.h
 	${Engine_SOURCE_DIR}/OpenGL/include/glQuery.h
 	${Engine_SOURCE_DIR}/OpenGL/include/inputmanager.h
 	${Engine_SOURCE_DIR}/OpenGL/include/resource.h
@@ -197,10 +191,6 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/axes.h
 	${Engine_SOURCE_DIR}/OpenGL/include/gli.h
 	${Engine_SOURCE_DIR}/OpenGL/include/gls.h
-	${Engine_SOURCE_DIR}/OpenGL/include/wgl_context.h
-	${Engine_SOURCE_DIR}/OpenGL/include/glinter.h
-	${Engine_SOURCE_DIR}/OpenGL/include/win32_platform.h
-	${Engine_SOURCE_DIR}/OpenGL/include/glu.h
 	${Engine_SOURCE_DIR}/OpenGL/include/framebuffers.h 
 	${Engine_SOURCE_DIR}/OpenGL/include/common.h
 	${Engine_SOURCE_DIR}/OpenGL/include/util.h
@@ -209,7 +199,36 @@ set(libengines_include
 	${Engine_SOURCE_DIR}/OpenGL/include/stateSet.h
 	
 )
-				
+	
+	set(libengines_gui_files
+	${Engine_SOURCE_DIR}/extern/imgui/imgui.h
+	${Engine_SOURCE_DIR}/extern/imgui/imgui.cpp
+	${Engine_SOURCE_DIR}/extern/imgui/imconfig.h
+	${Engine_SOURCE_DIR}/extern/imgui/imgui_demo.cpp
+	${Engine_SOURCE_DIR}/extern/imgui/imgui_draw.cpp
+	${Engine_SOURCE_DIR}/extern/imgui/imgui_tables.cpp
+	${Engine_SOURCE_DIR}/extern/imgui/imgui_widgets.cpp
+	${Engine_SOURCE_DIR}/extern/imgui/imgui_impl_opengl3.cpp
+	${Engine_SOURCE_DIR}/extern/imgui/imgui_impl.cpp
+)
+
+set(libengines_glu_include_files
+	${Engine_SOURCE_DIR}/OpenGl/include/glu/glu.h
+	${Engine_SOURCE_DIR}/OpenGl/include/glu/wgl_context.h
+	${Engine_SOURCE_DIR}/OpenGl/include/glu/win32_platform.h
+	${Engine_SOURCE_DIR}/OpenGl/include/glu/glinternal.h
+)
+	
+set(libengines_glu_src_files
+	${Engine_SOURCE_DIR}/OpenGl/src/glu/wgl_context.cpp
+	${Engine_SOURCE_DIR}/OpenGl/src/glu/win32_platform.cpp
+	${Engine_SOURCE_DIR}/OpenGl/src/glu/window_w32.cpp
+	${Engine_SOURCE_DIR}/OpenGl/src/glu/window.cpp
+	${Engine_SOURCE_DIR}/OpenGl/src/glu/init.cpp
+	${Engine_SOURCE_DIR}/OpenGl/src/glu/win32_init.cpp
+	${Engine_SOURCE_DIR}/OpenGl/src/glu/input.cpp
+)
+
  if(SHARED_LIBS)
 	ADD_DEFINITIONS(-DENGINE_DLLS)
  endif()
@@ -228,11 +247,16 @@ add_library(${engineName} ${SHARED_OR_STATIC}
 						${libengines_camera_files}
 						${libengines_scene_terrain_files}
 						${libengines_scene_geo_clip_terrain_files}
+						${libengines_gui_files}
+						${libengines_glu_src_files}
+						${libengines_glu_include_files}
 						)
 
 
 source_group("Header Files\\\\compiler" FILES ${libengines_base_compiler_files})
 source_group("Header Files\\\\math" FILES ${libengines_math_files})
+source_group("Header Files\\\\glu" FILES ${libengines_glu_include_files})
+source_group("Source Files\\\\extern\\\\imgui" FILES ${libengines_gui_files})
 source_group("Source Files\\\\base" FILES ${libengines_base_files})
 source_group("Source Files\\\\geometry" FILES ${libengines_geometry_files})
 source_group("Source Files\\\\stream" FILES ${libengines_base_io_files})
@@ -241,6 +265,7 @@ source_group("Source Files\\\\mesh" FILES ${libengines_mesh_files})
 source_group("Source Files\\\\camera" FILES ${libengines_camera_files})
 source_group("Source Files\\\\scene\\\\terrain" FILES ${libengines_scene_terrain_files})
 source_group("Source Files\\\\scene\\\\terrain\\\\geoClip" FILES ${libengines_scene_geo_clip_terrain_files})
+source_group("Source Files\\\\glu" FILES ${libengines_glu_src_files})
 
 
 
@@ -326,6 +351,7 @@ target_include_directories(${engineName} PUBLIC ${Engine_SOURCE_DIR}/opengl/incl
 											${Engine_SOURCE_DIR}/opengl/include/shader
 											${Engine_SOURCE_DIR}/opengl/include/render
 											${Engine_SOURCE_DIR}/opengl/include/mesh
+											${Engine_SOURCE_DIR}/opengl/include/glu
 											${Engine_SOURCE_DIR}/opengl/include/camera
 											${Engine_SOURCE_DIR}/opengl/include/scene
 											${Engine_SOURCE_DIR}/opengl/include/scene/terrain
