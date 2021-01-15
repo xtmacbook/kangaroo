@@ -11,46 +11,43 @@
 #include "timerManager.h"
 #include "scene.h"
 #include "gls.h"
-#include "window_w32.h"
 #include "cameraBase.h"
 
-void  mouse_button_callback(GWindow* window, int button, int action, int mods)
+
+void  mouse_button_callback(GLUwindow* window, int button, int action, int mods)
 {
 	InputManager::instance()->button(button, action, mods);
 }
 
-void mouse_curse_pos_callback(GWindow *window, double xpos, double ypos)
+void mouse_curse_pos_callback(GLUwindow *window, double xpos, double ypos)
 {
-	if (window->virtualCursorPosX_ == xpos && window->virtualCursorPosY_ == ypos)
+	/*if (window->virtualCursorPosX_ == xpos && window->virtualCursorPosY_ == ypos)
 		return;
 
 	window->virtualCursorPosX_ = xpos;
-	window->virtualCursorPosY_ = ypos;
+	window->virtualCursorPosY_ = ypos;*/
 
 	InputManager::instance()->move(xpos, ypos);
 }
 
-void  mouse_scroll_callback(GWindow *window, double xoffse, double yoffse)
+void  mouse_scroll_callback(GLUwindow *window, double xoffse, double yoffse)
 {
 	InputManager::instance()->scroll(xoffse, yoffse);
 }
 
 //st GL_PRESS GL_RELEASE GL_REPEAT
-void  key_callback(GWindow*window, int key, int st, int action, int mods)
+void  key_callback(GLUwindow*window, int key, int st, int action, int mods)
 {
 	if (key == GLU_KEY_ESCAPE)
-		window->shouldClose_ = true;
-
+		gluSetWindowShouldClose(window, true);
 	InputManager::instance()->keyPressed(key, st, action, mods);
 }
 
-
-void windowSize(GWindow*window, int width, int height)
+void windowSize_callback(GLUwindow*window, int width, int height)
 {
 	InputManager::instance()->setWindow(width, height);
 }
-
-void InputManager::setWindow(GWindow * w)
+void InputManager::setWindow(GLUwindow * w)
 {
 	window_ = w;
 }
@@ -60,7 +57,6 @@ void InputManager::setWindow(int w, int h)
 	if(window_ != NULL) glViewport(0, 0, w, h);
 	if(camera_) camera_->setWindowSize(static_cast<float>(w), static_cast<float>(h));
 }
-
 
 void InputManager::keyPressed(int key, int st, int action, int mods)
 {
@@ -150,7 +146,7 @@ void InputManager::addScene(Scene*s)
 
 InputManager* InputManager::inputManager_ = NULL;
 CameraBase*  InputManager::camera_ = NULL;
-GWindow* InputManager::window_ = NULL;
+GLUwindow* InputManager::window_ = NULL;
 
 std::map<int, InputManager::keyPressCallback> InputManager::keyCallbacks_;
 std::map<int, InputManager::ScenekeyMPressCallback> InputManager::methodCallBacks_;
