@@ -17,15 +17,10 @@ class  Scene;
 class  Audo;
 class  WindowManager;
 struct WindowConfig;
-struct DeviceConfig;
 
 class LIBENIGHT_EXPORT GLApplication
 {
 public:
-
-	GLApplication(bool isFullScreen = false);
-
-	GLApplication(unsigned int w, unsigned int h);
 
 	GLApplication(Scene* scene, bool isFullScreen = false);
 
@@ -40,7 +35,7 @@ public:
 	virtual void	key(const int key, const bool down);
 	void			activated(const bool state);
 
-	bool            initialize(const WindowConfig* ,const DeviceConfig* dc);
+	bool            initialize(int width,int height,const char *,bool gui = false);
 	void            start();
 
 	void            pressEvents();
@@ -69,7 +64,7 @@ protected:
 	bool            isFullScreen_;
 	bool            useImgui_;
 	bool			frameRateToConsole_;
-
+	bool			gui_ = false;
 };
 
 
