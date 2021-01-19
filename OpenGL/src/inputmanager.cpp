@@ -12,6 +12,7 @@
 #include "scene.h"
 #include "gls.h"
 #include "cameraBase.h"
+#include "glu.h"
 
 
 void  mouse_button_callback(GLUwindow* window, int button, int action, int mods)

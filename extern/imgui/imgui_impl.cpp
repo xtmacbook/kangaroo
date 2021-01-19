@@ -47,7 +47,7 @@ static void ImGui_ImplGlfw_SetClipboardText(void* user_data, const char* text)
 void ImGui_ImplGlfw_MouseButtonCallback(GLUwindow* window, int button, int action, int mods)
 {
 
-	if(!ImGui::beOverImgui())
+	if(!ImGui::BeOverImgui())
 		if (g_PrevUserCallbackMousebutton != NULL)
 			g_PrevUserCallbackMousebutton(window, button, action, mods);
 

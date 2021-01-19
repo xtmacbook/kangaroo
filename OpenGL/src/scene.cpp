@@ -190,6 +190,11 @@ void Scene::render(PassInfo&ps)
 	CHECK_GL_ERROR;
 }
 
+void Scene::guiRender(PassInfo&)
+{
+
+}
+
 void Scene::home()
 {
 	if (scene_box_.valid())

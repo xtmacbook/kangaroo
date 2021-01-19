@@ -17,7 +17,7 @@
 #include <map>
 
 class CameraBase;
-struct GWindow;
+struct GLUwindow;
 class Scene;
 class LIBENIGHT_EXPORT InputManager
 {
@@ -34,7 +34,7 @@ public:
 
 	int						getInputKey(int);
 	void                    setWindow(int w, int h);
-    static void             setWindow(GWindow *);
+    static void             setWindow(GLUwindow*);
 
 	static void             setCamera(CameraBase *pCamera);
 	static CameraBase*      getCamera() { return camera_; }
@@ -49,7 +49,7 @@ private:
 	InputManager();
 	static CameraBase          *								camera_;
 	static InputManager    *									inputManager_;
-	static GWindow      *										window_;
+	static GLUwindow*										window_;
 	static std::map<int, keyPressCallback>						keyCallbacks_;
 	static std::map<int, ScenekeyMPressCallback>				methodCallBacks_;
 

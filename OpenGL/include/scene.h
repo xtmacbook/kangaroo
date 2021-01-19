@@ -25,7 +25,7 @@ public:
 	virtual bool					initialize(const SceneInitInfo&);
 	virtual bool					update();
 	virtual void					render(PassInfo&);
-	
+	virtual void					guiRender(PassInfo&);
 	void							home();
 	void							stepRotate(int key);
 	virtual void					refreshShader(int num);
