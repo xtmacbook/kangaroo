@@ -462,6 +462,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			if (mipCornerLU[1] < 0)
 			{
 				mipCornerLU[1] += g_ppSourceImageMipsSize[i][1];
+				continue;
 			}
 
 			mipCornerRD[1] = mipCornerLU[1] + tileBlockSize;
