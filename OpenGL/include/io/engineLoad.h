@@ -20,6 +20,7 @@ namespace IO
 	struct ImageOption
 	{
 		bool clamped_ = false;
+		bool flip_ = false;
 	};
 
 	class LIBENIGHT_EXPORT EngineLoad
@@ -31,7 +32,7 @@ namespace IO
 			ML_NONEPLUG
 		};
 		static bool loadNode(const char*file, LModelInfo&, ModelLoadType = ML_ASSIMP);
-		static base::SmartPointer<base::Image> loadImage(const char*file, const ImageOption&option = {true});
+		static base::SmartPointer<base::Image> loadImage(const char*file, const ImageOption&option = {true,false});
 
 	};
 

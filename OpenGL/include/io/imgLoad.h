@@ -21,7 +21,7 @@ namespace IO
 		static base::Image*				loadDDS(StdInputStream * stream);
 		static base::Image*				loadOpenEXRImage(const char *fileName);
 		static base::Image*				loadBMP(StdInputStream * stream);
-		static base::Image*				loadJPG(StdInputStream * stream);
+		static base::Image*				loadJPG(StdInputStream * stream, const ImageOption*);
 		static base::Image*				loadPNG(StdInputStream * stream, const ImageOption*);
 		static base::Image*				loadKtx(const char*fileName);
 	    static base::Image*				loadTga(StdInputStream * stream);

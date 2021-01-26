@@ -34,24 +34,24 @@ void main()
     VertexPosition.y = sin_angle2;
     VertexPosition.z = cos_angle1 * cos_angle2;
     
-    texCoord = vec2(meridianPart, parallelPart );
+    texCoord = vec2(meridianPart,1 -  parallelPart );
     gl_Position = projection * view * vec4(VertexPosition,1.0);
-		
-	vec3 tangent = vec3(cos_angle1,0.0,-sin_angle1);
-	vec3 binormal = vec3(-sin_angle2 * sin_angle1,-cos_angle2,-cos_angle1 * sin_angle2);
-	
-	vec3 viewnormal = normalize(g_EyePosition - VertexPosition);
-		
-	viewVectorTangent.x =  dot(viewnormal,tangent);
-	viewVectorTangent.y =  dot(viewnormal,binormal);
-	viewVectorTangent.z =  dot(viewnormal,viewnormal);
-		
-	vec3 lightVector = normalize( g_LightPosition );
+    
+  vec3 tangent = vec3(cos_angle1,0.0,-sin_angle1);
+  vec3 binormal = vec3(-sin_angle2 * sin_angle1,-cos_angle2,-cos_angle1 * sin_angle2);
+  
+  vec3 viewnormal = normalize(g_EyePosition - VertexPosition);
+    
+  viewVectorTangent.x =  dot(viewnormal,tangent);
+  viewVectorTangent.y =  dot(viewnormal,binormal);
+  viewVectorTangent.z =  dot(viewnormal,viewnormal);
+    
+  vec3 lightVector = normalize( g_LightPosition );
     
     lightVectorTangent.x = dot( lightVector, tangent );
     lightVectorTangent.y = dot( lightVector, binormal);
     lightVectorTangent.z = dot( lightVector, VertexPosition );
-		
+    
 }
 
 
@@ -99,7 +99,7 @@ int getMinimumStackLevel(vec2 coordinates)
 
 void main()
 {
-	vec2 pixelCoord = vec2(texCoord.x * g_TextureSize.x, texCoord.y * g_TextureSize.y );
+  vec2 pixelCoord = vec2(texCoord.x * g_TextureSize.x, texCoord.y * g_TextureSize.y );
     vec2 dx = dFdx( pixelCoord );
     vec2 dy = dFdy( pixelCoord );
     float d = max( length( dx ), length( dy ) );
@@ -116,12 +116,15 @@ void main()
     // Make early out for cases where we don't need to fetch from clipmap stack
     if( blendGlobal == 0.0 )
     {
-    		color = color0 * diffuse;	
+        if(test_ == 0.0)
+          color = vec4(1.0,0.0,0.0,1.0);
+        else
+          color = color0 * diffuse; 
     }
     else
     {
-		
-				float blendLayers = modf( mipLevel, mipLevel );
+    
+    float blendLayers = modf( mipLevel, mipLevel );
         blendLayers = clamp(blendLayers,0.0,1.0);
         
         float nextMipLevel = mipLevel + 1.0;
@@ -131,12 +134,12 @@ void main()
             
         vec2 clipTexCoord = texCoord / pow( 2, mipLevel );
         clipTexCoord *= g_ScaleFactor;
+        vec4 color1 = texture( StackTexture, vec3( clipTexCoord + 0.5, mipLevel ) );
+            
+        clipTexCoord = texCoord / pow( 2, nextMipLevel );
+        clipTexCoord *= g_ScaleFactor;
+        vec4 color2 = texture( StackTexture, vec3( clipTexCoord + 0.5, nextMipLevel ) );
         
-        
-          vec4 color1 = texture( StackTexture, vec3( clipTexCoord + 0.5, mipLevel ) );
-          clipTexCoord = texCoord / pow( 2, nextMipLevel );
-          clipTexCoord *= g_ScaleFactor;
-          vec4 color2 = texture( StackTexture, vec3( clipTexCoord + 0.5, nextMipLevel ) );
-          color = mix( color0, mix( color1, color2, blendLayers ), blendGlobal ) * diffuse;
-      }
+        color = mix( color0, mix( color1, color2, blendLayers ), blendGlobal ) * diffuse;
+     }
 }

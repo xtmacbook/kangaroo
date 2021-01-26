@@ -118,6 +118,12 @@ V3f Camera::getPosition()const
 	return eye_pos_;
 }
 
+
+math::V3f Camera::getFocuse() const
+{
+	return focus_pos_;
+}
+
 math::V3f Camera::getViewDir() const
 {
 	V3f tv = focus_pos_ - eye_pos_;
@@ -153,14 +159,16 @@ void Camera::processKeyboard(int key, int st, int action, int mods, float deltaT
 		else if (key == GLU_KEY_W)
 		{ 
 			V3f dir(viewMatrix_[2][0], viewMatrix_[2][1], viewMatrix_[2][2]);
-			eye_pos_ -= dir;
+			normalizeVec3(dir);
+			eye_pos_ -= dir * zoom_scale_;
 			viewMatrix_ = lookAt(eye_pos_, focus_pos_, world_up_);
 		}
 
 		else if (key == GLU_KEY_S)
 		{
 			V3f dir(viewMatrix_[2][0], viewMatrix_[2][1], viewMatrix_[2][2]);
-			eye_pos_ += dir;
+			normalizeVec3(dir);
+			eye_pos_ += dir*zoom_scale_;
 			viewMatrix_ = lookAt(eye_pos_, focus_pos_, world_up_);
 		}
 		else if (key == GLU_KEY_A)
@@ -245,6 +253,11 @@ bool Camera::isAABBVisible_E(const AABB&)const
 void Camera::setDollyScale(float s)
 {
 	dolly_scale_ = s;
+}
+
+void Camera::setZoomScale(float s)
+{
+	zoom_scale_ = s;
 }
 
 void Camera::mouse_move_tumble(const V2f&pt)

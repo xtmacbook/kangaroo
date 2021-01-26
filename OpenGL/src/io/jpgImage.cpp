@@ -9,7 +9,7 @@
 #ifdef ENGINE_JPEG
 #include <jpeglib.h>
 #endif
-
+#include "engineLoad.h"
 namespace IO {
 
 #if defined(ENGINE_JPEG)
@@ -38,7 +38,7 @@ namespace IO {
 #endif // defined(ENGINE_JPEG)
 
 
-	base::Image* ImageFile::loadJPG(StdInputStream * stream)
+	base::Image* ImageFile::loadJPG(StdInputStream * stream, const ImageOption*option)
 	{
 #ifdef ENGINE_JPEG
 
@@ -147,8 +147,8 @@ namespace IO {
 			* Here the array is only one element long, but you could ask for
 			* more than one scanline at a time if that's more convenient.
 			*/
-			rowptr[0] = data + (cinfo.output_height - cinfo.output_scanline - 1) * row_stride;//for opengl
-
+			if(!option->flip_)rowptr[0] = data + (cinfo.output_height - cinfo.output_scanline - 1) * row_stride;//for opengl
+			else rowptr[0] = data + (cinfo.output_scanline) * row_stride;
 			jpeg_read_scanlines(&cinfo, rowptr, 1);
 		}
 

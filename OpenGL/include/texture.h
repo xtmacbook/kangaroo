@@ -67,7 +67,7 @@ public:
 	void				createObj();
 	void				initGLObj();
 	void				destoryGLObj();
-	bool				loadData();
+	bool				loadData(bool flip = false);
 	bool                context(void * data);
 	bool                contextArr(void ** data);
 	bool				contextNULL();

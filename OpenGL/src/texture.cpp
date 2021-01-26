@@ -105,9 +105,10 @@ void Texture::destoryGLObj()
 		glDeleteTextures(1, &texObject_);
 }
 
-bool Texture::loadData()
+bool Texture::loadData(bool flip)
 {
-	img_ = IO::EngineLoad::loadImage(fileName_.c_str());
+	IO::ImageOption option{ true,flip };
+	img_ = IO::EngineLoad::loadImage(fileName_.c_str(),option);
 	if (img_ == NULL) return false;
 	return true;
 }

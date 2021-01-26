@@ -392,7 +392,7 @@ bool Jpeg_Data::initTechnique()
 	shaders_.push_back(new Shader);
 	shader = shaders_[shaders_.size() - 1];
 	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
-	shader->getShaderFromMultCode(Shader::GEOMETRY, "GL_Quad", code);
+	shader->getShaderFromMultCode(Shader::GEOMETRY, "Quad", code);
 	shader->getShaderFromMultCode(Shader::FRAGMENT, "PS_IDCT_RenderToBuffer", code);
 	shader->linkProgram();
 	shader->checkProgram();
