@@ -31,7 +31,11 @@
 #define CLIPMAP_STACK_SIZE_MIN 1024
 #define MIPMAP_LEVELS_MAX 7
 
+#define  IMAGE_WIDTH 16384 
+#define  IMAGE_HEIGHT 8192
+
 #define SOURCE_FILES_NUM 5
+
 
 GLint g_maxUnits = 0;
 
@@ -129,7 +133,6 @@ protected:
 
 public:
 	virtual void					render(PassInfo&);
-	virtual void					guiRender(PassInfo&);
 
 	base::SmartPointer<Texture>			g_pPyramidTexture;
 	base::SmartPointer<Texture>			g_pPyramidTextureHM;
@@ -170,9 +173,8 @@ private:
 
 ClipMappingScene::ClipMappingScene()
 {
-	g_SourceImageWidth = 16384;
-	g_SourceImageHeight = 8192;
-
+	g_SourceImageWidth = IMAGE_WIDTH;
+	g_SourceImageHeight = IMAGE_HEIGHT;
 }
 
 ClipMappingScene::~ClipMappingScene()
@@ -214,7 +216,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 		posHorizontal = 0.5f + atanf((eyePos.x / eyePos.z)) / (PI * 2);
 	}
 
-	posVertical = 0.5f + atanf(eyePos.y / length) / PI;
+	posVertical = 0.5f - atanf(eyePos.y / length) / PI;
 
 	V2f updateBorder;
 	// Calculate border sizes to be updated
@@ -242,8 +244,8 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 	int dstBlock[2];
 
 	int tileBlockSize = 0;
-	int mipCornerLU[2];
-	int mipCornerRD[2];
+	int mipCornerLD[2];
+	int mipCornerRU[2];
 
 	base::AABB subResourceBox;
 	subResourceBox.min_.z = 0;
@@ -252,50 +254,52 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 
 	if (updateBorderSize[0] > g_UpdateRegionSize)
 	{
+	//	printf("move right \n");
+
 		for (int i = 0; i < g_StackDepth; ++i)
 		{
 			tileBlockSize = g_UpdateRegionSize / (unsigned)pow(2.0, i);
 
-			mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) + g_ClipmapStackSize / 2;
-			if (mipCornerLU[0] > int(g_ppSourceImageMipsSize[i][0] - tileBlockSize))
-				mipCornerLU[0] -= g_ppSourceImageMipsSize[i][0];
-			mipCornerRD[0] = mipCornerLU[0] + tileBlockSize;
+			mipCornerLD[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) + g_ClipmapStackSize / 2;
+			if (mipCornerLD[0] > int(g_ppSourceImageMipsSize[i][0] - tileBlockSize))
+				mipCornerLD[0] -= g_ppSourceImageMipsSize[i][0];
+			mipCornerRU[0] = mipCornerLD[0] + tileBlockSize;
 
-			mipCornerLU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) - g_ClipmapStackSize / 2;
-			mipCornerRD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) + g_ClipmapStackSize / 2;
+			mipCornerLD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) - g_ClipmapStackSize / 2;
+			mipCornerRU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) + g_ClipmapStackSize / 2;
 
-			if (mipCornerLU[1] < 0)
+			if (mipCornerLD[1] < 0)
 			{
-				correction = -mipCornerLU[1];
-				mipCornerLU[1] = 0;
+				correction = -mipCornerLD[1];
+				mipCornerLD[1] = 0;
 			}
-			else if (mipCornerLU[1] >= g_ppSourceImageMipsSize[i][1])
-			{
-				updateMipPosition(g_ppUpdatePositions[i][0], tileBlockSize);
-				continue;
-			}
-
-			if (mipCornerRD[1] <= 0)
+			else if (mipCornerLD[1] >= g_ppSourceImageMipsSize[i][1])
 			{
 				updateMipPosition(g_ppUpdatePositions[i][0], tileBlockSize);
 				continue;
 			}
-			else if (mipCornerRD[1] > g_ppSourceImageMipsSize[i][1])
-				mipCornerRD[1] = g_ppSourceImageMipsSize[i][1];
+
+			if (mipCornerRU[1] <= 0)
+			{
+				updateMipPosition(g_ppUpdatePositions[i][0], tileBlockSize);
+				continue;
+			}
+			else if (mipCornerRU[1] > g_ppSourceImageMipsSize[i][1])
+				mipCornerRU[1] = g_ppSourceImageMipsSize[i][1];
 
 			subResourceBox.min_.x = g_ppUpdatePositions[i][0];
 			subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
 			subResourceBox.min_.y = g_ppUpdatePositions[i][1] + correction;
 
-			for (int j = mipCornerLU[1]; j < mipCornerRD[1]; j += tileBlockSize)
+			for (int j = mipCornerLD[1]; j < mipCornerRU[1]; j += tileBlockSize)
 			{
 				subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
 
-				srcBlock[0] = mipCornerLU[0];
+				srcBlock[0] = mipCornerLD[0];
 				srcBlock[1] = j;
 
 				dstBlock[0] = subResourceBox.min_.x;
-				dstBlock[1] = g_ClipmapStackSize -  subResourceBox.max_.y;
+				dstBlock[1] = subResourceBox.min_.y;
 
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -315,46 +319,48 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 	// Update square region when we move "Image space Left"
 	if (updateBorderSize[0] < -g_UpdateRegionSize)
 	{
+		//printf("move left \n");
+
 		for (int i = 0; i < g_StackDepth; ++i)
 		{
 			tileBlockSize = g_UpdateRegionSize / (unsigned)pow(2.0, i);
 
 			updateMipPosition(g_ppUpdatePositions[i][0], -tileBlockSize);
 
-			mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) - g_ClipmapStackSize / 2 - tileBlockSize;
-			if (mipCornerLU[0] < 0)
-				mipCornerLU[0] += g_ppSourceImageMipsSize[i][0];
-			mipCornerRD[0] = mipCornerLU[0] + tileBlockSize;
+			mipCornerLD[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) - g_ClipmapStackSize / 2 - tileBlockSize;
+			if (mipCornerLD[0] < 0)
+				mipCornerLD[0] += g_ppSourceImageMipsSize[i][0];
+			mipCornerRU[0] = mipCornerLD[0] + tileBlockSize;
 
-			mipCornerLU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) - g_ClipmapStackSize / 2;
-			mipCornerRD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) + g_ClipmapStackSize / 2;
+			mipCornerLD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) - g_ClipmapStackSize / 2;
+			mipCornerRU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) + g_ClipmapStackSize / 2;
 
-			if (mipCornerLU[1] < 0)
+			if (mipCornerLD[1] < 0)
 			{
-				correction = -mipCornerLU[1];
-				mipCornerLU[1] = 0;
+				correction = -mipCornerLD[1];
+				mipCornerLD[1] = 0;
 			}
-			else if (mipCornerLU[1] >= g_ppSourceImageMipsSize[i][1])
+			else if (mipCornerLD[1] >= g_ppSourceImageMipsSize[i][1])
 				continue;
 
-			if (mipCornerRD[1] <= 0)
+			if (mipCornerRU[1] <= 0)
 				continue;
-			else if (mipCornerRD[1] > g_ppSourceImageMipsSize[i][1])
-				mipCornerRD[1] = g_ppSourceImageMipsSize[i][1];
+			else if (mipCornerRU[1] > g_ppSourceImageMipsSize[i][1])
+				mipCornerRU[1] = g_ppSourceImageMipsSize[i][1];
 
 			subResourceBox.min_.x = g_ppUpdatePositions[i][0];
 			subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
-			subResourceBox.min_.y = g_ppUpdatePositions[i][1] + correction;
+			subResourceBox.min_.y = g_ppUpdatePositions[i][1] + correction; // subResourceBox.min_.y == 1024
 
-			for (int j = mipCornerLU[1]; j < mipCornerRD[1]; j += tileBlockSize)
+			for (int j = mipCornerLD[1]; j < mipCornerRU[1]; j += tileBlockSize)
 			{
 				subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
 
-				srcBlock[0] = mipCornerLU[0];
+				srcBlock[0] = mipCornerLD[0];
 				srcBlock[1] = j;
 
 				dstBlock[0] = subResourceBox.min_.x;
-				dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
+				dstBlock[1] = subResourceBox.min_.y;
 
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -378,33 +384,35 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 	// Update square region when we move "Image space Down"
 	if (updateBorderSize[1] > g_UpdateRegionSize)
 	{
+	//	printf("move down \n");
+
 		for (int i = 0; i < g_StackDepth; ++i)
 		{
 			correction = 0;
 
 			tileBlockSize = g_UpdateRegionSize / (unsigned)pow(2.0, i);
 
-			mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) - g_ClipmapStackSize / 2;
-			if (mipCornerLU[0] < 0)
-				mipCornerLU[0] += g_ppSourceImageMipsSize[i][0];
+			mipCornerLD[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) - g_ClipmapStackSize / 2;
+			if (mipCornerLD[0] < 0)
+				mipCornerLD[0] += g_ppSourceImageMipsSize[i][0];
 
 			int stepsNum = g_ClipmapStackSize / tileBlockSize;
 
-			mipCornerLU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) + g_ClipmapStackSize / 2;
-			mipCornerRD[1] = mipCornerLU[1] + tileBlockSize;
+			mipCornerLD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) + g_ClipmapStackSize / 2;
+			mipCornerRU[1] = mipCornerLD[1] + tileBlockSize;
 
-			if (mipCornerLU[1] < 0)
-				mipCornerLU[1] = 0;
-			else if (mipCornerLU[1] >= g_ppSourceImageMipsSize[i][1])
+			if (mipCornerLD[1] < 0)
+				mipCornerLD[1] = 0;
+			else if (mipCornerLD[1] >= g_ppSourceImageMipsSize[i][1])
 			{
 				updateMipPosition(g_ppUpdatePositions[i][1], tileBlockSize);
 				continue;
 			}
 
-			if (mipCornerRD[1] <= 0)
+			if (mipCornerRU[1] <= 0)
 				continue;
-			else if (mipCornerRD[1] > g_ppSourceImageMipsSize[i][1])
-				mipCornerRD[1] = g_ppSourceImageMipsSize[i][1];
+			else if (mipCornerRU[1] > g_ppSourceImageMipsSize[i][1])
+				mipCornerRU[1] = g_ppSourceImageMipsSize[i][1];
 
 			subResourceBox.min_.y = g_ppUpdatePositions[i][1];
 			subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
@@ -413,7 +421,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			while (subResourceBox.min_.x > UINT(g_ClipmapStackSize - tileBlockSize))
 				subResourceBox.min_.x -= g_ClipmapStackSize;
 
-			for (int step = 0, j = mipCornerLU[0]; step < stepsNum; step++, j += tileBlockSize)
+			for (int step = 0, j = mipCornerLD[0]; step < stepsNum; step++, j += tileBlockSize)
 			{
 				if (j == g_ppSourceImageMipsSize[i][0])
 					j = 0;
@@ -421,10 +429,12 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
 
 				srcBlock[0] = j;
-				srcBlock[1] = mipCornerLU[1];
+				srcBlock[1] = mipCornerLD[1];
 
 				dstBlock[0] = subResourceBox.min_.x;
-				dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
+				dstBlock[1] = subResourceBox.min_.y;
+
+				//printf("add block from srcBlock  :(%d , %d)  to dstBlock (%d , %d) \n", srcBlock[0], srcBlock[1], dstBlock[0], dstBlock[1]);
 
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -444,33 +454,34 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 	// Update square region when we move "Image space Up"
 	if (updateBorderSize[1] < -g_UpdateRegionSize)
 	{
+		//printf("move up \n");
+
 		for (int i = 0; i < g_StackDepth; ++i)
 		{
 			correction = 0;
 
 			tileBlockSize = g_UpdateRegionSize / (unsigned)pow(2.0, i);
 
-			mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) - g_ClipmapStackSize / 2;
-			if (mipCornerLU[0] < 0)
-				mipCornerLU[0] += g_ppSourceImageMipsSize[i][0];
+			mipCornerLD[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) - g_ClipmapStackSize / 2;
+			if (mipCornerLD[0] < 0)
+				mipCornerLD[0] += g_ppSourceImageMipsSize[i][0];
 
 			int stepsNum = g_ClipmapStackSize / tileBlockSize;
 
 			updateMipPosition(g_ppUpdatePositions[i][1], -tileBlockSize);
 
-			mipCornerLU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) - g_ClipmapStackSize / 2 - tileBlockSize;
-			if (mipCornerLU[1] < 0)
+			mipCornerLD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1]) - g_ClipmapStackSize / 2 - tileBlockSize;
+			if (mipCornerLD[1] < 0)
 			{
-				mipCornerLU[1] += g_ppSourceImageMipsSize[i][1];
-				continue;
+				mipCornerLD[1] += g_ppSourceImageMipsSize[i][1];
 			}
 
-			mipCornerRD[1] = mipCornerLU[1] + tileBlockSize;
+			mipCornerRU[1] = mipCornerLD[1] + tileBlockSize;
 
-			if (mipCornerRD[1] <= 0)
+			if (mipCornerRU[1] <= 0)
 				continue;
-			else if (mipCornerRD[1] > g_ppSourceImageMipsSize[i][1])
-				mipCornerRD[1] = g_ppSourceImageMipsSize[i][1];
+			else if (mipCornerRU[1] > g_ppSourceImageMipsSize[i][1])
+				mipCornerRU[1] = g_ppSourceImageMipsSize[i][1];
 
 			subResourceBox.min_.y = g_ppUpdatePositions[i][1];
 			subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
@@ -479,7 +490,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			while (subResourceBox.min_.x > UINT(g_ClipmapStackSize - tileBlockSize))
 				subResourceBox.min_.x -= g_ClipmapStackSize;
 
-			for (int step = 0, j = mipCornerLU[0]; step < stepsNum; step++, j += tileBlockSize)
+			for (int step = 0, j = mipCornerLD[0]; step < stepsNum; step++, j += tileBlockSize)
 			{
 				if (j == g_ppSourceImageMipsSize[i][0])
 					j = 0;
@@ -487,10 +498,10 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
 
 				srcBlock[0] = j;
-				srcBlock[1] = mipCornerLU[1];
+				srcBlock[1] = mipCornerLD[1];
 
 				dstBlock[0] = subResourceBox.min_.x;
-				dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
+				dstBlock[1] = subResourceBox.min_.y;
 
 				clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -538,15 +549,13 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 	int blocksPerLayer = g_SourceImageWidth / g_UpdateRegionSize;
 
 	clipmapManager_ = new Clipmap_Manager;
-	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath,g_SrcMediaPathHM);
+	clipmapManager_->intitialize(g_StackDepth, g_SrcMediaPath,/*g_SrcMediaPathHM*/nullptr);
 	clipmapManager_->allocateBlocks(blocksPerLayer);
 	clipmapManager_->allocateTextures(g_ClipmapStackSize,g_UpdateRegionSize);
 	createClipmapTextures();
 	initStackTexture();
 
 	sphere_ = getSphereRenderNode(V3f(0.0,0.0,0.0),1.0,false);
-
-	CHECK_GL_ERROR;
 
 	return true;
 }
@@ -589,8 +598,6 @@ bool ClipMappingScene::update()
 
 float g_test = 0.0f;
 
-V3f viewpos{ 0.0, 0.0, 2.5 };
-V3f viewdir{ 0.0, 0.0, -2.5 };
 void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, float deltaTime)
 {
 	Scene::processKeyboard(key, st, action, mods, deltaTime);
@@ -612,9 +619,7 @@ void ClipMappingScene::processKeyboard(int key, int st, int action, int mods, fl
 		}
 		if (key == GLU_KEY_F8)
 		{
-			V3f focus = viewpos + viewdir;
-			getCamera()->positionCamera(viewpos.x, viewpos.y, viewpos.z, focus.x, focus.y, focus.z, 0.0, 1.0, 0.0);
-
+			getCamera()->positionCamera(0.4, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 		}
 		if (key == GLU_KEY_F2)
 		{
@@ -631,7 +636,7 @@ void ClipMappingScene::createClipmapTextures()
 	g_pPyramidTexture = new Texture(g_SrcMediaPath[g_StackDepth]);
 	g_pPyramidTexture->target_ = GL_TEXTURE_2D;
 	g_pPyramidTexture->numOfMiplevels_ = g_SourceImageMipsNum - g_StackDepth;
-	if (g_pPyramidTexture->loadData())
+	if (g_pPyramidTexture->loadData(true))
 	{
 		g_pPyramidTexture->createObj();
 		g_pPyramidTexture->bind();
@@ -644,7 +649,7 @@ void ClipMappingScene::createClipmapTextures()
 	g_pPyramidTextureHM = new Texture(g_SrcMediaPathHM[g_StackDepth]);
 	g_pPyramidTextureHM->target_ = GL_TEXTURE_2D;
 	g_pPyramidTextureHM->numOfMiplevels_ = g_SourceImageMipsNum - g_StackDepth;
-	if (g_pPyramidTextureHM->loadData())
+	if (g_pPyramidTextureHM->loadData(true))
 	{
 		g_pPyramidTextureHM->createObj();
 		g_pPyramidTextureHM->bind();
@@ -665,7 +670,7 @@ void ClipMappingScene::createClipmapTextures()
 	g_pStackTexture->createObj();
 	g_pStackTexture->bind();
 	g_pStackTexture->contextNULL();
-	g_pStackTexture->unBind();
+	g_pStackTexture->unBind(); 
 
 
 	samplerLinear_ = new SampleObject;
@@ -758,8 +763,8 @@ void ClipMappingScene::calculateClipmapParameters()
 
 void ClipMappingScene::initStackTexture()
 {
-	int mipCornerLU[2];
-	int mipCornerRD[2];
+	int mipCornerLD[2];
+	int mipCornerRU[2];
 	int tileBlockSize = 0;
 
 	/*int blockIndex[2];
@@ -776,11 +781,11 @@ void ClipMappingScene::initStackTexture()
 	for (int i = 0; i < g_StackDepth; ++i)
 	{
 
-		mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] - g_ClipmapStackSize* 0.5f);
-		mipCornerLU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] - g_ClipmapStackSize* 0.5f);
+		mipCornerLD[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] - g_ClipmapStackSize* 0.5f);
+		mipCornerLD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] - g_ClipmapStackSize* 0.5f);
 
-		mipCornerRD[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] + g_ClipmapStackSize* 0.5f);
-		mipCornerRD[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] + g_ClipmapStackSize* 0.5f);
+		mipCornerRU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0] + g_ClipmapStackSize* 0.5f);
+		mipCornerRU[1] = int(g_StackPosition.y * g_ppSourceImageMipsSize[i][1] + g_ClipmapStackSize* 0.5f);
 
 		tileBlockSize = int(g_UpdateRegionSize / pow(2.0, i));
 
@@ -791,7 +796,7 @@ void ClipMappingScene::initStackTexture()
 		{
 			g_ppUpdatePositions[i][1] = g_ClipmapStackSize / 2;
 
-			for (int j = mipCornerLU[1] + g_ClipmapStackSize / 2; j < mipCornerRD[1]; j += tileBlockSize)
+			for (int j = mipCornerLD[1] + g_ClipmapStackSize / 2; j < mipCornerRU[1]; j += tileBlockSize)
 			{
 				subResourceBox.min_.x = 0;
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
@@ -800,7 +805,7 @@ void ClipMappingScene::initStackTexture()
 				blockCorner[1] = blockIndex[1] * FILE_BLOCK_SIZE;
 				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;*/
 
-				for (int k = mipCornerLU[0]; k < mipCornerRD[0]; k += tileBlockSize)
+				for (int k = mipCornerLD[0]; k < mipCornerRU[0]; k += tileBlockSize)
 				{
 					int tempBoundary = k;
 
@@ -815,7 +820,7 @@ void ClipMappingScene::initStackTexture()
 					srcBlock[1] = j;
 
 					dstBlock[0] = subResourceBox.min_.x;
-					dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
+					dstBlock[1] = subResourceBox.min_.y;
 
 					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -832,7 +837,7 @@ void ClipMappingScene::initStackTexture()
 			subResourceBox.min_.y = g_ClipmapStackSize / 2;
 			subResourceBox.max_.y = subResourceBox.min_.y + tileBlockSize;
 
-			for (int j = mipCornerLU[1]; j < mipCornerRD[1] - g_ClipmapStackSize* 0.5; j += tileBlockSize)
+			for (int j = mipCornerLD[1]; j < mipCornerRU[1] - g_ClipmapStackSize* 0.5; j += tileBlockSize)
 			{
 				subResourceBox.min_.x = 0;
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
@@ -841,7 +846,7 @@ void ClipMappingScene::initStackTexture()
 				blockCorner[1] = blockIndex[1] * FILE_BLOCK_SIZE;
 				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;*/
 
-				for (int k = mipCornerLU[0]; k < mipCornerRD[0]; k += tileBlockSize)
+				for (int k = mipCornerLD[0]; k < mipCornerRU[0]; k += tileBlockSize)
 				{
 					int tempBoundary = k;
 
@@ -856,7 +861,7 @@ void ClipMappingScene::initStackTexture()
 					srcBlock[1] = j;
 
 					dstBlock[0] = subResourceBox.min_.x;
-					dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
+					dstBlock[1] = subResourceBox.min_.y;
 
 					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -869,10 +874,11 @@ void ClipMappingScene::initStackTexture()
 				subResourceBox.min_.y += tileBlockSize;
 				subResourceBox.max_.y += tileBlockSize;
 			}
+
 		}
 		else
 		{
-			for (int j = mipCornerLU[1]; j < mipCornerRD[1]; j += tileBlockSize)
+			for (int j = mipCornerLD[1]; j < mipCornerRU[1]; j += tileBlockSize)
 			{
 				subResourceBox.min_.x = 0;
 				subResourceBox.max_.x = subResourceBox.min_.x + tileBlockSize;
@@ -881,7 +887,7 @@ void ClipMappingScene::initStackTexture()
 				blockCorner[1] = blockIndex[1] * FILE_BLOCK_SIZE;
 				subBlockIndex[1] = (j - blockCorner[1]) / tileBlockSize;*/
 
-				for (int k = mipCornerLU[0]; k < mipCornerRD[0]; k += tileBlockSize)
+				for (int k = mipCornerLD[0]; k < mipCornerRU[0]; k += tileBlockSize)
 				{
 					int tempBoundary = k;
 
@@ -896,7 +902,7 @@ void ClipMappingScene::initStackTexture()
 					srcBlock[1] = j;
 
 					dstBlock[0] = subResourceBox.min_.x;
-					dstBlock[1] = g_ClipmapStackSize - subResourceBox.max_.y;
+					dstBlock[1] = subResourceBox.min_.y;
 
 					clipmapManager_->addBlock(i, srcBlock, dstBlock);
 
@@ -938,12 +944,14 @@ void ClipMappingScene::render(PassInfo&info)
 
 	curShader->turnOn();
 	initUniformVal(curShader);
+	CHECK_GL_ERROR;
 
 #ifndef QUAD_TEST_STACK_TEXTURE
 	//curShader->setFloat3V(curShader->getVariable("g_EyePosition"), 1, &camera->getPosition()[0]);
 	//curShader->setFloat3V(curShader->getVariable("g_WorldRight"), 1, &worldRight[0]);
 	//curShader->setFloat3V(curShader->getVariable("g_WorldUp"), 1, &worldUp[0]);
 	curShader->setFloat3V(curShader->getVariable("g_LightPosition"), 1, &LIGHTPOS[0]);
+	//V2f flipStackPosition(g_StackPosition[0],1.0f - g_StackPosition[1]);
 	curShader->setVec2f(curShader->getVariable("g_StackCenter"), 1, &g_StackPosition[0]);
 #endif
 	
@@ -967,23 +975,12 @@ void ClipMappingScene::render(PassInfo&info)
 	CHECK_GL_ERROR;
 }
 
-void ClipMappingScene::guiRender(PassInfo&)
-{
-	ImGui::Begin("Setting!");                          // Create a window called "Hello, world!" and append into it.
-	ImGui::Text("set camera pos and view");               // Display some text (you can use a format strings too)
-
-	
-	ImGui::InputFloat3("eye pos", &viewpos[0]);
-	ImGui::InputFloat3("view dir", &viewdir[0]);
-
-	ImGui::End();
-}
-
 int main()
 {
 	ClipMappingScene* scene = new ClipMappingScene;
 	Camera* pCamera = new Camera(Camera::CAMERA | Camera::ZOOM | Camera::ROTATE| Camera::DONT_TRANSLATE_FOCUS);
 	pCamera->setDollyScale(0.05);
+	pCamera->setZoomScale(0.8);
 	pCamera->setClipPlane(1.0f, 5000.0f);
 	scene->setMasterCamera(pCamera);
 	WindowManager* pWindowManager = new WindowManager();
@@ -992,7 +989,7 @@ int main()
 	application.setWindowManager(pWindowManager);
 
 	const char * title = "texture ClipMappings terrain";
-	application.initialize(1024, 960, title,true);
+	application.initialize(1024, 960, title);
 
 	application.initScene();
 	pCamera->positionCamera(0.0, 0.0, 2.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
