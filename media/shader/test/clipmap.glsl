@@ -34,7 +34,7 @@ void main()
     VertexPosition.y = sin_angle2;
     VertexPosition.z = cos_angle1 * cos_angle2;
     
-    texCoord = vec2(meridianPart, parallelPart );
+    texCoord = vec2(meridianPart,1 -  parallelPart );
     gl_Position = projection * view * vec4(VertexPosition,1.0);
 		
 	vec3 tangent = vec3(cos_angle1,0.0,-sin_angle1);
@@ -124,7 +124,7 @@ void main()
     else
     {
 		
-				float blendLayers = modf( mipLevel, mipLevel );
+		float blendLayers = modf( mipLevel, mipLevel );
         blendLayers = clamp(blendLayers,0.0,1.0);
         
         float nextMipLevel = mipLevel + 1.0;
@@ -134,48 +134,12 @@ void main()
             
         vec2 clipTexCoord = texCoord / pow( 2, mipLevel );
         clipTexCoord *= g_ScaleFactor;
+        vec4 color1 = texture( StackTexture, vec3( clipTexCoord + 0.5, mipLevel ) );
+            
+        clipTexCoord = texCoord / pow( 2, nextMipLevel );
+        clipTexCoord *= g_ScaleFactor;
+        vec4 color2 = texture( StackTexture, vec3( clipTexCoord + 0.5, nextMipLevel ) );
         
-        
-        if(test_ == 1.0) 
-        {
-        	color = texture( StackTexture, vec3( clipTexCoord + 0.5, mipLevel ) );
-        }
-        else if(test_ == 2.0)
-        {
-         	clipTexCoord = texCoord / pow( 2, nextMipLevel );
-        	clipTexCoord *= g_ScaleFactor;
-        	color = texture( StackTexture, vec3( clipTexCoord + 0.5, nextMipLevel ) );
-        }
-       else if(test_ == 3.0)
-       {
-       		vec4 color1 = texture( StackTexture, vec3( clipTexCoord + 0.5, mipLevel ) );
-       		clipTexCoord = texCoord / pow( 2, nextMipLevel );
-        	clipTexCoord *= g_ScaleFactor;
-       		vec4 color2 = texture( StackTexture, vec3( clipTexCoord + 0.5, nextMipLevel ) );
-       		color = mix( color0, mix( color1, color2, blendLayers ), blendGlobal ) * diffuse;
-       }
-       else
-       {
-       	 if(mipLevel == 0.0)
-       	 {
-       	 	 color = vec4(0.0,1.0,0.0,1.0);
-       	 }
-       	 else if(mipLevel == 1.0)
-       	 {
-       	 	color = vec4(0.0,0.0,1.0,1.0);
-       	 }
-       	 else if(mipLevel == 2.0)
-       	 {
-       	 	color = vec4(0.0,1.0,1.0,1.0);
-       	 }
-       	 else if(mipLevel == 3.0)
-       	 {
-       	 	color = vec4(1.0,1.0,1.0,1.0);
-       	 }
-       	 else
-       	 {
-       	 	color = vec4(0.0,0.0,0.0,1.0);
-       	 }
-       }
+        color = mix( color0, mix( color1, color2, blendLayers ), blendGlobal ) * diffuse;
      }
 }
