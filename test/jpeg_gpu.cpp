@@ -392,7 +392,7 @@ bool Jpeg_Data::initTechnique()
 	shaders_.push_back(new Shader);
 	shader = shaders_[shaders_.size() - 1];
 	shader->getShaderFromMultCode(Shader::VERTEX, "Quad", code);
-	shader->getShaderFromMultCode(Shader::GEOMETRY, "GL_Quad", code);
+	shader->getShaderFromMultCode(Shader::GEOMETRY, "Quad", code);
 	shader->getShaderFromMultCode(Shader::FRAGMENT, "PS_IDCT_RenderToBuffer", code);
 	shader->linkProgram();
 	shader->checkProgram();
@@ -453,8 +453,8 @@ int Jpeg_Data::allocateTextures(int width, int height)
 
 struct Point
 {
-	uint32 x;
-	uint32 y;
+	int32 x;
+	int32 y;
 };
 
 struct Box
@@ -471,7 +471,7 @@ struct Box
 
 struct UpdateRegin
 {
-	uint32 offset_;
+	int32 offset_;
 	Box  region_;
 };
 
@@ -516,7 +516,7 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 
 				for (int k = MCU_COLUMN; k < MCU_COLUMN + MCU_NUM_X; k++)
 				{
-					uint32 offset = MCU_BLOCK_SIZE * (j * MCU_per_row + k);
+					int32 offset = MCU_BLOCK_SIZE * (j * MCU_per_row + k);
 					updateRegions0.push_back(UpdateRegin{ 0 + offset,box });
 					box.min_.x += 8;
 					box.max_.x += 8;
@@ -530,7 +530,7 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 	else if (componentsNum == 3)
 	{
 		Box box[2];
-		uint32 corner[2];
+		int32 corner[2];
 		for (int i = 0; i < blocksNum; i++)
 		{
 			MCU_ROW = pSrcCorners[i * 2 + 1] / MCU_SIZE;
@@ -550,7 +550,7 @@ void Jpeg_Data::updateTextureData(int blocksNum, int blockSize, int *pSrcCorners
 
 				for (int k = MCU_COLUMN; k < MCU_COLUMN + MCU_NUM_X; k++)
 				{
-					uint32 offset = MCU_BLOCK_SIZE * (j * MCU_per_row + k);
+					int32 offset = MCU_BLOCK_SIZE * (j * MCU_per_row + k);
 
 					box[0].min_.y = corner[1];
 					box[0].max_.y = corner[1] + 8;
