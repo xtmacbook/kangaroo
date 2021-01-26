@@ -385,6 +385,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			tileBlockSize = g_UpdateRegionSize / (unsigned)pow(2.0, i);
 
 			mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) - g_ClipmapStackSize / 2;
+			
 			if (mipCornerLU[0] < 0)
 				mipCornerLU[0] += g_ppSourceImageMipsSize[i][0];
 
@@ -451,6 +452,7 @@ void ClipMappingScene::updatestackTexture(const V3f&eyePos)
 			tileBlockSize = g_UpdateRegionSize / (unsigned)pow(2.0, i);
 
 			mipCornerLU[0] = int(g_StackPosition.x * g_ppSourceImageMipsSize[i][0]) - g_ClipmapStackSize / 2;
+			
 			if (mipCornerLU[0] < 0)
 				mipCornerLU[0] += g_ppSourceImageMipsSize[i][0];
 
@@ -516,9 +518,9 @@ bool ClipMappingScene::initSceneModels(const SceneInitInfo&)
 {
 	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &g_maxUnits);
 
-	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_, 0.3, hudSizeY_, 0.0,false));
-	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_ - 0.5, 0.3, hudSizeY_,1.0, false));
-	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_ - 1.0, 0.3, hudSizeY_, 2.0, false));
+	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_, 0.8, hudSizeY_, 0.0,false));
+	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_ - 0.5, 0.8, hudSizeY_,1.0, false));
+	addRenderNode(getHudRenderNode(hudOffsetx_, hudOffsety_ - 1.0, 0.8, hudSizeY_, 2.0, false));
 
 	hudShader_ = createHudShader();
 
@@ -952,10 +954,10 @@ void ClipMappingScene::render(PassInfo&info)
 	glActiveTexture(GL_TEXTURE1);
 	g_pPyramidTexture->bind();
 	samplerLinear_->bindTexture(1);
-	if (curShader->getVariable("test_"))
+	/*if (curShader->getVariable("test_"))
 	{
 		curShader->setFloat(curShader->getVariable("test_"), g_test);
-	}
+	}*/
 	sphere_->render(curShader,info);
 	curShader->turnOff();
 	
