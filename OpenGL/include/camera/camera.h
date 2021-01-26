@@ -65,6 +65,7 @@ public:
 	void						setObject(const Matrixf& m);
 
 	virtual V3f					getPosition()const;
+	virtual V3f					getFocuse()const;
 	virtual V3f					getViewDir()const override;
 
 	virtual void				processKeyboard(int key, int st, int action, int mods, float deltaTime);
@@ -76,6 +77,7 @@ public:
     bool						isAABBVisible_E(const AABB&)const;
 
 	void						setDollyScale(float s);
+	void						setZoomScale(float s);
 protected:
 	virtual void				mouse_move_tumble(const V2f&pt);
 	virtual void				mouse_move_plan(const V2f&pt);
@@ -104,7 +106,8 @@ protected:
 	
 	Matrixf						obj_local_;
 
-	float						dolly_scale_ = 1.0;
+	float						dolly_scale_ = 1.0f;
+	float						zoom_scale_ = 1.0f;
 };
 
 #endif
