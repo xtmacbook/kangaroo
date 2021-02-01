@@ -7,15 +7,16 @@
 #include <windowManager.h>
 #include <log.h>
 #include <Inputmanager.h>
-#include <glinter.h>
 #include <resource.h>
 #include <camera.h>
+#include "geoClipMapping.h"
 
-#include "geometry_clipmappings_terrain.h"
 
-namespace scene
-{
-}
+/*
+
+github DigitalRune
+*/
+
 class ClipMappingScene :public Scene
 {
 public:
@@ -39,7 +40,7 @@ public:
 
 ClipMappingScene::ClipMappingScene()
 {
-	terrain_ = new ClipmapTerrain(15, 5);
+	terrain_ = new ClipmapTerrain(255, 7);
 }
 
 ClipMappingScene::~ClipMappingScene()
@@ -88,27 +89,22 @@ void ClipMappingScene::render(PassInfo&)
 
 int main()
 {
-
 	ClipMappingScene * scene = new ClipMappingScene;
 	FSPCamera *pCamera = new FSPCamera();
-	pCamera->positionCamera(V3f(5.0, 50.0, 5.0), 0.0, 0.0, V3f(0.0, 1.0, 0.0));
+	pCamera->positionCamera(V3f(0.0, 50.0, 0.0), 0.0, 0.0, V3f(0.0, 1.0, 0.0));
 
 	pCamera->setClipPlane(1.0f, 5000.0f);
 	scene->setMasterCamera(pCamera);
 	WindowManager *pWindowManager = new WindowManager();
+	pWindowManager->initialize();
 	GLApplication application(scene);
 	application.setWindowManager(pWindowManager);
 
-	WindowConfig wc;
-	DeviceConfig dc;
-	wc.title_ = "Geometry ClipMappings terrain Test";
-	wc.width_ = 1024;
-	wc.height_ = 906;
-	wc.pos_x_ = 50;
-	wc.pos_y_ = 50;
-
-	application.initialize(&wc, &dc);
+	//wc.shouldCreateSharedContext_ = true;
+	const char * title = "Geometry ClipMappings terrain Test";
+	application.initialize(1024, 960, title);
 
 	application.initScene();
+
 	application.start();
 }
