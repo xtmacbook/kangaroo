@@ -125,15 +125,19 @@ namespace scene
 		{
 			glActiveTexture(GL_TEXTURE0);
 			texture->bind();
-			::Texture * textures = { frameBufferText };
-			//fbuffer_->colorTextureAttachments(textures, 1);
-			//fbuffer_->enableRenderToColorAndDepth(0);
+
+			std::vector<Texture*> fts;
+			fts.push_back(frameBufferText);
+
+			fbuffer_->bindObj(true);
+			fbuffer_->clearBuffer();
+			fbuffer_->colorTextureAttachments(fts);
 
 			DrawInfo info;
 			info.draw_shader_ = shader_;
-			//quad_->drawGeoemtry(info);
-			//fbuffer_->disableRenderToColorDepth();
-			textures->unBind();
+			quad_->drawGeoemtry(info);
+			fbuffer_->bindObj(false);
+			texture->unBind();
 
 			CHECK_GL_ERROR;
 		}
@@ -361,7 +365,7 @@ namespace scene
 		}
 	}
 
-	void TerrainUpdater::renderTileToLevelTexture(const RasterTileRegion*region, TerrainRasterLevel *level, const TileData*data)
+	void TerrainUpdater::renderTileToLevelTexture(const RasterTileRegion*region, TerrainRasterLevel *level, const ::base::SmartPointer<TileData>  data)
 	{
 		TerrainClipLevel * tcl = dynamic_cast<TerrainClipLevel*>(level);
 
@@ -470,17 +474,17 @@ namespace scene
 
 	}
 
-	void TerrainUpdater::update(const RasterExtent* update, TerrainRasterLevel*rlevel, const RasterLevel*level)
+	void TerrainUpdater::update(const RasterExtent* intersection, TerrainRasterLevel*rlevel, const RasterLevel*level)
 	{
 		std::vector<RasterExtent> extents;
-		splitUpdateToAvoidWrapping(update, rlevel, extents);
+		splitUpdateToAvoidWrapping(intersection, rlevel, extents);
 
 		for (int i = 0; i < extents.size(); i++)
 		{
 			const RasterExtent&extent = extents[i];
 			std::vector<RasterTileRegion> tileRegions;
 			level->getTilesInExtent(extent.left_, extent.buttom_, extent.right_, extent.top_, tileRegions);
-
+			
 			for (int j = 0; j < tileRegions.size(); j++)
 			{
 				const RasterTileRegion&region = tileRegions[j];
@@ -488,7 +492,7 @@ namespace scene
 				RasterDataQeq::TEXTUREITER loadTexture = detail_.loadedTiles_.find(region.title()->identifier());
 				if (loadTexture != detail_.loadedTiles_.end())
 				{
-					const TileData* data = loadTexture->second;
+					const TileDataRef data = loadTexture->second;
 					renderTileToLevelTexture(&region, rlevel, data);
 				}
 			}
@@ -522,7 +526,6 @@ namespace scene
 			}
 		}
 	}
-
 
 	void TerrainUpdater::updateTerrain(TerrainRasterLevel*l)
 	{
