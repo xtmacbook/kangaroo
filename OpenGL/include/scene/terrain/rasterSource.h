@@ -11,6 +11,7 @@
 
 #include "rasterExtent.h"
 #include "smartPointer.h"
+#include "BaseObject.h"
 
 class Texture;
 
@@ -19,12 +20,14 @@ namespace scene
 	class RasterLoader;
 	class RasterLevel;
 
-	struct TileData
+	struct TileData :public ::base::BaseObject
 	{
-		base::SmartPointer<::Texture>	texture_ ;
+		::base::SmartPointer<Texture>	texture_ ;
 		virtual ~TileData();
 	};
 	
+	typedef ::base::SmartPointer<TileData> TileDataRef;
+
 	class LIBENIGHT_EXPORT RasterResource
 	{
 	public:
@@ -37,10 +40,9 @@ namespace scene
 		int								getLevelsNum()const;
 		int								getTitleWidth()const;
 		int								getTileHeigh()const;
-
 		RasterTile *					getTile(const RasterTileIdentifier*);
 
-		virtual TileData *				loadTileData(const RasterTileIdentifier*) = 0;
+		virtual TileDataRef				loadTileData(const RasterTileIdentifier*) = 0;
 
 		void							setNumLevel(int num);
 		void							setTileWH(int w, int h);
@@ -49,7 +51,7 @@ namespace scene
 
 		RasterLevel *					level(int);
 
-		std::map<const RasterTileIdentifier*, RasterTile*, TileIdentifierComp>	activeTiles_;
+	protected:
 		int								num_levels_;
 		int								tile_with_;
 		int								tile_hight_;
@@ -58,8 +60,9 @@ namespace scene
 		double							levelZeroDeltaRasterH_ = 0.0;
 		GeodeticExtent					extend_;
 
-	protected:
-		std::map<int, RasterLevel*>	levels_;
+		std::map<int, RasterLevel*>		levels_;
+		std::map<const RasterTileIdentifier*, RasterTile*, TileIdentifierComp>	activeTiles_;
+
 	};
 
 	class LIBENIGHT_EXPORT TerrainResource :public RasterResource
@@ -70,7 +73,7 @@ namespace scene
 
 		virtual ~TerrainResource();
 		virtual		bool				init();
-		virtual TileData *				loadTileData(const RasterTileIdentifier*);
+		virtual TileDataRef 				loadTileData(const RasterTileIdentifier*);
 
 	};
 }
