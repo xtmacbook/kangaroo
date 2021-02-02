@@ -2,6 +2,8 @@
 #include "footPrints.h"
 #include "terrainClipLevel.h"
 #include "terrainClipUpdater.h"
+#include "rasterSource.h"
+#include "rasterTile.h"
 #include "rasterLevel.h"
 #include "rasterLoader.h"
 #include "cameraBase.h"
@@ -46,22 +48,22 @@ namespace scene
 		centerIndex.y = raster_->ytoIndex(level_center_.y);
 
 		int half = (campSize_ - 1) / 2;
-		nextExtent_.left_ = centerIndex.x - half;
-		nextExtent_.right_ = centerIndex.x + half;
-		nextExtent_.top_ = centerIndex.y + half;
-		nextExtent_.buttom_ = centerIndex.y - half;
+		nextGridIndexExtent_.left_ = centerIndex.x - half;
+		nextGridIndexExtent_.right_ = centerIndex.x + half;
+		nextGridIndexExtent_.top_ = centerIndex.y + half;
+		nextGridIndexExtent_.buttom_ = centerIndex.y - half;
 
 		updateTextureOrigin(campSize_, campSize_);
 	}
 
 	void TerrainClipLevel::updateTextureOrigin(int xstrip, int ystrip)
 	{
-		int deltaX = nextExtent_.left_ - currentExtent_.left_;
-		int deltaY = nextExtent_.buttom_ - currentExtent_.buttom_;
+		int deltaX = nextGridIndexExtent_.left_ - currentGridIndexExtent_.left_;
+		int deltaY = nextGridIndexExtent_.buttom_ - currentGridIndexExtent_.buttom_;
 		if (deltaX == 0 && deltaY == 0)
 			return;
 
-		if (currentExtent_.left_ > currentExtent_.right_ ||  // initial update
+		if (currentGridIndexExtent_.left_ > currentGridIndexExtent_.right_ ||  // initial update
 			std::abs(deltaX) >= xstrip || std::abs(deltaX) >= ystrip)      // complete update
 		{
 			originInTextures_ = V2i(0, 0);
@@ -81,18 +83,18 @@ namespace scene
 
 	const RasterExtent& TerrainClipLevel::nextExtend() const
 	{
-		return nextExtent_;
+		return nextGridIndexExtent_;
 	}
 
 
 	void TerrainClipLevel::currentExtend(const RasterExtent&extend)
 	{
-		currentExtent_ = extend;
+		currentGridIndexExtent_ = extend;
 	}
 
 	const scene::RasterExtent& TerrainClipLevel::currentExtend() const
 	{
-		return currentExtent_;
+		return currentGridIndexExtent_;
 	}
 
 	const math::V2i& TerrainClipLevel::originTexture() const
