@@ -16,7 +16,7 @@ namespace scene
 	{
 		for (int i = 0; i < num_levels_; i++)
 		{
-			delete levels_[i];
+			SAFTE_DELETE(levels_[i]);
 		}
 	}
 
@@ -89,9 +89,9 @@ namespace scene
 	{
 	}
 
-	TileData * TerrainResource::loadTileData(const RasterTileIdentifier* identifier)
+	TileDataRef TerrainResource::loadTileData(const RasterTileIdentifier* identifier)
 	{
-		std::string cachePath = "d:/temp/height/height/";
+		std::string cachePath = "d:/temp/terrain/";
 		cachePath += std::to_string(identifier->level_) + "/";
 		cachePath += std::to_string(identifier->x_);
 
@@ -99,31 +99,27 @@ namespace scene
 
 		if (!IO::File::existDirectory(cachePath.c_str()))
 		{
-			//IO::File::existDirectory(cachePath.c_str());
+			LOGE("file %s does not exist!\n", cacheFilename);
 			return nullptr;
 		}
-#if 0
-		Texture * texture  = new Texture(cacheFilename.c_str());
-		texture->target_ = GL_TEXTURE_2D;
+ 
+		TileDataRef tileData = new TileData;
+		tileData->texture_ = new Texture(cacheFilename.c_str());
+		tileData->texture_->target_ = GL_TEXTURE_2D;
 		
-		if (texture->loadData())
+		if (tileData->texture_->loadData())
 		{
-			texture->createObj();
-			texture->bind();
-			texture->mirrorRepeat();
-			texture->filterLinear();
-			if (!texture->context(NULL))
+			tileData->texture_->createObj();
+			tileData->texture_->bind();
+			tileData->texture_->mirrorRepeat();
+			tileData->texture_->filterLinear();
+			if (!tileData->texture_->context(NULL))
 			{
 			}
 			CHECK_GL_ERROR;
-
-			TileData * tileData = new TileData;
-			tileData->texture_ = texture;
 			return tileData;
 		}
 
-		delete texture;
-#endif
 		return nullptr;
 	}
 
