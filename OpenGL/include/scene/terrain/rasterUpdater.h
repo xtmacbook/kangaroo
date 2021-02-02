@@ -11,6 +11,7 @@
 #include "messQue.h"
 #include "rasterTile.h"
 #include "BaseObject.h"
+#include "smartPointer.h"
 #include <map>
 #include <list>
 #include <vector>
@@ -23,7 +24,6 @@ namespace scene
 	class TerrainRasterLevel;
 	class RasterLoader;
 
-	struct TileData;
 
 	class LIBENIGHT_EXPORT TileLoadRequest
 	{
@@ -34,7 +34,7 @@ namespace scene
 		~TileLoadRequest();
 
 		RasterTile *			title_ = nullptr;
-		TileData    *			data_ = nullptr;
+		::base::SmartPointer<TileData>				data_;
 		TerrainRasterLevel*		level_ = nullptr;
 		bool					isNode_ = false; //is one node of list(be reference by one list/queue)
 
@@ -52,13 +52,18 @@ namespace scene
 	struct LIBENIGHT_EXPORT RasterDataQeq
 	{
 	public:
-		std::map <const RasterTileIdentifier*, TileLoadRequest*, TileIdentifierComp> loadingTiles_;
-		std::map <const RasterTileIdentifier*, TileData*, TileIdentifierComp> loadedTiles_;
-		base::DataQequest<TileLoadRequest> requestList_;
-		
-		typedef std::map <const RasterTileIdentifier*, TileLoadRequest*, TileIdentifierComp>::const_iterator LOADINGCITER;
-		typedef std::map <const RasterTileIdentifier*, TileData*, TileIdentifierComp>::const_iterator TEXTUREITER;
 
+		typedef std::map <const RasterTileIdentifier*, TileLoadRequest*, TileIdentifierComp> TILE_LOAD_REQUEST;
+		typedef std::map <const RasterTileIdentifier*, ::base::SmartPointer<TileData>, TileIdentifierComp> TITLE_DATA_LOAD;
+
+
+		typedef TILE_LOAD_REQUEST::const_iterator LOADINGCITER;
+		typedef TITLE_DATA_LOAD::const_iterator TEXTUREITER;
+
+		TILE_LOAD_REQUEST			loadingTiles_;
+		TITLE_DATA_LOAD				loadedTiles_;
+		base::DataQequest<TileLoadRequest> requestList_;
+	
 		bool					  stopRequest_ = false;
 
 		base::SameProcessMutex	  requestListMutex_;
