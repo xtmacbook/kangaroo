@@ -17,7 +17,7 @@ namespace scene
 		double buttom_;
 	};
 
-	class LIBENIGHT_EXPORT RasterExtent
+	struct LIBENIGHT_EXPORT RasterExtent
 	{
 	public:
 
@@ -28,6 +28,7 @@ namespace scene
 		RasterExtent(const RasterExtent&);
 
 		RasterExtent& operator=(const RasterExtent&);
+
 
 		int left_;
 		int right_;
