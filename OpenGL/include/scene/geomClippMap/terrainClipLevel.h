@@ -51,8 +51,8 @@ namespace scene
 		int						scale_;			//rect  //current lay scale
 		V2f						level_offset_; // from the level-1
 
-		RasterExtent			currentExtent_ = { 1,0,0,1 };
-		RasterExtent			nextExtent_;
+		RasterExtent			currentGridIndexExtent_ = { 1,0,0,1 };
+		RasterExtent			nextGridIndexExtent_; //level grid index
 		V2i						originInTextures_;
 
 		int						campSize_;
