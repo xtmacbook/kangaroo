@@ -19,11 +19,6 @@ struct HeightMap
 	::Texture	*	heightTextureObj_ = nullptr;
 };
 
-namespace base
-{
-	template<class T> class SmartPointer;
-}
-
 namespace scene
 {
 	class TerrainRasterLevel;
@@ -97,20 +92,20 @@ namespace scene
 		void	bindHeightMap(bool flag);
 		bool	initDiffMap(const char* file);
 
-		void	renderTileToLevelTexture(const RasterTileRegion*, TerrainRasterLevel *, const TileData*);
+		void	renderTileToLevelTexture(const RasterTileRegion*, TerrainRasterLevel *, const ::base::SmartPointer<TileData> tileData);
 		void	splitUpdateToAvoidWrapping(const RasterExtent*, const TerrainRasterLevel*, std::vector<RasterExtent>&);
 		void	update(const RasterExtent* update, TerrainRasterLevel*, const RasterLevel*);
 		virtual void	applyNewTile(RasterTile * title, TerrainRasterLevel*);
 
 		void	updateTerrain(TerrainRasterLevel*);
 
-		HeightMap				heightMap_;
-		::Texture*				diffuseTexture_ = nullptr;
-		bool					need_update_ = true;
+		HeightMap										heightMap_;
+		::Texture*										diffuseTexture_ = nullptr;
+		bool											need_update_ = true;
 
-		internal::UpdatePass*		updatePass_ = nullptr;
-		internal::SamplePass*		samplePass_ = nullptr;
-		internal::ComputeNormalPass*		normalPass_ = nullptr;
+		internal::UpdatePass*							updatePass_ = nullptr;
+		internal::SamplePass*							samplePass_ = nullptr;
+		internal::ComputeNormalPass*					normalPass_ = nullptr;
 
 		base::SmartPointer<::CommonGeometry>			quad_;
 	};
