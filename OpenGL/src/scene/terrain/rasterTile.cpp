@@ -24,9 +24,9 @@ namespace scene
 
 	}
 
-	TileData* RasterTile::loadData()
+	void RasterTile::loadData(TileData*data)
 	{
-		return level_->resource()->loadTileData(&identifier_);
+		 level_->resource()->loadTileData(&identifier_,data);
 	}
 
 	RasterLevel * RasterTile::level()const
