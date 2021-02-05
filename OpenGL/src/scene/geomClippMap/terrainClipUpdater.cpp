@@ -15,86 +15,12 @@
 #include "shader.h"
 #include "framebuffers.h"
 #include "geometry.h"
+#include "baseMesh.h"
 
 namespace scene
 {
 	namespace internal
 	{
-		static GLfloat quadVertices[] = {
-			// positions   // texCoords
-			0.0f,  1.0f,  0.0f, 1.0f,
-			0.0f, 0.0f,  0.0f, 0.0f,
-			1.0f, 0.0f,  1.0f, 0.0f,
-
-			0.0f,  1.0f,  0.0f, 1.0f,
-			1.0f, 0.0f,  1.0f, 0.0f,
-			1.0f,  1.0f,  1.0f, 1.0f
-		};
-
-		class  QuadLocal :public ::CommonGeometry
-		{
-		public:
-			QuadLocal(bool update = false);
-			~QuadLocal();
-
-			virtual void updateGeometry();
-			virtual void initGeometry();
-			virtual void drawGeoemtry(const DrawInfo&);
-			virtual void computeBoundingBox(void *);
-
-			unsigned int vbo_;
-
-		};
-
-		QuadLocal::QuadLocal(bool update) :CommonGeometry(update)
-		{
-			glGenBuffers(1, &vbo_);
-		}
-
-		QuadLocal::~QuadLocal()
-		{
-			glDeleteBuffers(1, &vbo_);
-		}
-
-
-		void QuadLocal::updateGeometry()
-		{
-
-		}
-
-		void QuadLocal::initGeometry()
-		{
-			//bindVAO();
-
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
-
-			glBindVertexArray(0);
-		}
-
-		void QuadLocal::computeBoundingBox(void*)
-		{
-
-		}
-
-		void QuadLocal::drawGeoemtry(const DrawInfo&di)
-		{
-			GLint  location = di.draw_shader_->getVariable("model");
-			if (location != -1)
-			{
-				Matrixf transform = di.matrix_* getModelMatrix();
-				di.draw_shader_->setMatrix4(location, 1, GL_FALSE, math::value_ptr(transform));
-			}
-
-			//if (di.needBind_) glBindVertexArray(vao_);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			glBindVertexArray(0);
-		}
-
 
 		Pass::Pass(int w, int h) :width_(w), height_(h)
 		{
@@ -104,39 +30,34 @@ namespace scene
 
 		Pass::~Pass()
 		{
-			if (shader_)
-			{
-				delete shader_;
-				shader_ = nullptr;
-			}
-			if (fbuffer_)
-			{
-				delete fbuffer_;
-				fbuffer_ = nullptr;
-			}
+			SAFTE_DELETE(shader_);
+			SAFTE_DELETE(fbuffer_);
 		}
 
-		void Pass::setQuad(CommonGeometry*q)
+		void Pass::setQuad(IRenderNode_SP q)
 		{
 			quad_ = q;
 		}
 
 		void Pass::draw(::Texture * texture, ::Texture *frameBufferText)
 		{
+			CHECK_GL_ERROR;
+
 			glActiveTexture(GL_TEXTURE0);
 			texture->bind();
 
 			std::vector<Texture*> fts;
 			fts.push_back(frameBufferText);
 
+			fbuffer_->setBufferSize(fts.size());
 			fbuffer_->bindObj(true);
-			fbuffer_->clearBuffer();
 			fbuffer_->colorTextureAttachments(fts);
+			fbuffer_->clearBuffer();
 
-			DrawInfo info;
-			info.draw_shader_ = shader_;
-			quad_->drawGeoemtry(info);
+			PassInfo info;
+			quad_->render(shader_,info);
 			fbuffer_->bindObj(false);
+
 			texture->unBind();
 
 			CHECK_GL_ERROR;
@@ -208,33 +129,23 @@ namespace scene
 
 	TerrainUpdater::~TerrainUpdater()
 	{
-		if (updatePass_)
-		{
-			delete updatePass_; updatePass_ = nullptr;
-		}
-		if (normalPass_)
-		{
-			delete normalPass_; normalPass_ = nullptr;
-		}
-		if (samplePass_)
-		{
-			delete samplePass_; samplePass_ = nullptr;
-		}
+		SAFTE_DELETE(updatePass_);
+		SAFTE_DELETE(normalPass_);
+		SAFTE_DELETE(samplePass_);
 	}
 
 
 	void TerrainUpdater::initPass(int w, int h)
 	{
-		quad_ = new internal::QuadLocal;
-		quad_->initGeometry();
+		quad_ = getQuadRenderNode(V3f(0.5,0.0,0.0),0.5f,false);
 
 		updatePass_ = new internal::UpdatePass(w,h);
 		normalPass_ = new internal::ComputeNormalPass(w,h);
 		samplePass_ = new internal::SamplePass(w,h);
 
-		updatePass_->setQuad(quad_.addr());
-		normalPass_->setQuad(quad_.addr());
-		samplePass_->setQuad(quad_.addr());
+		updatePass_->setQuad(quad_);
+		normalPass_->setQuad(quad_);
+		samplePass_->setQuad(quad_);
 
 		updatePass_->initStateAndObjs("terrain/clipmappings.glsl");
 		normalPass_->initStateAndObjs("terrain/clipmapComputeNormals.glsl");
@@ -384,7 +295,7 @@ namespace scene
 		updatePass_->shader_->setFloat2(updatePass_->sourceOrigin_, region->left(), region->buttom());
 		updatePass_->shader_->setFloat2(updatePass_->destinationOffset_, destWest, destSouth);
 		glDisable(GL_DEPTH_TEST);
-		//updatePass_->draw(data->texture_,tcl->heigtTexture());
+		updatePass_->draw(data->getTexture(),tcl->heigtTexture());
 		updatePass_->shader_->turnOff();
 		glEnable(GL_DEPTH_TEST);
 	}
