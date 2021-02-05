@@ -164,7 +164,10 @@ void FrameBufferObject::clearBuffer()
 	}
 	glClear(bit);
 }
-
+void FrameBufferObject::setBufferSize(int size)
+{
+	ncolorBuffer_ = size;
+}
 void FrameBufferObject::createGLObject()
 {
 	if (!hasCreateObj_)
