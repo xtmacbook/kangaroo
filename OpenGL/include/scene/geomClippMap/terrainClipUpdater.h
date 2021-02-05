@@ -5,6 +5,7 @@
 #include "rasterUpdater.h"
 #include "smartPointer.h"
 #include "geometry.h"
+#include "IRenderNode.h"
 
 class Texture;
 class Quad;
@@ -32,10 +33,10 @@ namespace scene
 			virtual ~Pass();
 			virtual void initStateAndObjs(const char*shde);
 			virtual void initUniform() = 0;
-			void	 setQuad(CommonGeometry*);
+			void	 setQuad(::IRenderNode_SP);
 			virtual void draw(::Texture*, ::Texture *frameBufferText);
 			Shader *	shader_;
-			CommonGeometry*		quad_;
+			::IRenderNode_SP		quad_;
 
 			int texture0_;
 			int viewportOrthographicMatrix_;
@@ -107,7 +108,7 @@ namespace scene
 		internal::SamplePass*							samplePass_ = nullptr;
 		internal::ComputeNormalPass*					normalPass_ = nullptr;
 
-		base::SmartPointer<::CommonGeometry>			quad_;
+		IRenderNode_SP									quad_;
 	};
 
 }
