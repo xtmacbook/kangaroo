@@ -12,6 +12,7 @@
 #include "shader.h"
 #include "gls.h"
 #include "log.h"
+#include "engineLoad.h"
 
 /************************************************************************
  https://arm-software.github.io/opengl-es-sdk-for-android/terrain.html
@@ -141,6 +142,8 @@ bool test_first = true;
 
 void MapLayerManager::update(const CameraBase* camera, scene::RasterUpdater * updater)
 {
+	CHECK_GL_ERROR;
+
 	TerrainClipLevel * layer;
 
 	//udpate center level
@@ -173,22 +176,34 @@ void MapLayerManager::update(const CameraBase* camera, scene::RasterUpdater * up
 	//apply new raster Datas
 	updater->applyNewData();
 
-	if (test_first)
+	CHECK_GL_ERROR;
+
+
+	if (false)
 	{
 		test_first = !test_first;
-		layer = getLevel(num_level_ - 1);
-		updater->requestTileResidency(layer,layer->getRaster(),&layer->nextExtend());
+
+		TerrainUpdater * tupdate = dynamic_cast<TerrainUpdater*>(updater);
+		for (int level = 6; level < num_level_; level++)
+		{
+			//require new data
+			layer = getLevel(level);
+			updater->requestTileResidency(layer, layer->getRaster(), &layer->nextExtend());
+			//update textures
+			//tupdate->updateTerrain(layer);
+		}
 	}
 
-	//new required and update textures
-	for (int level = 0; level < num_level_; level++)
-	{
-		//require new data
-		layer = getLevel(level);
-		//updater->requestTileResidency(layer,layer->getRaster(),&layer->nextExtend());
-		//update textures
+	//TerrainUpdater * tupdate = dynamic_cast<TerrainUpdater*>(updater);
+	//for (int level = 0; level < num_level_; level++)
+	//{
 
-	}
+	//	//require new data
+	//	layer = getLevel(level);
+	//	updater->requestTileResidency(layer,layer->getRaster(),&layer->nextExtend());
+	//	//update textures
+	//	tupdate->updateTerrain(layer);
+	//}
 }
 
 
@@ -270,9 +285,10 @@ bool ClipmapTerrain::init()
 	terrainUpdater_ = new TerrainUpdater(cmapSize_, cmapSize_);
 
 	//init coarsest Level
-	//layerManager_->initCorsestLevel(terrainUpdater_);
+	layerManager_->initCorsestLevel(terrainUpdater_);
 
 	terrainUpdater_->loadTerrainFile((get_media_BasePath() + "heightmap/ps_height_4k.png").c_str());
+
 	terrainUpdater_->initDiffMap((get_media_BasePath() + "heightmap/ps_texture_4k.png").c_str());
 	terrainUpdater_->initTextureObj();
 
