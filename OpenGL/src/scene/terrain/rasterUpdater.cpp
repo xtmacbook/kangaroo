@@ -46,6 +46,10 @@ namespace scene
 		if (noExist)
 		{
 			request = new TileLoadRequest(rl,title);
+			int titleW = title->level()->titleWidth();
+			int titleH = title->level()->titleHeigh();
+			request->data_ = new TileData(titleW, titleH);
+			request->data_->getBuffer();
 		}
 		
 		detail_.requestListMutex_.lock();
@@ -68,6 +72,8 @@ namespace scene
 
 	int RasterUpdater::getDoneReqs(TileLoadRequest * rq, std::vector<TileLoadRequest*>*doneQ)
 	{
+		TileData * tileData = rq->data_;
+		tileData->updateTexture();
 		detail_.loadedTiles_[rq->title_->identifier()] = rq->data_;
 		detail_.loadingTiles_.erase(rq->title_->identifier());
 		doneQ->push_back(rq);
@@ -77,7 +83,7 @@ namespace scene
 	void RasterUpdater::applyIfNotLoaded(TerrainRasterLevel *level, RasterTile*tile)
 	{
 		RasterDataQeq::TEXTUREITER loadTexture = detail_.loadedTiles_.find(tile->identifier());
-		if (loadTexture == detail_.loadedTiles_.end() || loadTexture->second->texture_.addr() == 0)
+		if (loadTexture == detail_.loadedTiles_.end() || loadTexture->second->getTexture() == 0)
 		{
 			applyNewTile(tile,level);
 		}
@@ -105,9 +111,6 @@ namespace scene
 	TileLoadRequest::TileLoadRequest(TerrainRasterLevel*level, RasterTile *title):title_(title),
 		level_(level)
 	{
-		data_ = new TileData;
-		data_->texture_ = new Texture;
-		data_->texture_->createObj();
 
 	}
 
