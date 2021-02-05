@@ -50,7 +50,9 @@ class LIBENIGHT_EXPORT FrameBufferObject  :public base::BaseObject
 
 	void				bindObj(bool bind = true,bool flag = true);
 
-	void			clearBuffer();
+	void				clearBuffer();
+
+	void				setBufferSize(int );
 private:
 
 	void				createGLObject();
