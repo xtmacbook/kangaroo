@@ -26,7 +26,7 @@ using namespace math;
  * persistent:you are not frequently mapping and unmapping the buffer. You map it persistently when you create the buffer, and keep it mapped until it's time to delete the buffer.
  */
 template <class T>
-class  FlashBuffer :public BaseObject
+class  FlashBuffer :public base::BaseObject
 {
 public:
 
@@ -64,7 +64,7 @@ public:
 
 	void setTarget(GLenum t);
 	void mapBuffer();
-	void flush_data();
+	void flush_data(bool unBind = true);
 	void create_buffers(unsigned int flag,bool unbind = true);
 
 	void waitBuffer(void);
@@ -256,7 +256,7 @@ void FlashBuffer<T>::create_buffers(unsigned int model,  bool unbind /*= true*/)
 }
 
 template <class T>
-void FlashBuffer<T>::flush_data()
+void FlashBuffer<T>::flush_data(bool unBind)
 {
 	CHECK_GL_ERROR;
 
@@ -300,7 +300,7 @@ void FlashBuffer<T>::flush_data()
 	query_.end();
 	CHECK_GL_ERROR;
 #endif
-	glBindBuffer(target_, 0);
+	if(unBind) glBindBuffer(target_, 0);
 }
 
 template <class T>
@@ -350,7 +350,7 @@ void FlashBuffer<T>::mapBuffer()
 			buffer_pool_size_ * sizeof(T),
 			GL_MAP_WRITE_BIT));
 	}
-	glBindBuffer(target_, vbo_);
+	glBindBuffer(target_, 0);
 }
 
 template <class T>
