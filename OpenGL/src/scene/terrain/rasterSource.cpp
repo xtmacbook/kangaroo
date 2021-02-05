@@ -8,7 +8,7 @@
 #include "texture.h"
 #include "gls.h"
 #include "log.h"
-
+#include "flashBuffer.h"
 namespace scene
 {
 	 
@@ -89,9 +89,9 @@ namespace scene
 	{
 	}
 
-	TileDataRef TerrainResource::loadTileData(const RasterTileIdentifier* identifier)
+	void  TerrainResource::loadTileData(const RasterTileIdentifier* identifier, TileData* data)
 	{
-		std::string cachePath = "d:/temp/terrain/";
+		std::string cachePath = "d:/temp/height/height/";
 		cachePath += std::to_string(identifier->level_) + "/";
 		cachePath += std::to_string(identifier->x_);
 
@@ -100,27 +100,11 @@ namespace scene
 		if (!IO::File::existDirectory(cachePath.c_str()))
 		{
 			LOGE("file %s does not exist!\n", cacheFilename);
-			return nullptr;
+			return;
 		}
- 
-		TileDataRef tileData = new TileData;
-		tileData->texture_ = new Texture(cacheFilename.c_str());
-		tileData->texture_->target_ = GL_TEXTURE_2D;
 		
-		if (tileData->texture_->loadData())
-		{
-			tileData->texture_->createObj();
-			tileData->texture_->bind();
-			tileData->texture_->mirrorRepeat();
-			tileData->texture_->filterLinear();
-			if (!tileData->texture_->context(NULL))
-			{
-			}
-			CHECK_GL_ERROR;
-			return tileData;
-		}
-
-		return nullptr;
+		Image_SP image = ::IO::EngineLoad::loadImage(cacheFilename.c_str());
+		data->pullData(image->getLevel(0));
 	}
 
 	bool TerrainResource::init()
@@ -149,9 +133,61 @@ namespace scene
 		return true;
 	}
 
+
+	TileData::TileData(unsigned int w, unsigned int h,bool highFile):hight_(highFile)
+	{
+		pbo_ = new FlashBuffer<uint8>(w * h * 2);//RGB
+		pbo_->setTarget(GL_PIXEL_UNPACK_BUFFER);
+		pbo_->create_buffers(2);
+
+		texture_ = new Texture();
+		texture_->width_ = w;
+		texture_->height_ = h;
+		texture_->format_ = GL_RED;
+		texture_->internalformat_ = GL_R16;
+		texture_->type_ = GL_UNSIGNED_SHORT;
+		texture_->createObj();
+		texture_->bind();
+		texture_->mirrorRepeat();
+		texture_->filterLinear();
+		texture_->contextNULL();
+		texture_->unBind();
+	}
+
 	TileData::~TileData()
 	{
-		 
+		SAFTE_DELETE(pbo_);
+	}
+
+
+	base::SmartPointer<Texture> TileData::getTexture()
+	{
+		return texture_;
+	}
+
+
+	void TileData::pullData(void* data)
+	{
+		math::uint8 * mem = pbo_->getBufferPtr();
+		memcpy(mem, data,pbo_->blockSize());
+	}
+
+
+	void TileData::updateTexture()
+	{
+		pbo_->setDataSize(pbo_->blockSize());
+		pbo_->flush_data(false);
+		texture_->bind();
+		if(hight_) glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_->width(), texture_->heigh(), GL_RED, GL_UNSIGNED_SHORT, 0);
+		texture_->unBind();
+		pbo_->unbind();
+
+		CHECK_GL_ERROR;
+	}
+
+	void TileData::getBuffer()
+	{
+		pbo_->mapBuffer();
 	}
 
 }
