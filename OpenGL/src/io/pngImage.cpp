@@ -112,7 +112,8 @@ namespace IO
 		return nullptr;
 #else
 		png_byte sig[8];
-		int bit_depth, color_type;
+		int interlace, color_type, l_compress, filter, bit_depth;
+
 		double              gamma;
 		png_uint_32 channels, row_bytes, w, h;
 		png_structp png_ptr = 0;
@@ -149,10 +150,11 @@ namespace IO
 		info_ptr = png_create_info_struct(png_ptr);
 		if (!info_ptr)
 		{
-			png_destroy_read_struct(&png_ptr, 0, 0);
+			png_destroy_read_struct(&png_ptr, NULL, NULL);
 			LOGE("png png_destroy_read_struct error !\n");
 			return nullptr;
 		}
+		
 
 		/* Set error handling if you are
 		  using the setjmp / longjmp method
@@ -176,10 +178,26 @@ namespace IO
 		png_set_sig_bytes(png_ptr, 8);
 
 		/*     Read and decode PNG stream   */
-		png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-
+		//png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+		png_read_info(png_ptr, info_ptr);
 		// get again width, height and the new bit-depth and color-type
-		png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, 0, 0, 0);
+		if (!png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, &interlace, &l_compress, &filter))
+		{
+			png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+			LOGE("png png_get_IHDR error !\n");
+			return nullptr;
+		}
+
+		/* Expand paletted colors into true RGB triplets. */
+		if (color_type == PNG_COLOR_TYPE_PALETTE)
+			png_set_palette_to_rgb(png_ptr);
+
+		/* Expand grayscale images to the full 8 bits from 1, 2 or 4 bits/pixel. */
+		if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+		{
+			png_set_expand_gray_1_2_4_to_8(png_ptr);
+			bit_depth = 8;
+		}
 
 		row_bytes = png_get_rowbytes(png_ptr, info_ptr);
 		channels = png_get_channels(png_ptr, info_ptr);
@@ -262,17 +280,23 @@ namespace IO
 		image->setElementSize(byte_formats * channels);
 		image->setdepth(1);
 
-		png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 		for (int i = 0; i < h; i++)
 		{
 			// note that png is ordered top to
 			// bottom, but OpenGL expect it bottom to top
 			// so the order or swapped
-			if (byte_formats == 1) memcpy((uint8*)image->pixels() + (row_bytes * (h - 1 - i)), row_pointers[i], row_bytes);
-			else memcpy((uint16*)image->pixels() + (row_bytes * (h - 1 - i)), row_pointers[i], row_bytes);
+
+			void * data = (uint8*)image->pixels() + (row_bytes * (h - 1 - i));
+
+			png_read_rows(png_ptr, (png_bytepp)(&data), NULL, 1);
+
+			/*if (byte_formats == 1) memcpy((uint8*)image->pixels() + (row_bytes * (h - 1 - i)), row_pointers[i], row_bytes);
+			else memcpy((uint16*)image->pixels() + (row_bytes * (h - 1 - i)), row_pointers[i], row_bytes);*/
 		}
 
+		png_read_end(png_ptr, info_ptr);
 		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+
 #endif
 		return image;
 	}
