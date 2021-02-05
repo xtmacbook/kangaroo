@@ -77,7 +77,7 @@ namespace scene
 
 		virtual ~RasterTile();
 
-		TileData*		loadData();
+		void			loadData(TileData*);
 		RasterLevel *   level()const;
 
 		const RasterTileIdentifier*		identifier()const;
