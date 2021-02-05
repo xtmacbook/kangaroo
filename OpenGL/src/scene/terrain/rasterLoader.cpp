@@ -2,6 +2,7 @@
 #include "rasterTile.h"
 #include "rasterUpdater.h"
 #include "rasterLoader.h"
+#include "rasterSource.h"
 #include "fence.h"
 #include "glu.h"
 
@@ -18,7 +19,7 @@ namespace scene {
 
 	void RasterLoader::run()
 	{
-		//gluMakeCurrentShareContext();
+		//gluMakeCurrentShareContext(gluGetCurrentShareContextWindow());
 
 		if (!dataQ_) return;
 
@@ -47,16 +48,13 @@ namespace scene {
 		
 			if (request)
 			{
-				if (request)
-				{
-					RasterTile * tile = request->title_;
-					request->data_ = tile->loadData();
+				RasterTile * tile = request->title_;
+				tile->loadData(request->data_);
 
-					/*base::Fence * fence = new base::FenceGL3x;
-					fence->clientWait();*/
+				/*base::Fence * fence = new base::FenceGL3x;
+				fence->clientWait();*/
 
-					//dataQ_->doneQue_.post(request);
-				}
+				dataQ_->doneQue_.post(request);
 			}
 		}
 	}
