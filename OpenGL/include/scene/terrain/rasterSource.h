@@ -8,10 +8,13 @@
 
 #include "decl.h"
 #include <map>
-
+#include "type.h"
 #include "rasterExtent.h"
 #include "smartPointer.h"
 #include "BaseObject.h"
+#include "image.h"
+template <class T>
+class  FlashBuffer;
 
 class Texture;
 
@@ -20,10 +23,23 @@ namespace scene
 	class RasterLoader;
 	class RasterLevel;
 
-	struct TileData :public ::base::BaseObject
+	class TileData :public ::base::BaseObject
 	{
-		::base::SmartPointer<Texture>	texture_ ;
+	public:
+		TileData(unsigned int w,unsigned int h,bool highFile = true);
+
 		virtual ~TileData();
+
+		::base::SmartPointer<Texture> getTexture();
+
+		void pullData(void *data);
+		void updateTexture();
+		void getBuffer();
+
+	private:
+		::base::SmartPointer<Texture>	texture_;
+		::FlashBuffer<math::uint8>* pbo_ = nullptr;
+		bool hight_ = false;
 	};
 	
 	typedef ::base::SmartPointer<TileData> TileDataRef;
@@ -42,7 +58,7 @@ namespace scene
 		int								getTileHeigh()const;
 		RasterTile *					getTile(const RasterTileIdentifier*);
 
-		virtual TileDataRef				loadTileData(const RasterTileIdentifier*) = 0;
+		virtual void					loadTileData(const RasterTileIdentifier*,TileData*) = 0;
 
 		void							setNumLevel(int num);
 		void							setTileWH(int w, int h);
@@ -73,7 +89,7 @@ namespace scene
 
 		virtual ~TerrainResource();
 		virtual		bool				init();
-		virtual TileDataRef 				loadTileData(const RasterTileIdentifier*);
+		virtual  	void				loadTileData(const RasterTileIdentifier*, TileData*);
 
 	};
 }
