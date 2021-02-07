@@ -91,11 +91,6 @@ namespace scene
 		if (buttom < 0) --tileYStart;
 		if (top < 0) --tileYStop;
 
-		int tileWidth = tileXStop - tileXStart + 1;
-		int tileHeight = tileYStop - tileYStart + 1;
-
-		result.resize(tileWidth * tileHeight);
-		int resultIndex = 0;
 
 		for (int tileY = tileYStart; tileY <= tileYStop; ++tileY)
 		{
@@ -109,6 +104,8 @@ namespace scene
 			if (currentNorth >= titleHeigh_)
 				currentNorth = titleHeigh_ - 1;
 
+			if (currentNorth == 0) continue;
+
 			for (int tileX = tileXStart; tileX <= tileXStop; ++tileX)
 			{
 				int tileXOrigin = tileX * titleWidth_;
@@ -121,15 +118,19 @@ namespace scene
 				if (currentEast >= titleWidth_)
 					currentEast = titleWidth_ - 1;
 
+				if(currentEast == 0) continue;
+
 				RasterTileIdentifier tileID(level_, tileX, tileY);
 				RasterTile* tile = (RasterTile*)resources_->getTile(&tileID);
-				result[resultIndex].setTitle(tile);
-				result[resultIndex].setButtom(currentSouth);
-				result[resultIndex].setTop(currentNorth);
-				result[resultIndex].setRight(currentEast);
-				result[resultIndex].setLeft(currentWest);
 
-				++resultIndex;
+				RasterTileRegion titleRegion;
+				titleRegion.setTitle(tile);
+				titleRegion.setButtom(currentSouth);
+				titleRegion.setTop(currentNorth);
+				titleRegion.setRight(currentEast);
+				titleRegion.setLeft(currentWest);
+
+				result.push_back(titleRegion);
 			}
 		}
 	}
