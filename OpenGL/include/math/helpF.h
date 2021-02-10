@@ -124,7 +124,7 @@ namespace math
 	template <class REAL>
 	math::Matrix4<REAL>						ortho(REAL left, REAL right, REAL bottom, REAL top, REAL zNear, REAL zFar)
 	{
-		return	glm::ortho(left, right, bottom, top,zNear, zNear);
+		return	glm::ortho(left, right, bottom, top,zNear, zFar);
 	}
 
 	template <class REAL>
