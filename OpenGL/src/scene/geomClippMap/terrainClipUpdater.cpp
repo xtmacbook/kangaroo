@@ -41,24 +41,33 @@ namespace scene
 
 		void Pass::draw(::Texture * texture, ::Texture *frameBufferText)
 		{
-			CHECK_GL_ERROR;
 
-			glActiveTexture(GL_TEXTURE0);
-			texture->bind();
+			GLint viewport[4];
+			glGetIntegerv(GL_VIEWPORT, viewport);
 
+			glViewport(0, 0, width_, height_);
 			std::vector<Texture*> fts;
 			fts.push_back(frameBufferText);
 
 			fbuffer_->setBufferSize(fts.size());
-			fbuffer_->bindObj(true);
+			fbuffer_->bindObj(true,false);
 			fbuffer_->colorTextureAttachments(fts);
-			fbuffer_->clearBuffer();
+
+			GLenum DrawBuffers[4] = { GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3 };
+			glDrawBuffers(1, DrawBuffers);
+
+			//fbuffer_->clearBuffer();
+
+			glActiveTexture(GL_TEXTURE0);
+			texture->bind();
 
 			PassInfo info;
 			quad_->render(shader_,info);
 			fbuffer_->bindObj(false);
 
 			texture->unBind();
+
+			glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 
 			CHECK_GL_ERROR;
 		}
@@ -73,15 +82,15 @@ namespace scene
 			shader_->linkProgram();
 			shader_->checkProgram();
 
+			shader_->turnOn();
 			texture0_ = shader_->getVariable("texture0");
 			viewportOrthographicMatrix_ = shader_->getVariable("viewportOrthographicMatrix");
 			initUniform();
-
-			math::Matrixf orthMat = math::ortho(0.0f, width_ * 1.0f, 0.0f, height_* 1.0f, 0.0f, 1.0f);
-			shader_->turnOn();
+			
+			math::Matrixf orthMat = math::ortho(0.0f, width_ * 1.0f, 0.0f, height_* 1.0f, 0.0f, 10.0f);
 			shader_->setInt(texture0_, 0);
 			shader_->setMatrix4(viewportOrthographicMatrix_, 1, 0, math::value_ptr(orthMat));
-			shader_->turnOff();
+			shader_->turnOff(); 
 		}
 
 		void UpdatePass::initUniform()
@@ -137,7 +146,7 @@ namespace scene
 
 	void TerrainUpdater::initPass(int w, int h)
 	{
-		quad_ = getQuadRenderNode(V3f(0.5,0.0,0.0),0.5f,false);
+		quad_ = getQuadRenderNode(V3f(0.5,0.5,0.0),0.5f,false);
 
 		updatePass_ = new internal::UpdatePass(w,h);
 		normalPass_ = new internal::ComputeNormalPass(w,h);
@@ -258,24 +267,6 @@ namespace scene
 		(flag) ? heightMap_.heightTextureObj_->bind() : heightMap_.heightTextureObj_->unBind();
 	}
 
-	bool TerrainUpdater::initDiffMap(const char* file)
-	{
-		diffuseTexture_ = new ::Texture(file);
-		diffuseTexture_->target_ = GL_TEXTURE_2D;
-		if (diffuseTexture_->loadData())
-		{
-			diffuseTexture_->createObj();
-			diffuseTexture_->bind();
-			diffuseTexture_->mirrorRepeat();
-			diffuseTexture_->filterLinear();
-			if (!diffuseTexture_->context(NULL))
-			{
-				return false;
-			}
-			CHECK_GL_ERROR;
-		}
-	}
-
 	void TerrainUpdater::renderTileToLevelTexture(const RasterTileRegion*region, TerrainRasterLevel *level, const ::base::SmartPointer<TileData>  data)
 	{
 		TerrainClipLevel * tcl = dynamic_cast<TerrainClipLevel*>(level);
@@ -289,15 +280,13 @@ namespace scene
 
 		int width = region->right() - region->left() + 1;
 		int height = region->top() - region->buttom() + 1;
-
+		
 		updatePass_->shader_->turnOn();
 		updatePass_->shader_->setFloat2(updatePass_->updateSize_, width, height);
 		updatePass_->shader_->setFloat2(updatePass_->sourceOrigin_, region->left(), region->buttom());
 		updatePass_->shader_->setFloat2(updatePass_->destinationOffset_, destWest, destSouth);
-		glDisable(GL_DEPTH_TEST);
 		updatePass_->draw(data->getTexture(),tcl->heigtTexture());
 		updatePass_->shader_->turnOff();
-		glEnable(GL_DEPTH_TEST);
 	}
 
 	void TerrainUpdater::splitUpdateToAvoidWrapping(const RasterExtent*update, const TerrainRasterLevel*level, std::vector<RasterExtent>&extents)
