@@ -1,12 +1,12 @@
---VERTEX-sphere
 #version 330 core
 
 uniform mat4 view;
 uniform mat4 projection; 
 
-int g_SphereMeridianSlices = 128;
+int g_SphereMeridianSlices  = 128;
 int g_SphereParallelSlices = 128;
 
+out vec2 texCoord;
 void main()
 {
     
@@ -28,5 +28,5 @@ void main()
     VertexPosition.z = cos_angle1 * cos_angle2;
     
     texCoord = vec2(meridianPart, parallelPart );
-    gl_Position = projection * view * vec4(VertexPosition,1.0);
+    gl_Position = projection * view * vec4(VertexPosition,1.0);		
 }
