@@ -83,7 +83,7 @@ bool GLApplication::initialize(int width, int height, const char *title, bool gu
 
 	enAssert(windowManager_);
 
-	windowManager_->createWindow(1024, 960, title);
+	windowManager_->createWindow(width_, hight_, title);
 
 	if (gui)
 		windowManager_->initGui();
