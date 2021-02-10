@@ -76,16 +76,7 @@ install(TARGETS gpu_tess_3dterrain RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/b
 
 # ================================================= geom_clipMap===================================================================================
 
-set(geom_clipMap_Source_Files  	geoClipMap/main.cpp 
-								geoClipMap/geometry_clipmappings_terrain.cpp
-								geoClipMap/terrainRender.cpp
-								geoClipMap/footPrints.h
-								geoClipMap/footPrints.cpp
-								geoClipMap/layer.h
-								geoClipMap/layer.cpp							
-								geoClipMap/terrainUpdater.cpp							
-								geoClipMap/terrainUpdater.h	
-								geoClipMap/geometry_clipmappings_terrain.h)
+set(geom_clipMap_Source_Files  	geoClipMap/main.cpp geoClipMap/geoClipMapping.h geoClipMap/geoClipMapping.cpp)
 add_executable(geom_clipMap ${geom_clipMap_Source_Files})
 add_dependencies(geom_clipMap ${engineName})
 source_group("Source Files" FILES ${geom_clipMap_Source_Files})
