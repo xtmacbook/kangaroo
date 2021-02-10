@@ -433,6 +433,8 @@ bool Texture::contextNULL()
 		break;
 	case GL_TEXTURE_CUBE_MAP_ARRAY:
 		break;
+	case GL_TEXTURE_RECTANGLE:
+		glTexStorage2D(GL_TEXTURE_RECTANGLE, miplevels(), interFormat(), width(), heigh());
 	default:
 		break;// Should never happen
 	}
@@ -482,7 +484,7 @@ void Texture::filterLinear()
 }
 void Texture::filterNearest()
 {
-	if (miplevels())
+	if (miplevels() && target() != GL_TEXTURE_RECTANGLE)
 	{
 		glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 		eMinFilter = GL_NEAREST_MIPMAP_NEAREST;
