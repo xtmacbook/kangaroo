@@ -141,15 +141,16 @@ namespace scene
 		pbo_->create_buffers(2);
 
 		texture_ = new Texture();
+		texture_->target_ = GL_TEXTURE_RECTANGLE;
 		texture_->width_ = w;
 		texture_->height_ = h;
 		texture_->format_ = GL_RED;
-		texture_->internalformat_ = GL_R16;
+		texture_->internalformat_ = GL_R16F;
 		texture_->type_ = GL_UNSIGNED_SHORT;
 		texture_->createObj();
 		texture_->bind();
-		texture_->mirrorRepeat();
-		texture_->filterLinear();
+		texture_->clampToEdge();
+		texture_->filterNearest();
 		texture_->contextNULL();
 		texture_->unBind();
 	}
@@ -178,9 +179,10 @@ namespace scene
 		pbo_->setDataSize(pbo_->blockSize());
 		pbo_->flush_data(false);
 		texture_->bind();
-		if(hight_) glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture_->width(), texture_->heigh(), GL_RED, GL_UNSIGNED_SHORT, 0);
-		texture_->unBind();
+		if(hight_) glTexSubImage2D(texture_->target(), 0, 0, 0, 
+			texture_->width(), texture_->heigh(), texture_->externFormat(), texture_->type(), 0);
 		pbo_->unbind();
+		texture_->unBind();
 
 		CHECK_GL_ERROR;
 	}
